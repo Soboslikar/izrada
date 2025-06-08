@@ -6,31 +6,91 @@
     <title>DUĆAN SKENER</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-color: #f4f4f4; }
-        header, footer { background-color: #333; color: white; padding: 1em; text-align: center; width: 100%; }
-        main { padding: 10px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 10px; width: 95%; max-width: 600px; }
-        h1, h2, h3 { color: #333; }
-        button { display: block; width: 100%; padding: 15px; margin-bottom: 10px; font-size: 16px; color: white; background-color: #007bff; border: none; border-radius: 5px; cursor: pointer; }
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: #f4f4f4; 
+        }
+        body:has(#ekran-skeniranja:not(.hidden)) {
+            overflow-y: hidden; 
+        }
+
+        header, footer { 
+            background-color: #333; 
+            color: white; 
+            padding: 1em; 
+            text-align: center; 
+            width: 100%; 
+            flex-shrink: 0; 
+            z-index: 5; 
+            position: relative; 
+        }
+
+        main { 
+            padding: 10px; 
+            background-color: white; 
+            border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            margin-top: 10px; 
+            width: 95%; 
+            max-width: 600px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column;
+            overflow: hidden; 
+        }
+
+        main:has(#ekran-skeniranja:not(.hidden)) {
+            margin-top: 0; 
+            padding: 0;    
+            border-radius: 0; 
+            box-shadow: none; 
+            width: 100%; 
+            max-width: 100%; 
+            height: calc(100vh - (var(--header-height, 0px) + var(--footer-height, 0px)));
+        }
+        
+        main > section {
+            width: 100%;
+            height: 100%; 
+            overflow-y: auto; 
+            padding: 10px; 
+            box-sizing: border-box;
+        }
+        main > section#ekran-skeniranja:not(.hidden) {
+            padding: 0;
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        button { display: block; width: calc(100% - 20px); margin: 10px auto; padding: 15px; font-size: 16px; color: white; background-color: #007bff; border: none; border-radius: 5px; cursor: pointer; }
         button:hover { background-color: #0056b3; }
         #btn-nastavi-zadnja-trgovina { background-color: #28a745; }
         #btn-nastavi-zadnja-trgovina:hover { background-color: #1e7e34; }
         #btn-povijest { background-color: #6c757d; }
         #btn-povijest:hover { background-color: #545b62; }
-        select { width:100%; padding:10px; margin-bottom:10px; font-size: 16px; }
-        input[type="text"], input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px;}
+        select { width: calc(100% - 20px); margin: 10px auto; padding:10px; font-size: 16px; display: block; box-sizing: border-box;}
+        input[type="text"], input[type="number"] { width: calc(100% - 20px); margin: 10px auto; padding: 10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px; display: block; box-sizing: border-box;}
 
-        .hidden { display: none !important; } /* Dodan !important da osigura skrivanje */
 
-        /* Stilovi inspirirani QR Računatorom za ekran skeniranja */
+        .hidden { display: none !important; }
+
         #qr-reader-wrapper {
             position: relative; 
             width: 100%;
-            height: 50vh; 
-            max-height: 400px; 
+            height: 60vh; 
+            min-height: 300px; 
+            max-height: 500px; 
             background-color: #000; 
-            margin-bottom: 15px; 
-            border: 1px solid #ccc; 
+            border: none; 
             overflow: hidden; 
+            flex-shrink: 0; 
         }
 
         #qr-reader { 
@@ -61,31 +121,35 @@
             padding: 10px; 
             box-sizing: border-box;
             z-index: 10; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.0) 100%); 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.0) 100%);
             pointer-events: none; 
         }
 
         #info-trgovina-skeniranje-overlay, #status-skenera-overlay {
             color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8); 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9); 
             pointer-events: auto; 
         }
 
         #info-trgovina-skeniranje-overlay {
-            font-size: 1.1em; 
+            font-size: 1.2em; 
             font-weight: bold;
-            margin: 0 0 5px 0; 
+            margin: 5px 0; 
+            padding-left: 5px; 
         }
 
         #status-skenera-overlay {
-            font-size: 0.85em; 
-            margin: 0;
+            font-size: 0.9em; 
+            margin: 0; 
+            padding-left: 5px; 
         }
         
         #sadrzaj-ispod-skenera {
-            padding: 0;
+            padding: 10px; 
             width: 100%; 
             box-sizing: border-box;
+            flex-grow: 1; 
+            overflow-y: auto; 
         }
 
         #skenirani-proizvodi-lista-container, #info-skeniranog-proizvoda-container, #rezultati-pretrage-proizvoda, #lista-proizvoda-pretraga {
@@ -94,11 +158,22 @@
         .proizvod-na-listi { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ddd; }
         .proizvod-na-listi:last-child { border-bottom: none; }
 
-        /* --- NOVI CSS STILOVI ZA ODABIR KAMERE --- */
+        #switch-camera-btn {
+            /* Stilovi su definirani inline u HTML-u, ali ovi !important osiguravaju poziciju */
+            top: 15px !important; 
+            right: 15px !important;
+            z-index: 20 !important; 
+        }
         #switch-camera-btn:active {
             background-color: rgba(0, 0, 0, 0.7);
         }
 
+        #camera-selection-overlay {
+            /* Stilovi su definirani inline u HTML-u, ali ovi !important osiguravaju poziciju */
+            top: 65px !important; 
+            right: 15px !important;
+            z-index: 21 !important;
+        }
         #camera-list li {
             padding: 8px 12px;
             cursor: pointer;
@@ -114,7 +189,7 @@
             font-weight: bold;
             background-color: #e0e0e0;
         }
-        /* Sakrij nove elemente ako nije ekran skeniranja */
+        /* Sakrij elemente kamere ako nije ekran skeniranja aktivan */
         body:not(:has(#ekran-skeniranja:not(.hidden))) #switch-camera-btn,
         body:not(:has(#ekran-skeniranja:not(.hidden))) #camera-selection-overlay {
             display: none !important;
@@ -157,19 +232,15 @@
 
         <!-- Ekran 4: Ekran skeniranja (novi raspored + odabir kamere) -->
         <section id="ekran-skeniranja" class="hidden">
-            <!-- NOVI ELEMENTI za odabir kamere (iz QR Računatora) -->
-            <button id="switch-camera-btn" style="display: none; position: fixed; top: 70px; right: 15px; z-index: 20; padding: 8px 10px; background-color: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; font-size: 1.6em; line-height: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">🔄</button>
-            <div id="camera-selection-overlay" style="display: none; position: fixed; top: 120px; right: 15px; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 21; padding: 5px 0; max-height: 150px; overflow-y: auto; min-width: 180px;">
+            <button id="switch-camera-btn" style="display: none; position: fixed; top: 15px; right: 15px; z-index: 20; padding: 8px 10px; background-color: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; font-size: 1.6em; line-height: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">🔄</button>
+            <div id="camera-selection-overlay" style="display: none; position: fixed; top: 65px; right: 15px; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 21; padding: 5px 0; max-height: 150px; overflow-y: auto; min-width: 180px;">
                 <ul id="camera-list" style="list-style: none; padding: 0; margin: 0;">
-                    <!-- Popis kamera će se dinamički popuniti -->
                 </ul>
             </div>
-            <!-- KRAJ NOVIH ELEMENATA -->
 
-            <div id="qr-reader-wrapper"> <!-- Roditeljski kontejner za skener i overlay -->
-                <div id="qr-reader"></div> <!-- Kontejner gdje html5-qrcode renderira video -->
-                
-                <div id="skener-overlay-gornji"> <!-- Overlay koji ide preko videa -->
+            <div id="qr-reader-wrapper">
+                <div id="qr-reader"></div>
+                <div id="skener-overlay-gornji">
                     <h2 id="info-trgovina-skeniranje-overlay">Trgovina: [Naziv Trgovine]</h2>
                     <p id="status-skenera-overlay">Pokretanje kamere...</p>
                 </div>
@@ -201,7 +272,6 @@
 
         <!-- Ekran 5: Ekran pretraživanja i liste -->
         <section id="ekran-pretrage-i-liste" class="hidden">
-             <!-- ... (sadržaj ovog ekrana ostaje isti) ... -->
             <h2>Pretraga proizvoda u <span id="naziv-trgovine-za-pretragu">[Naziv Trgovine]</span></h2>
             <input type="text" id="input-pretraga-proizvoda" placeholder="Unesi naziv proizvoda...">
             <div id="rezultati-pretrage-proizvoda"></div>
@@ -222,7 +292,7 @@
         
         // --- KONSTANTE ---
         const API_BASE_URL = "https://api.cijene.dev";
-        const API_KEY = "mee5xooThuithei4ees4bae3emos3ook"; // Zamijeni svojim API ključem
+        const API_KEY = "TVOJ_API_KLJUC_OVDJE"; // OBAVEZNO ZAMIJENI SVOJIM API KLJUČEM!
         const CAMERA_ID_KEY = 'ducanSkenerSelectedCameraID'; 
 
         // --- DOM ELEMENTI ---
@@ -566,7 +636,7 @@
         }
 
         async function stopScanner() {
-            if (html5QrCode && (html5QrCode.isScanning || isScannerActive)) { // Provjeri i isScannerActive
+            if (html5QrCode && (html5QrCode.isScanning || isScannerActive)) { 
                 isScannerActive = false; 
                 console.log("Zaustavljam skener...");
                 try {
@@ -672,6 +742,22 @@
         if(btnNazadSaPretrageNaAkcije) btnNazadSaPretrageNaAkcije.addEventListener('click', () => { prikaziEkran('glavni-ekran-akcija'); });
 
         document.addEventListener('DOMContentLoaded', () => { 
+            const header = document.querySelector('header');
+            const footer = document.querySelector('footer');
+            let headerHeight = 0;
+            let footerHeight = 0;
+
+            if (header) {
+                headerHeight = header.offsetHeight;
+                document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+            }
+            if (footer) {
+                footerHeight = footer.offsetHeight;
+                document.documentElement.style.setProperty('--footer-height', `${footerHeight}px`);
+            }
+            
+            console.log("Header height:", headerHeight, "Footer height:", footerHeight);
+
             if(document.getElementById('trenutna-godina')) document.getElementById('trenutna-godina').textContent = new Date().getFullYear(); 
             azurirajGumbNastavi(); 
             prikaziEkran('pocetni-ekran'); 
