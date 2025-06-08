@@ -1,0 +1,329 @@
+/* Osnovni stilovi */
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    margin: 0; 
+    padding: 1px; /* Za sprječavanje margin collapse */
+    background-color: #f0f0f0;
+    min-height: 100vh;
+    box-sizing: border-box;
+    color: #333;
+}
+
+header, footer { 
+    background-color: #333; 
+    color: white; 
+    padding: 1em; 
+    text-align: center; 
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+main { 
+    padding: 15px; 
+    background-color: white; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+    margin-top: 20px; 
+    margin-bottom: 20px;
+    width: 95%; 
+    max-width: 600px;
+    box-sizing: border-box;
+}
+
+h1, h2, h3 { 
+    color: #333; 
+    margin-top: 0;
+}
+h1 { font-size: 1.8em; }
+h2 { margin-bottom: 15px; font-size: 1.5em; }
+h3 { margin-bottom: 10px; font-size: 1.2em; }
+
+
+/* Stilovi za gumbe */
+button {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    margin-bottom: 12px;
+    font-size: 1em;
+    font-weight: 500;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+button:hover {
+    background-color: #0056b3;
+}
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+button.btn-secondary {
+    background-color: #6c757d;
+}
+button.btn-secondary:hover {
+    background-color: #545b62;
+}
+#btn-nastavi-zadnja-trgovina { background-color: #28a745; }
+#btn-nastavi-zadnja-trgovina:hover { background-color: #1e7e34; }
+#btn-dodaj-skenirano-na-listu { background-color: #28a745; }
+#btn-dodaj-skenirano-na-listu:hover { background-color: #1e7e34; }
+
+
+/* Stilovi za input polja i select */
+select, input[type="text"], input[type="number"] { 
+    width:100%; 
+    padding:10px; 
+    margin-bottom:12px; 
+    font-size: 1em; 
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type="number"]#skenirana-kolicina { /* Specifično za količinu */
+    width: 80px; 
+    text-align: center;
+}
+
+
+/* Sakriveni elementi */
+.hidden { 
+    display: none !important; 
+}
+
+/* Lista proizvoda (općenito za sve liste) */
+.lista-proizvoda-container {
+    border: 1px solid #eee; 
+    padding: 10px; 
+    margin-bottom: 15px; 
+    background-color: #f9f9f9; 
+    min-height: 50px;
+    border-radius: 5px;
+}
+.proizvod-na-listi { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 8px 0; 
+    border-bottom: 1px dotted #ddd; 
+    font-size: 0.95em;
+}
+.proizvod-na-listi:last-child { 
+    border-bottom: none; 
+}
+.proizvod-na-listi .naziv { flex-grow: 1; margin-right: 10px; }
+.proizvod-na-listi .cijena { font-weight: bold; white-space: nowrap; }
+.proizvod-na-listi .ukloni-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+    width: auto; 
+    margin-bottom: 0; 
+}
+
+
+/* --- Stilovi za SKENER EKRAN --- */
+#scanner-ui-container {
+    margin-bottom: 15px;
+}
+
+#reader-container { 
+    position: relative; 
+    width: 100%;
+    height: 30vh;   
+    min-height: 250px; 
+    background-color: #000; 
+    border: 1px solid #ccc;
+    overflow: hidden; 
+    border-radius: 5px; 
+}
+#reader { 
+    width: 100%;
+    height: 100%;
+}
+#reader video, 
+#reader > div > video { 
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover; 
+}
+
+#scan-instruction {
+    position: absolute;
+    top: 10px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    text-align: center;
+    color: white;
+    font-size: 0.9em;
+    font-weight: bold;
+    z-index: 10; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none; 
+    display: none; 
+}
+
+.scanner-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px; 
+}
+.scanner-controls .messages {
+    text-align: center;
+    margin-bottom: 10px;
+    min-height: 1.2em; 
+    width: 100%;
+    font-size: 0.9em;
+}
+.scanner-controls .status { color: #007bff; }
+.scanner-controls .error { color: #dc3545; font-weight: bold; }
+
+/* Gumb za start/stop skenera */
+#startStopScanButton {
+    background-color: #5cb85c; /* Zelena za start */
+}
+#startStopScanButton.stop-btn {
+    background-color: #d9534f; /* Crvena za stop */
+}
+#startStopScanButton.stop-btn:hover {
+    background-color: #c9302c;
+}
+
+
+#scanResultContainer { 
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 1em;
+    color: #495057;
+    word-break: break-all; 
+}
+#scanResultContainer span { font-weight: bold; }
+
+/* Gumb za promjenu kamere */
+#switch-camera-btn {
+    position: absolute; 
+    top: 10px;
+    right: 10px;
+    z-index: 20; 
+    padding: 6px 8px;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    border: none;
+    border-radius: 50%; 
+    font-size: 1.5em;  
+    line-height: 1;    
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    display: none; 
+    width: auto; 
+    margin-bottom: 0; 
+}
+#switch-camera-btn:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+#switch-camera-btn:active {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Overlay za listu kamera */
+#camera-selection-overlay {
+    position: absolute; 
+    top: 50px; 
+    right: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 21; 
+    padding: 5px 0; 
+    display: none;   
+    max-height: 150px; 
+    overflow-y: auto; 
+    min-width: 180px; 
+    width: auto;
+}
+#camera-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#camera-list li {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333; 
+}
+#camera-list li:hover {
+    background-color: #f0f0f0;
+}
+#camera-list li.selected-camera { 
+    font-weight: bold;
+    background-color: #e0e0e0;
+}
+
+/* Stil za prikaz informacija o skeniranom proizvodu (nakon dohvata s API-ja) */
+#info-skeniranog-proizvoda-container {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+#info-skeniranog-proizvoda-container p {
+    margin: 0 0 8px 0;
+    font-size: 0.95em;
+}
+#info-skeniranog-proizvoda-container span {
+    font-weight: normal; 
+}
+#info-skeniranog-proizvoda-container p strong {
+    font-weight: 500; 
+}
+
+/* Stilovi za ekran pretrage */
+#rezultati-pretrage-proizvoda-div .proizvod-u-rezultatu {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#rezultati-pretrage-proizvoda-div .proizvod-u-rezultatu:last-child {
+    border-bottom: none;
+}
+#rezultati-pretrage-proizvoda-div .proizvod-info {
+    flex-grow: 1;
+}
+#rezultati-pretrage-proizvoda-div .proizvod-info .ime { font-weight: bold; }
+#rezultati-pretrage-proizvoda-div .proizvod-info .cijena { color: #28a745; }
+#rezultati-pretrage-proizvoda-div .dodaj-iz-pretrage-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    width: auto;
+    margin-bottom: 0;
+    background-color: #17a2b8; /* Info boja */
+}
+#rezultati-pretrage-proizvoda-div .dodaj-iz-pretrage-btn:hover {
+    background-color: #117a8b;
+}
