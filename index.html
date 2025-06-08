@@ -3,123 +3,446 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>DUĆAN SKENER</title>
+    <title>EAN Skener s Odabirom Kamere</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 1px; 
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        #reader-container { 
+            position: relative; /* Važno za pozicioniranje gumba kamere */
+            width: 100%;
+            max-width: 500px; 
+            height: 30vh;     
+            min-height: 250px;
+            background-color: #000; 
+            border: 1px solid #ccc;
+            margin-bottom: 15px; 
+            overflow: hidden; 
+        }
+        #reader { 
+            width: 100%;
+            height: 100%;
+        }
+        #reader video, 
+        #reader > div > video { 
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover; 
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 450px;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            width: 100%; 
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #scanResultContainer {
+            width: 100%;
+        }
+        #scanResult {
+            margin-top: 0; 
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            word-break: break-all; 
+        }
+        .messages {
+            text-align: center;
+            margin-bottom: 10px;
+            min-height: 1.2em; 
+            width: 100%;
+        }
+        .status { color: #007bff; }
+        .error { color: #dc3545; font-weight: bold; }
+
+        #scan-instruction {
+            position: absolute;
+            top: 10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            text-align: center;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            z-index: 10; 
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            pointer-events: none; 
+            display: none; 
+        }
+
+        /* --- NOVI STILOVI ZA ODABIR KAMERE --- */
+        #switch-camera-btn {
+            position: absolute; /* Pozicionirano unutar #reader-container */
+            top: 10px;
+            right: 10px;
+            z-index: 20; /* Iznad videa i uputa */
+            padding: 6px 8px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            border-radius: 50%; /* Okrugli gumb */
+            font-size: 1.5em;  /* Veličina ikonice */
+            line-height: 1;    /* Da ikonica bude centrirana */
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            display: none; /* Početno skriven, JS ga prikazuje */
+            width: auto; /* Poništi globalni width za button */
+            margin-bottom: 0; /* Poništi globalni margin-bottom */
+        }
+        #switch-camera-btn:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        #switch-camera-btn:active {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        #camera-selection-overlay {
+            position: absolute; /* Pozicionirano unutar #reader-container ili body ako želimo da ide preko svega */
+            top: 50px;          /* Ispod gumba */
+            right: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 21;      /* Iznad gumba */
+            padding: 5px 0; 
+            display: none;   
+            max-height: 150px; 
+            overflow-y: auto; 
+            min-width: 180px; 
+            width: auto;
+        }
+        #camera-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #camera-list li {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #333; /* Boja teksta za bolju čitljivost na bijeloj pozadini */
+        }
+        #camera-list li:hover {
+            background-color: #f0f0f0;
+        }
+        #camera-list li.selected-camera { 
+            font-weight: bold;
+            background-color: #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>DUĆAN SKENER</h1>
-    </header>
-
-    <main id="app-container">
-        <!-- Ekran 1: Početni ekran -->
-        <section id="pocetni-ekran">
-            <h2>Dobrodošli!</h2>
-            <p>Što želite učiniti?</p>
-            <button id="btn-izaberi-trgovinu">Izaberi trgovinu</button>
-            <button id="btn-trazi-proizvode-pocetna">Traži proizvode</button>
-            <button id="btn-nastavi-zadnja-trgovina" class="hidden">Nastavi s [Naziv Zadnje Trgovine]</button>
-            <button id="btn-povijest">Povijest</button>
-        </section>
-
-        <!-- Ekran 2: Odabir trgovine -->
-        <section id="ekran-odabir-trgovine" class="hidden">
-            <h2>Odaberi trgovinu:</h2>
-            <select id="select-trgovina">
-                <option value="">Učitavanje trgovina...</option>
-            </select>
-            <button id="btn-potvrdi-trgovinu" disabled>Potvrdi odabir</button>
-            <button id="btn-nazad-na-pocetnu-sa-odabira" class="btn-secondary">Nazad</button>
-        </section>
-
-        <!-- Ekran 3: Glavni ekran akcija -->
-        <section id="glavni-ekran-akcija" class="hidden">
-            <h2 id="info-odabrana-trgovina">Trgovina: [Naziv Trgovine]</h2>
-            <button id="btn-skeniraj-proizvod">Skeniraj proizvod</button>
-            <button id="btn-pretrazi-proizvode-glavni">Pretraži proizvode (Lista)</button>
-            <button id="btn-promijeni-trgovinu" class="btn-secondary">Promijeni trgovinu</button>
-        </section>
-
-        <!-- Ekran 4: Ekran skeniranja -->
-        <section id="ekran-skeniranja" class="hidden">
-            <h2 id="info-trgovina-skeniranje">Skeniranje za [Naziv Trgovine]</h2>
-
-            <div id="skenirani-proizvodi-lista-container" class="lista-proizvoda-container">
-                <h3>Moja lista:</h3>
-                <div id="skenirani-proizvodi-lista">
-                    <p style="font-style:italic; text-align:center;">Lista je prazna.</p>
-                </div>
-                <p><strong>Ukupno: <span id="ukupno-cijena-skeniranje">0.00</span> EUR</strong></p>
-            </div>
-
-            <div id="scanner-ui-container">
-                <div id="reader-container">
-                    <div id="reader"></div>
-                    <div id="scan-instruction">Pozicioniraj barkod unutar označenog pravokutnika</div>
-                    <button id="switch-camera-btn" title="Promijeni kameru">🔄</button>
-                    <div id="camera-selection-overlay">
-                        <ul id="camera-list"></ul>
-                    </div>
-                </div>
-                
-                <div class="scanner-controls">
-                    <div class="messages">
-                        <p id="scannerStatusText" class="status">Kliknite "Pokreni Skener"</p>
-                        <p id="scannerErrorText" class="error"></p>
-                    </div>
-                    <button id="startStopScanButton">Pokreni Skener</button>
-                    <div id="scanResultContainer" class="hidden">
-                        <p><strong>Skenirani EAN:</strong> <span id="scannedEanResultSpan"></span></p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="info-skeniranog-proizvoda-container" class="hidden">
-                <h3>Detalji proizvoda:</h3>
-                <p><strong>Naziv:</strong> <span id="skeniran-naziv"></span></p>
-                <p><strong>Cijena:</strong> <span id="skenirana-cijena"></span> EUR</p>
-                <p><strong>Cijena po JM:</strong> <span id="skenirana-cijena-po-jm"></span></p>
-                <div>
-                    <label for="skenirana-kolicina">Količina:</label>
-                    <input type="number" id="skenirana-kolicina" value="1" min="1">
-                </div>
-                <button id="btn-dodaj-skenirano-na-listu">Dodaj na listu</button>
-            </div>
-            <button id="btn-nazad-sa-skeniranja" class="btn-secondary">Nazad na akcije</button>
-        </section>
-
-        <!-- Ekran 5: Ekran pretraživanja i liste -->
-        <section id="ekran-pretrage-i-liste" class="hidden">
-            <h2>Pretraga proizvoda <span id="naziv-trgovine-za-pretragu"></span></h2>
-            <input type="text" id="input-pretraga-proizvoda" placeholder="Unesi naziv proizvoda...">
-            <div id="rezultati-pretrage-proizvoda-div">
-                <!-- Rezultati pretrage -->
-            </div>
-            <h3>Moja Lista (Pretraga):</h3>
-            <div id="lista-proizvoda-pretraga-container" class="lista-proizvoda-container">
-                <div id="lista-proizvoda-pretraga">
-                     <p style="font-style:italic; text-align:center;">Lista je prazna.</p>
-                </div>
-                <p><strong>Ukupno: <span id="ukupno-cijena-pretraga">0.00</span> EUR</strong></p>
-            </div>
-            <button id="btn-usporedi-cijene-sa-pretrage">Usporedi cijene liste</button>
-            <button id="btn-nazad-sa-pretrage-na-akcije" class="btn-secondary">Nazad na akcije</button>
-        </section>
+    
+    <div id="reader-container">
+        <div id="reader"></div>
+        <div id="scan-instruction">Pozicioniraj barkod unutar označenog pravokutnika</div>
+        <!-- Gumb za promjenu kamere i overlay su SADA UNUTAR reader-container -->
+        <button id="switch-camera-btn">🔄</button>
+        <div id="camera-selection-overlay">
+            <ul id="camera-list"></ul>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="messages">
+            <p id="statusText" class="status">Kliknite "Pokreni Skener"</p>
+            <p id="errorText" class="error"></p>
+        </div>
         
-        <!-- Ekran 6: Povijest -->
-        <section id="ekran-povijesti" class="hidden">
-            <h2>Povijest</h2>
-            <p>Ovdje će biti prikazana povijest...</p>
-            <button id="btn-nazad-sa-povijesti" class="btn-secondary">Nazad na početnu</button>
-        </section>
+        <button id="startStopButton">Pokreni Skener</button>
+        
+        <div id="scanResultContainer">
+            <div id="scanResult">Skenirani kod: Još nema</div>
+        </div>
+    </div>
 
-    </main>
+    <script>
+        const readerContainer = document.getElementById('reader-container');
+        const readerDiv = document.getElementById('reader');
+        const startStopButton = document.getElementById('startStopButton');
+        const scanResultDiv = document.getElementById('scanResult');
+        const statusTextElem = document.getElementById('statusText');
+        const errorTextElem = document.getElementById('errorText');
+        const scanInstructionElem = document.getElementById('scan-instruction');
 
-    <footer>
-        <p>© <span id="trenutna-godina"></span> DUĆAN SKENER</p>
-    </footer>
+        // NOVI DOM Elementi za odabir kamere
+        const switchCameraButton = document.getElementById('switch-camera-btn');
+        const cameraSelectionOverlay = document.getElementById('camera-selection-overlay');
+        const cameraListUl = document.getElementById('camera-list');
 
-    <script src="app.js" defer></script>
+        const CAMERA_ID_KEY = 'eanSkenerSelectedCameraID'; // Ključ za localStorage
+
+        let html5QrCode = null; 
+        let isScannerRunning = false;
+        let availableCameras = []; // Popis dostupnih kamera
+
+        function clearMessages() {
+            statusTextElem.textContent = '';
+            errorTextElem.textContent = '';
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            clearMessages();
+            console.log(`Skeniran kod: ${decodedText}`, decodedResult);
+            scanResultDiv.textContent = `Skenirani kod: ${decodedText}`;
+
+            if (decodedResult.result && decodedResult.result.format && 
+                (decodedResult.result.format.formatName === "EAN_13" || decodedResult.result.format.formatName === "EAN_8" || decodedResult.result.format.formatName === "UPC_A" || decodedResult.result.format.formatName === "UPC_E")) {
+                statusTextElem.textContent = `✔️ ${decodedResult.result.format.formatName} kod pronađen!`;
+            } else if (decodedResult.result && decodedResult.result.format) {
+                statusTextElem.textContent = `✔️ Format: ${decodedResult.result.format.formatName}`;
+            } else {
+                statusTextElem.textContent = "✔️ Kod pronađen!";
+            }
+        }
+
+        function onScanFailure(error) {
+            // console.warn(`Greška skeniranja: ${error}`);
+        }
+
+        async function initializeAndStartScanner(requestedCameraId = null) {
+            if (isScannerRunning) return;
+
+            clearMessages();
+            statusTextElem.textContent = "Inicijalizacija skenera...";
+            readerDiv.innerHTML = ""; 
+            scanInstructionElem.style.display = 'none';
+            if (switchCameraButton) switchCameraButton.style.display = 'none';
+            if (cameraSelectionOverlay) cameraSelectionOverlay.style.display = 'none';
+
+
+            if (!html5QrCode) { // Stvori instancu samo ako ne postoji
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            const config = {
+                fps: 10, 
+                qrbox: (viewfinderWidth, viewfinderHeight) => {
+                    let widthPercentage = 0.80; 
+                    let heightToWidthRatio = 0.35; 
+                    let qrboxWidth = Math.floor(viewfinderWidth * widthPercentage);
+                    let qrboxHeight = Math.floor(qrboxWidth * heightToWidthRatio);
+                    qrboxWidth = Math.max(200, qrboxWidth);
+                    qrboxHeight = Math.max(70, qrboxHeight); 
+                    qrboxWidth = Math.min(viewfinderWidth - 40, qrboxWidth); 
+                    qrboxHeight = Math.min(viewfinderHeight - 40, qrboxHeight); 
+                    return { width: qrboxWidth, height: qrboxHeight };
+                },
+                // rememberLastUsedCamera: true, // Mi ćemo upravljati s ovim
+            };
+
+            try {
+                // Dohvati kamere ako lista nije popunjena
+                if (availableCameras.length === 0) {
+                    statusTextElem.textContent = "Dohvaćam kamere...";
+                    const devices = await Html5Qrcode.getCameras();
+                    if (devices && devices.length) {
+                        availableCameras = devices;
+                        console.log("Dostupne kamere:", availableCameras);
+                    } else {
+                        statusTextElem.textContent = "Nema dostupnih kamera.";
+                        errorTextElem.textContent = "Provjerite dozvole za kameru.";
+                        return;
+                    }
+                }
+
+                let cameraIdToUse = requestedCameraId;
+                if (!cameraIdToUse) {
+                    const savedCameraId = localStorage.getItem(CAMERA_ID_KEY);
+                    if (savedCameraId && availableCameras.some(d => d.id === savedCameraId)) {
+                        cameraIdToUse = savedCameraId;
+                        console.log("Koristim spremljenu kameru:", cameraIdToUse);
+                    } else {
+                        const rearCamera = availableCameras.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('zadnja') || d.label.toLowerCase().includes('environment'));
+                        if (rearCamera) {
+                            cameraIdToUse = rearCamera.id;
+                            console.log("Koristim stražnju kameru:", cameraIdToUse);
+                        } else if (availableCameras.length > 0) {
+                            cameraIdToUse = availableCameras[0].id; // Prva dostupna
+                            console.log("Koristim prvu dostupnu kameru:", cameraIdToUse);
+                        }
+                    }
+                }
+                
+                if (!cameraIdToUse) {
+                    statusTextElem.textContent = "Nije moguće odabrati kameru.";
+                    return;
+                }
+
+                statusTextElem.textContent = "Pokretanje kamere...";
+                await html5QrCode.start(
+                    cameraIdToUse, 
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                );
+                isScannerRunning = true;
+                localStorage.setItem(CAMERA_ID_KEY, cameraIdToUse); // Spremi korištenu kameru
+                startStopButton.textContent = "Zaustavi Skener";
+                scanResultDiv.textContent = "Skenirani kod: Čekam...";
+                statusTextElem.textContent = "Kamera aktivna.";
+                scanInstructionElem.style.display = 'block';
+                if (availableCameras.length > 1 && switchCameraButton) {
+                    switchCameraButton.style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error("Greška pri pokretanju kamere: ", err);
+                isScannerRunning = false;
+                startStopButton.textContent = "Pokreni Skener";
+                statusTextElem.textContent = "Greška pri pokretanju kamere.";
+                errorTextElem.textContent = `Problem: ${err.name || err.message || err}`;
+                scanInstructionElem.style.display = 'none';
+                if (switchCameraButton) switchCameraButton.style.display = 'none';
+                if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) { 
+                    html5QrCode.stop().catch(stopErr => console.error("Greška zaustavljanja nakon neuspjelog starta:", stopErr));
+                }
+                // Ne resetiraj html5QrCode instancu ovdje, možda korisnik pokuša s drugom kamerom
+            }
+        }
+
+        async function stopScanner() {
+            if (!isScannerRunning || !html5QrCode) return;
+
+            clearMessages();
+            statusTextElem.textContent = "Zaustavljanje skenera...";
+            scanInstructionElem.style.display = 'none';
+            if (switchCameraButton) switchCameraButton.style.display = 'none';
+            if (cameraSelectionOverlay) cameraSelectionOverlay.style.display = 'none';
+
+
+            try {
+                await html5QrCode.stop();
+                console.log("Skener zaustavljen.");
+            } catch (err) {
+                console.error("Greška pri zaustavljanju skenera: ", err);
+                statusTextElem.textContent = "Greška pri zaustavljanju skenera.";
+            } finally {
+                isScannerRunning = false;
+                startStopButton.textContent = "Pokreni Skener";
+                statusTextElem.textContent = "Skener zaustavljen. Kliknite 'Pokreni Skener'.";
+                readerDiv.innerHTML = ""; 
+            }
+        }
+
+        function toggleCameraSelection() {
+            if (!switchCameraButton || !cameraSelectionOverlay || !cameraListUl) return;
+
+            if (cameraSelectionOverlay.style.display === 'block') {
+                cameraSelectionOverlay.style.display = 'none';
+                return;
+            }
+
+            if (!availableCameras || availableCameras.length <= 1) {
+                statusTextElem.textContent = "Nema drugih kamera za odabir.";
+                setTimeout(() => { 
+                    if(isScannerRunning) statusTextElem.textContent = "Kamera aktivna."; 
+                    else statusTextElem.textContent = "Skener nije aktivan.";
+                }, 2000);
+                return;
+            }
+
+            cameraListUl.innerHTML = ''; 
+            const currentActiveCameraId = localStorage.getItem(CAMERA_ID_KEY);
+
+            availableCameras.forEach(device => {
+                const listItem = document.createElement('li');
+                listItem.textContent = device.label || `Kamera ${device.id.substring(0, 10)}...`;
+                listItem.dataset.cameraId = device.id;
+                listItem.title = device.label || device.id; 
+                if (device.id === currentActiveCameraId) {
+                    listItem.classList.add('selected-camera');
+                }
+                listItem.addEventListener('click', async () => {
+                    cameraSelectionOverlay.style.display = 'none';
+                    if (device.id !== localStorage.getItem(CAMERA_ID_KEY) || !isScannerRunning) {
+                        statusTextElem.textContent = `Mijenjam na ${listItem.textContent}...`;
+                        await stopScanner(); // Zaustavi trenutnu prije pokretanja nove
+                        initializeAndStartScanner(device.id); // Pokreni s odabranom kamerom
+                    } else {
+                        statusTextElem.textContent = "Ta kamera je već aktivna.";
+                    }
+                });
+                cameraListUl.appendChild(listItem);
+            });
+            cameraSelectionOverlay.style.display = 'block';
+        }
+
+
+        startStopButton.addEventListener('click', () => {
+            if (isScannerRunning) {
+                stopScanner();
+            } else {
+                initializeAndStartScanner(); // Pokreni s default/spremljenom kamerom
+            }
+        });
+
+        if (switchCameraButton) {
+            switchCameraButton.addEventListener('click', toggleCameraSelection);
+        }
+        
+        // Globalni listener za zatvaranje overlay-a kamere klikom izvan njega
+        document.addEventListener('click', function(event) {
+            if (cameraSelectionOverlay && cameraSelectionOverlay.style.display === 'block') {
+                const isClickInsideOverlay = cameraSelectionOverlay.contains(event.target);
+                const isClickOnSwitchButton = switchCameraButton && switchCameraButton.contains(event.target);
+                if (!isClickInsideOverlay && !isClickOnSwitchButton) {
+                    cameraSelectionOverlay.style.display = 'none';
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Aplikacija spremna.");
+            // Možemo inicijalno dohvatiti kamere da znamo treba li prikazati gumb
+            if (Html5Qrcode.getCameras) {
+                Html5Qrcode.getCameras()
+                    .then(devices => {
+                        if (devices && devices.length) {
+                            availableCameras = devices;
+                            // Gumb će se prikazati unutar startScanner ako treba
+                        }
+                    })
+                    .catch(err => {
+                        console.warn("Nije moguće inicijalno dohvatiti kamere:", err);
+                    });
+            }
+        });
+    </script>
 </body>
 </html>
