@@ -2,8 +2,8 @@
 <html lang="hr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Osnovni EAN Skener</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EAN Skener (Puni Prikaz)</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { 
@@ -11,24 +11,50 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            margin-top: 20px; 
-            background-color: #f9f9f9;
+            margin: 0; /* Uklonjen margin-top */
+            padding: 10px;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
-        #reader {
+        h1 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        #reader-container { /* Novi wrapper za reader i eventualne overlay-e */
+            position: relative;
             width: 100%;
-            max-width: 450px; /* Malo uže za 1D barkodove */
-            height: 200px;    /* Pravokutniji oblik, bolje za EAN */
-            border: 2px solid #ccc;
-            background-color: #e0e0e0;
+            max-width: 500px; /* Malo širi reader */
+            height: 55vh;     /* Veća visina, slično QR Računatoru */
+            min-height: 250px;
+            background-color: #000; /* Crna pozadina dok se kamera ne učita */
+            border: 1px solid #ccc;
             margin-bottom: 20px;
-            overflow: hidden; /* Da video ne curi */
+            overflow: hidden; 
         }
-        /* Osigurava da video popuni reader div */
+        #reader { /* Ovo je div gdje html5-qrcode stavlja video */
+            width: 100%;
+            height: 100%;
+        }
+        /* Osigurava da video popuni #reader div */
         #reader video, 
         #reader > div > video { /* Ponekad biblioteka doda još jedan div */
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover; 
+            object-fit: cover; /* Ključno za popunjavanje cijelog područja */
+        }
+        
+        /* Stil za div koji html5-qrcode kreira za qrbox overlay (ako postoji) */
+        /* Obično je to div s klasom html5-qrcode-overlay ili slično, ili direktno na video */
+        /* Biblioteka sama crta bijeli qrbox okvir */
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 450px;
         }
         button {
             padding: 12px 25px;
@@ -39,57 +65,85 @@
             border-radius: 5px;
             cursor: pointer;
             margin-bottom: 15px;
-            min-width: 180px;
+            width: 100%; /* Gumbi neka zauzmu širinu kontrola */
         }
         button:hover {
             background-color: #0056b3;
         }
+        #scanResultContainer {
+            width: 100%;
+        }
         #scanResult {
-            margin-top: 15px;
+            margin-top: 0; /* Uklonjen margin-top jer je unutar wrappera */
             padding: 10px;
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 5px;
-            min-width: 280px;
             text-align: center;
             font-size: 1.1em;
             font-weight: bold;
             color: #333;
-            word-break: break-all; /* Za duge kodove */
+            word-break: break-all; 
         }
         .messages {
             text-align: center;
             margin-bottom: 10px;
-            min-height: 1.2em; /* Da ne skače layout */
+            min-height: 1.2em; 
+            width: 100%;
         }
         .status { color: #007bff; }
         .error { color: #dc3545; font-weight: bold; }
+
+        /* Upute iznad skenera, slično QR Računatoru */
+        #scan-instruction {
+            position: absolute;
+            top: 10px; /* Prilagodi po potrebi */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            text-align: center;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            z-index: 10; /* Iznad videa, ali ispod gumba za kameru ako ga dodamo */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            pointer-events: none; /* Da ne ometa interakciju s videom ako je potrebno */
+            display: none; /* Početno skriven, prikazuje se kad kamera krene */
+        }
+
     </style>
 </head>
 <body>
-    <h1>Osnovni EAN Skener</h1>
+    <h1>EAN Skener (Puni Prikaz)</h1>
     
-    <div id="reader"></div>
-    
-    <div class="messages">
-        <p id="statusText" class="status">Kliknite "Pokreni Skener"</p>
-        <p id="errorText" class="error"></p>
+    <div id="reader-container">
+        <div id="reader"></div>
+        <div id="scan-instruction">Pozicioniraj barkod unutar označenog pravokutnika</div>
     </div>
     
-    <button id="startStopButton">Pokreni Skener</button>
-    
-    <div id="scanResultContainer">
-        <div id="scanResult">Skenirani kod: Još nema</div>
+    <div class="controls">
+        <div class="messages">
+            <p id="statusText" class="status">Kliknite "Pokreni Skener"</p>
+            <p id="errorText" class="error"></p>
+        </div>
+        
+        <button id="startStopButton">Pokreni Skener</button>
+        
+        <div id="scanResultContainer">
+            <div id="scanResult">Skenirani kod: Još nema</div>
+        </div>
     </div>
 
     <script>
+        const readerContainer = document.getElementById('reader-container');
         const readerDiv = document.getElementById('reader');
         const startStopButton = document.getElementById('startStopButton');
         const scanResultDiv = document.getElementById('scanResult');
         const statusTextElem = document.getElementById('statusText');
         const errorTextElem = document.getElementById('errorText');
+        const scanInstructionElem = document.getElementById('scan-instruction');
 
-        let html5QrCode = null; // Instanca skenera
+        let html5QrCode = null; 
         let isScannerRunning = false;
 
         function clearMessages() {
@@ -97,71 +151,61 @@
             errorTextElem.textContent = '';
         }
 
-        // Poziva se pri uspješnom skeniranju
         function onScanSuccess(decodedText, decodedResult) {
             clearMessages();
             console.log(`Skeniran kod: ${decodedText}`, decodedResult);
             scanResultDiv.textContent = `Skenirani kod: ${decodedText}`;
 
-            if (decodedResult.result && decodedResult.result.format && decodedResult.result.format.formatName === "EAN_13") {
-                statusTextElem.textContent = "✔️ EAN-13 kod pronađen!";
+            if (decodedResult.result && decodedResult.result.format && 
+                (decodedResult.result.format.formatName === "EAN_13" || decodedResult.result.format.formatName === "EAN_8" || decodedResult.result.format.formatName === "UPC_A" || decodedResult.result.format.formatName === "UPC_E")) {
+                statusTextElem.textContent = `✔️ ${decodedResult.result.format.formatName} kod pronađen!`;
             } else if (decodedResult.result && decodedResult.result.format) {
                 statusTextElem.textContent = `✔️ Format: ${decodedResult.result.format.formatName}`;
             } else {
                 statusTextElem.textContent = "✔️ Kod pronađen!";
             }
-
-            // Možeš odkomentirati da zaustaviš skener nakon prvog uspješnog skena
-            // stopScanner(); 
         }
 
-        // Poziva se ako skeniranje ne uspije (npr. kamera ne može dekodirati)
         function onScanFailure(error) {
-            // Ovo se poziva često, pa nećemo stalno ispisivati grešku korisniku
             // console.warn(`Greška skeniranja: ${error}`);
         }
 
-        // Funkcija za pokretanje skenera
         async function startScanner() {
             if (isScannerRunning) return;
 
             clearMessages();
             statusTextElem.textContent = "Inicijalizacija skenera...";
-            readerDiv.innerHTML = ""; // Očisti prethodni sadržaj ako postoji
+            readerDiv.innerHTML = ""; 
+            scanInstructionElem.style.display = 'none';
 
-            // Stvori novu instancu Html5Qrcode
-            // Parametar "reader" je ID div elementa gdje će se prikazati video stream
             html5QrCode = new Html5Qrcode("reader");
 
-            // Konfiguracija skenera
             const config = {
-                fps: 10, // Preporučeno za mobilne uređaje
+                fps: 10, 
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    // Ciljamo pravokutnik koji je širi nego viši, za EAN barkodove
-                    let widthPercentage = 0.85; // 85% širine viewfindera
-                    let heightToWidthRatio = 0.4; // Visina je 40% širine qrboxa
+                    // Definicija qrbox-a ostaje ista, to je ciljno područje za dekodiranje
+                    let widthPercentage = 0.80; // 80% širine viewfindera
+                    let heightToWidthRatio = 0.35; 
 
                     let qrboxWidth = Math.floor(viewfinderWidth * widthPercentage);
                     let qrboxHeight = Math.floor(qrboxWidth * heightToWidthRatio);
+                    
+                    qrboxWidth = Math.max(200, qrboxWidth); // Min širina
+                    qrboxHeight = Math.max(70, qrboxHeight); // Min visina
 
-                    // Minimalne dimenzije
-                    qrboxWidth = Math.max(250, qrboxWidth);
-                    qrboxHeight = Math.max(100, qrboxHeight);
+                    qrboxWidth = Math.min(viewfinderWidth - 40, qrboxWidth); // Max širina
+                    qrboxHeight = Math.min(viewfinderHeight - 40, qrboxHeight); // Max visina
                     
-                    // Osiguraj da ne prelazi dimenzije
-                    qrboxWidth = Math.min(viewfinderWidth - 40, qrboxWidth);
-                    qrboxHeight = Math.min(viewfinderHeight - 40, qrboxHeight);
-                    
-                    console.log(`Viewfinder: ${viewfinderWidth}x${viewfinderHeight}, QRBox: ${qrboxWidth}x${qrboxHeight}`);
+                    console.log(`Viewfinder (reader): ${viewfinderWidth}x${viewfinderHeight}, QRBox (target): ${qrboxWidth}x${qrboxHeight}`);
                     return { width: qrboxWidth, height: qrboxHeight };
                 },
-                rememberLastUsedCamera: true, // Pokušaj koristiti zadnju kameru
-                // aspectRatio: 16/9, // Može pomoći za neke kamere
+                rememberLastUsedCamera: true,
+                // Važno: Ne postavljamo aspectRatio ovdje jer želimo da video popuni #reader div
+                // čije dimenzije kontroliramo CSS-om.
             };
 
             try {
                 statusTextElem.textContent = "Pokretanje kamere...";
-                // Pokreni skeniranje. Preferiraj stražnju kameru ("environment")
                 await html5QrCode.start(
                     { facingMode: "environment" }, 
                     config,
@@ -171,26 +215,28 @@
                 isScannerRunning = true;
                 startStopButton.textContent = "Zaustavi Skener";
                 scanResultDiv.textContent = "Skenirani kod: Čekam...";
-                statusTextElem.textContent = "Kamera aktivna. Skenirajte barkod.";
+                statusTextElem.textContent = "Kamera aktivna.";
+                scanInstructionElem.style.display = 'block'; // Pokaži uputu
             } catch (err) {
                 console.error("Greška pri pokretanju kamere: ", err);
                 isScannerRunning = false;
                 startStopButton.textContent = "Pokreni Skener";
                 statusTextElem.textContent = "Greška pri pokretanju kamere.";
                 errorTextElem.textContent = `Problem: ${err.name || err.message || err}`;
-                if (html5QrCode && html5QrCode.clear) { // Očisti ako je instanca stvorena
+                scanInstructionElem.style.display = 'none';
+                if (html5QrCode && html5QrCode.clear) { 
                   html5QrCode.clear().catch(clearErr => console.error("Greška pri čišćenju skenera:", clearErr));
                 }
-                html5QrCode = null; // Resetiraj instancu za novi pokušaj
+                html5QrCode = null; 
             }
         }
 
-        // Funkcija za zaustavljanje skenera
         async function stopScanner() {
             if (!isScannerRunning || !html5QrCode) return;
 
             clearMessages();
             statusTextElem.textContent = "Zaustavljanje skenera...";
+            scanInstructionElem.style.display = 'none';
 
             try {
                 await html5QrCode.stop();
@@ -198,18 +244,16 @@
                 isScannerRunning = false;
                 startStopButton.textContent = "Pokreni Skener";
                 statusTextElem.textContent = "Skener zaustavljen. Kliknite 'Pokreni Skener'.";
-                readerDiv.innerHTML = ""; // Ukloni video element
+                readerDiv.innerHTML = ""; 
             } catch (err) {
                 console.error("Greška pri zaustavljanju skenera: ", err);
                 statusTextElem.textContent = "Greška pri zaustavljanju skenera.";
                 errorTextElem.textContent = `Problem: ${err.name || err.message || err}`;
-                // Iako je došlo do greške, smatramo da skener više nije aktivan
                 isScannerRunning = false; 
                 startStopButton.textContent = "Pokreni Skener";
             }
         }
 
-        // Event listener za gumb
         startStopButton.addEventListener('click', () => {
             if (isScannerRunning) {
                 stopScanner();
@@ -218,9 +262,8 @@
             }
         });
 
-        // Inicijalizacija kad je DOM spreman
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Aplikacija spremna. Čeka se klik na gumb.");
+            console.log("Aplikacija spremna.");
         });
     </script>
 </body>
