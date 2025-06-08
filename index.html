@@ -11,44 +11,36 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            margin: 0; /* Uklonjen margin-top */
-            padding: 10px;
+            margin: 0; /* Uklonjen gornji margin, sadržaj ide do vrha */
+            padding: 10px; /* Mali padding oko cijelog sadržaja */
             background-color: #f0f0f0;
             min-height: 100vh;
             box-sizing: border-box;
         }
-        h1 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        #reader-container { /* Novi wrapper za reader i eventualne overlay-e */
+        /* h1 stilovi više nisu relevantni ako je element uklonjen */
+        
+        #reader-container { 
             position: relative;
             width: 100%;
-            max-width: 500px; /* Malo širi reader */
-            height: 55vh;     /* Veća visina, slično QR Računatoru */
+            max-width: 500px; 
+            height: 55vh;     
             min-height: 250px;
-            background-color: #000; /* Crna pozadina dok se kamera ne učita */
+            background-color: #000; 
             border: 1px solid #ccc;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Malo smanjen razmak ispod skenera */
             overflow: hidden; 
         }
-        #reader { /* Ovo je div gdje html5-qrcode stavlja video */
+        #reader { 
             width: 100%;
             height: 100%;
         }
-        /* Osigurava da video popuni #reader div */
         #reader video, 
-        #reader > div > video { /* Ponekad biblioteka doda još jedan div */
+        #reader > div > video { 
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover; /* Ključno za popunjavanje cijelog područja */
+            object-fit: cover; 
         }
         
-        /* Stil za div koji html5-qrcode kreira za qrbox overlay (ako postoji) */
-        /* Obično je to div s klasom html5-qrcode-overlay ili slično, ili direktno na video */
-        /* Biblioteka sama crta bijeli qrbox okvir */
-
         .controls {
             display: flex;
             flex-direction: column;
@@ -65,7 +57,7 @@
             border-radius: 5px;
             cursor: pointer;
             margin-bottom: 15px;
-            width: 100%; /* Gumbi neka zauzmu širinu kontrola */
+            width: 100%; 
         }
         button:hover {
             background-color: #0056b3;
@@ -74,7 +66,7 @@
             width: 100%;
         }
         #scanResult {
-            margin-top: 0; /* Uklonjen margin-top jer je unutar wrappera */
+            margin-top: 0; 
             padding: 10px;
             background-color: #fff;
             border: 1px solid #ddd;
@@ -94,10 +86,9 @@
         .status { color: #007bff; }
         .error { color: #dc3545; font-weight: bold; }
 
-        /* Upute iznad skenera, slično QR Računatoru */
         #scan-instruction {
             position: absolute;
-            top: 10px; /* Prilagodi po potrebi */
+            top: 10px; 
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -105,16 +96,15 @@
             color: white;
             font-size: 1em;
             font-weight: bold;
-            z-index: 10; /* Iznad videa, ali ispod gumba za kameru ako ga dodamo */
+            z-index: 10; 
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-            pointer-events: none; /* Da ne ometa interakciju s videom ako je potrebno */
-            display: none; /* Početno skriven, prikazuje se kad kamera krene */
+            pointer-events: none; 
+            display: none; 
         }
-
     </style>
 </head>
 <body>
-    <h1>EAN Skener (Puni Prikaz)</h1>
+    <!-- <h1>EAN Skener (Puni Prikaz)</h1> JE UKLONJEN/ZAKOMENTIRAN -->
     
     <div id="reader-container">
         <div id="reader"></div>
@@ -183,25 +173,22 @@
             const config = {
                 fps: 10, 
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    // Definicija qrbox-a ostaje ista, to je ciljno područje za dekodiranje
-                    let widthPercentage = 0.80; // 80% širine viewfindera
+                    let widthPercentage = 0.80; 
                     let heightToWidthRatio = 0.35; 
 
                     let qrboxWidth = Math.floor(viewfinderWidth * widthPercentage);
                     let qrboxHeight = Math.floor(qrboxWidth * heightToWidthRatio);
                     
-                    qrboxWidth = Math.max(200, qrboxWidth); // Min širina
-                    qrboxHeight = Math.max(70, qrboxHeight); // Min visina
+                    qrboxWidth = Math.max(200, qrboxWidth);
+                    qrboxHeight = Math.max(70, qrboxHeight); 
 
-                    qrboxWidth = Math.min(viewfinderWidth - 40, qrboxWidth); // Max širina
-                    qrboxHeight = Math.min(viewfinderHeight - 40, qrboxHeight); // Max visina
+                    qrboxWidth = Math.min(viewfinderWidth - 40, qrboxWidth); 
+                    qrboxHeight = Math.min(viewfinderHeight - 40, qrboxHeight); 
                     
                     console.log(`Viewfinder (reader): ${viewfinderWidth}x${viewfinderHeight}, QRBox (target): ${qrboxWidth}x${qrboxHeight}`);
                     return { width: qrboxWidth, height: qrboxHeight };
                 },
                 rememberLastUsedCamera: true,
-                // Važno: Ne postavljamo aspectRatio ovdje jer želimo da video popuni #reader div
-                // čije dimenzije kontroliramo CSS-om.
             };
 
             try {
@@ -216,7 +203,7 @@
                 startStopButton.textContent = "Zaustavi Skener";
                 scanResultDiv.textContent = "Skenirani kod: Čekam...";
                 statusTextElem.textContent = "Kamera aktivna.";
-                scanInstructionElem.style.display = 'block'; // Pokaži uputu
+                scanInstructionElem.style.display = 'block';
             } catch (err) {
                 console.error("Greška pri pokretanju kamere: ", err);
                 isScannerRunning = false;
