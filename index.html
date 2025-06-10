@@ -7,51 +7,39 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { 
-            font-family: sans-serif; 
-            margin: 0; 
-            padding: 0;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            background-color: #f4f4f4; 
-            box-sizing: border-box;
+            font-family: sans-serif; margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; background-color: #f4f4f4; box-sizing: border-box;
         }
         header, footer { background-color: #333; color: white; padding: 1em; text-align: center; width: 100%; }
         main { 
-            padding: 10px; 
-            background-color: white; 
-            border-radius: 8px; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-            margin-top: 10px; 
-            margin-bottom: 10px;
-            width: 95%; 
-            max-width: 600px; 
+            padding: 10px; background-color: white; border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 10px; margin-bottom: 10px;
+            width: 95%; max-width: 600px; 
         }
         h1, h2 { color: #333; }
+        h3 { color: #333; margin-top: 15px; margin-bottom: 5px;}
         button { 
-            display: block; 
-            width: 100%; 
-            padding: 12px 20px;
-            margin-bottom: 10px; 
-            font-size: 1em; 
-            color: white; 
-            background-color: #007bff; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            box-sizing: border-box;
+            display: block; width: 100%; padding: 12px 20px;
+            margin-bottom: 10px; font-size: 1em; color: white; 
+            background-color: #007bff; border: none; border-radius: 5px; 
+            cursor: pointer; box-sizing: border-box;
         }
         button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .button-group { display: flex; gap: 10px; }
+        .button-group button { width: 100%; /* Svaki gumb u grupi zauzima dostupan prostor */ }
+        
         .small-action-button {
-            padding: 8px 12px;
-            font-size: 0.9em;
-            width: auto;
-            margin-bottom: 0;
+            padding: 8px 12px; font-size: 0.9em; width: auto; margin-bottom: 0;
         }
 
         #btn-nastavi-zadnja-trgovina { background-color: #28a745; }
         #btn-nastavi-zadnja-trgovina:hover { background-color: #1e7e34; }
+        #btn-povijest-kupovine { background-color: #6c757d; } /* Gumb za povijest */
+        #btn-povijest-kupovine:hover { background-color: #545b62; }
+
         select { width:100%; padding:10px; margin-bottom:10px; font-size: 16px; box-sizing: border-box; }
         input[type="text"], input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
 
@@ -79,9 +67,6 @@
             line-height: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             display: none; width: auto; margin-bottom: 0; 
         }
-        #switch-camera-btn:hover { background-color: rgba(0, 0, 0, 0.6); }
-        #switch-camera-btn:active { background-color: rgba(0, 0, 0, 0.7); }
-
         #camera-selection-overlay {
             position: absolute; top: 50px; right: 10px;
             background-color: white; border: 1px solid #ccc; border-radius: 5px;
@@ -90,10 +75,7 @@
             overflow-y: auto; min-width: 180px; width: auto;
         }
         #camera-list { list-style: none; padding: 0; margin: 0; }
-        #camera-list li {
-            padding: 8px 12px; cursor: pointer; font-size: 0.9em;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; 
-        }
+        #camera-list li { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: #333; }
         #camera-list li:hover { background-color: #f0f0f0; }
         #camera-list li.selected-camera { font-weight: bold; background-color: #e0e0e0; }
         
@@ -122,82 +104,100 @@
         }
         #info-skeniranog-proizvoda-container p { margin: 3px 0; }
         #info-skeniranog-proizvoda-container label { margin-right: 5px; }
-        #info-skeniranog-proizvoda-container div { margin-top: 5px; }
-        #info-skeniranog-proizvoda-container h3 { display:none; }
-        
+        #info-skeniranog-proizvoda-container .kolicina-ukupno-grupa { display: flex; align-items: center; justify-content: space-between; margin-top: 5px;}
+        #info-skeniranog-proizvoda-container .kolicina-grupa { display: flex; align-items: center;}
+        #skeniran-item-ukupno { font-weight: bold; }
+
         input[type="number"]#skenirana-kolicina {
             background-color: #333; color: #f0f0f0; border: 1px solid #555;
-            width: 60px !important; padding: 5px !important; margin-bottom: 0 !important;
+            width: 60px !important; padding: 5px !important; margin:0 5px 0 0 !important;
         }
         
-        /* Kontejner za sažetak liste na ekranu skeniranja - NOVI STIL */
         #lista-summary-container {
-            padding: 8px; margin-bottom: 10px;
-            background-color: #1e1e1e; /* Ista kao info o proizvodu */
-            width: 100%; max-width: 500px; color: #f0f0f0;
-            border: 1px solid #333;
+            padding: 8px; margin-bottom: 10px; background-color: #1e1e1e;
+            width: 100%; max-width: 500px; color: #f0f0f0; border: 1px solid #333;
         }
-        #lista-summary-tekst { /* Div koji sadrži "Moja lista - UKUPNO..." */
-            font-size: 1.1em; /* Povećan font */
-            font-weight: bold;
-            margin-bottom: 8px; /* Razmak do gumba "Pogledaj Listu" */
-            text-align: center; /* Centriran tekst */
+        #lista-summary-tekst {
+            font-size: 1.1em; font-weight: bold; margin-bottom: 8px; text-align: center;
         }
-        /* Gumb "Pogledaj listu" će koristiti globalni stil za button (width: 100%) */
 
-
-        /* Stilovi za "fullscreen" mod skenera */
         body.skener-aktivan header,
         body.skener-aktivan footer { display: none !important; }
         body.skener-aktivan { background-color: #000000 !important; padding: 0 !important; }
-        body.skener-aktivan #ekran-skeniranja { padding-top: 2px; }
+        body.skener-aktivan #ekran-skeniranja,
+        body.skener-aktivan #ekran-liste-kupovine,
+        body.skener-aktivan #ekran-usporedbe-cijena,
+        body.skener-aktivan #ekran-povijest-kupovine,
+        body.skener-aktivan #ekran-specifikacija-kupovine {
+             padding-top: 2px; 
+             background-color: #000; /* Osigurava crnu pozadinu i za ostale "fullscreen" ekrane */
+             color: #f0f0f0; /* Default boja teksta za fullscreen ekrane */
+        }
+        body.skener-aktivan #ekran-skeniranja h2, 
+        body.skener-aktivan #ekran-liste-kupovine h2,
+        body.skener-aktivan #ekran-usporedbe-cijena h2,
+        body.skener-aktivan #ekran-povijest-kupovine h2,
+        body.skener-aktivan #ekran-specifikacija-kupovine h2 {
+            color: #f0f0f0; /* Svijetli naslovi na crnoj pozadini */
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+
         body.skener-aktivan #btn-pokreni-zaustavi-skener { margin-top: 0; margin-bottom: 5px; }
 
+        /* Poruka za dijeljenje preko skenera */
+        #share-overlay-message {
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            background-color: rgba(255, 223, 186, 0.9); /* Svijetlo narančasta, poluprozirna */
+            color: #333; padding: 20px; border-radius: 10px;
+            text-align: center; font-size: 1.2em; font-weight: bold;
+            z-index: 1000; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
         /* --- STILOVI ZA EKRAN LISTE KUPOVINE --- */
-        #ekran-liste-kupovine {
-            background-color: #111; color: #f0f0f0;
+        #ekran-liste-kupovine, #ekran-povijest-kupovine, #ekran-specifikacija-kupovine, #ekran-usporedbe-cijena {
             height: 100%; display: flex; flex-direction: column;
         }
-        #lista-kupovine-header { /* Kontejner za oba reda headera */
-            padding: 8px 10px;
-            background-color: #222; 
+        .sticky-header {
+            padding: 8px 10px; background-color: #222; 
             border-bottom: 1px solid #333;
             position: sticky; top: 0; z-index: 100;
         }
-        #lista-kupovine-header-gornji-red { /* Prvi red s gumbima */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px; /* Razmak do reda s ukupnim iznosom */
+        .header-gornji-red {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
         }
-        #lista-kupovine-header-gornji-red button { /* Gumbi u headeru liste */
-            width: auto; margin: 0; /* Ukloni margin-left/right ako je space-between */
-            padding: 6px 10px; font-size: 0.9em;
-        }
-        #lista-kupovine-header-donji-red { /* Drugi red s ukupnim iznosom */
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2em; /* Povećan font za UKUPNO */
-        }
+        .header-gornji-red button { width: auto; margin: 0; padding: 6px 10px; font-size: 0.9em; }
+        .header-donji-red { text-align: center; font-weight: bold; font-size: 1.2em; }
 
-        #lista-kupovine-stavke-container {
-            flex-grow: 1; overflow-y: auto; padding: 10px;
-        }
-        .stavka-liste {
-            display: flex; justify-content: space-between; align-items: flex-start;
+        .scrollable-content { flex-grow: 1; overflow-y: auto; padding: 10px; }
+        
+        .stavka-liste, .povijest-stavka, .usporedba-stavka {
+            display: flex; justify-content: space-between; align-items: center; /* Promijenjeno na center */
             padding: 8px 5px; border-bottom: 1px solid #333; margin-bottom: 5px;
+            color: #f0f0f0; /* Osiguraj boju teksta */
         }
-        .stavka-liste:last-child { border-bottom: none; margin-bottom: 0;}
-        .stavka-liste-info { flex-grow: 1; }
-        .stavka-liste-naziv { font-weight: bold; font-size: 1em; margin-bottom: 3px; }
-        .stavka-liste-detalji { font-size: 0.85em; color: #ccc; margin-bottom: 3px;}
-        .stavka-liste-ukupno { font-size: 0.9em; font-weight: bold; white-space: nowrap; margin-left:10px; }
+        .stavka-liste:last-child, .povijest-stavka:last-child, .usporedba-stavka:last-child { border-bottom: none; margin-bottom: 0;}
+        
+        .stavka-liste-info, .povijest-stavka-info, .usporedba-stavka-info { flex-grow: 1; }
+        .stavka-naziv { font-weight: bold; font-size: 1em; margin-bottom: 3px; } /* Općenita klasa za naziv */
+        .stavka-detalji { font-size: 0.85em; color: #ccc; margin-bottom: 3px;}
+        .stavka-ukupno, .povijest-iznos, .usporedba-cijena { font-size: 0.9em; font-weight: bold; white-space: nowrap; margin-left:10px; }
+        
         .btn-brisi-stavku {
             background-color: #dc3545; color: white; border: none; border-radius: 50%;
             width: 28px; height: 28px; font-size: 1em; line-height: 28px; 
             padding: 0; cursor: pointer; margin-left: 10px; flex-shrink: 0;
         }
         .btn-brisi-stavku:hover { background-color: #c82333; }
+        .povijest-stavka { cursor: pointer; }
+        .povijest-stavka:hover { background-color: #2a2a2a; }
+
+        /* Footer stilovi za zahvalu */
+        footer p, footer a { font-size: 0.85em; color: #ccc; }
+        footer a:hover { color: #fff; }
 
     </style>
 </head>
@@ -210,10 +210,9 @@
         <!-- Ekran 1: Početni ekran -->
         <section id="pocetni-ekran">
             <h2>Dobrodošli!</h2>
-            <p>Što želite učiniti?</p>
             <button id="btn-izaberi-trgovinu">Izaberi trgovinu</button>
-            <button id="btn-trazi-proizvode-pocetna">Traži proizvode</button>
             <button id="btn-nastavi-zadnja-trgovina" class="hidden">Nastavi s [Naziv Zadnje Trgovine]</button>
+            <button id="btn-povijest-kupovine">Povijest Kupovine</button> <!-- GUMB ZA POVIJEST -->
         </section>
 
         <!-- Ekran 2: Odabir trgovine -->
@@ -230,7 +229,7 @@
         <section id="glavni-ekran-akcija" class="hidden">
             <h2 id="info-odabrana-trgovina">Trgovina: [Naziv Trgovine]</h2>
             <button id="btn-skeniraj-proizvod">Skeniraj proizvod</button>
-            <button id="btn-pretrazi-proizvode-glavni">Pretraži proizvode (Lista)</button>
+            <!-- <button id="btn-pretrazi-proizvode-glavni">Pretraži proizvode (Lista)</button> --> <!-- Sakriveno za sad -->
             <button id="btn-promijeni-trgovinu">Promijeni trgovinu</button>
         </section>
 
@@ -245,6 +244,8 @@
                 </div>
             </div>
 
+            <div id="share-overlay-message" class="hidden"></div> <!-- Za poruku "PODIJELI SKENER..." -->
+
             <div class="messages-skener">
                 <p id="statusTextSkener" class="status"></p>
                 <p id="errorTextSkener" class="error"></p>
@@ -256,76 +257,136 @@
                 <div id="info-skeniranog-proizvoda-container" class="hidden">
                     <h3>Skenirani proizvod:</h3>
                     <p><strong>Naziv:</strong> <span id="skeniran-naziv"></span></p>
-                    <p><strong>Cijena:</strong> <span id="skenirana-cijena"></span> EUR</p>
+                    <p><strong>Cijena/kom:</strong> <span id="skenirana-cijena"></span> EUR</p>
                     <p><strong>Cijena po JM:</strong> <span id="skenirana-cijena-po-jedinici"></span></p>
-                    <div>
-                        <label for="skenirana-kolicina">Količina:</label>
-                        <input type="number" id="skenirana-kolicina" value="1" min="1">
+                    <div class="kolicina-ukupno-grupa">
+                        <div class="kolicina-grupa">
+                            <label for="skenirana-kolicina">Količina:</label>
+                            <input type="number" id="skenirana-kolicina" value="1" min="1">
+                        </div>
+                        <div id="skeniran-item-ukupno">Ukupno: 0.00 EUR</div>
                     </div>
-                    <button id="btn-dodaj-skenirano-na-listu" style="margin-top:8px;">Dodaj na listu</button>
+                    <div class="button-group" style="margin-top:8px;">
+                        <button id="btn-usporedi-cijene">Usporedi</button>
+                        <button id="btn-dodaj-skenirano-na-listu">Dodaj na listu</button>
+                    </div>
                 </div>
 
                 <div id="lista-summary-container" class="hidden">
-                    <div id="lista-summary-tekst"> <!-- Tekst u jednom redu -->
+                    <div id="lista-summary-tekst">
                         Moja lista - UKUPNO: <span id="ukupno-cijena-skeniranje-sum">0.00</span> EUR
                     </div>
-                    <button id="btn-pogledaj-listu">Pogledaj Listu</button> <!-- Gumb ispod, pune širine -->
+                    <button id="btn-pogledaj-listu">Pogledaj Listu</button>
                 </div>
                 
-                <button id="btn-nazad-sa-skeniranja">Nazad</button>
+                <button id="btn-podijeli-aplikaciju" style="margin-top:10px; background-color: #17a2b8;">Podijeli Dućan Skener</button>
+                <button id="btn-nazad-sa-skeniranja" style="margin-top:5px;">Nazad</button>
             </div>
         </section>
 
-        <!-- Ekran 5: Ekran pretraživanja i liste (postojeći) -->
-        <section id="ekran-pretrage-i-liste" class="hidden">
-            <h2>Pretraga proizvoda u <span id="naziv-trgovine-za-pretragu">[Naziv Trgovine]</span></h2>
-            <input type="text" id="input-pretraga-proizvoda" placeholder="Unesi naziv proizvoda...">
-            <div id="rezultati-pretrage-proizvoda"></div>
-            <h3>Moja Lista:</h3>
-            <div id="lista-proizvoda-pretraga"></div>
-            <p><strong>Ukupno: <span id="ukupno-cijena-pretraga">0.00</span> EUR</strong></p>
-            <button id="btn-usporedi-cijene-sa-pretrage">Usporedi cijene liste</button>
-            <button id="btn-nazad-sa-pretrage-na-akcije">Nazad na akcije</button>
-        </section>
-
-        <!-- Ekran 6: Ekran Liste Kupovine (NOVI) -->
+        <!-- Ekran 5: Ekran Liste Kupovine -->
         <section id="ekran-liste-kupovine" class="hidden">
-            <div id="lista-kupovine-header">
-                <div id="lista-kupovine-header-gornji-red">
+            <div class="sticky-header" id="lista-kupovine-header">
+                <div class="header-gornji-red" id="lista-kupovine-header-gornji-red">
                     <button id="btn-lista-na-skener" class="small-action-button">Na Skener</button>
                     <button id="btn-lista-na-pocetak" class="small-action-button">Na Početak</button>
                 </div>
-                <div id="lista-kupovine-header-donji-red">
+                <div class="header-donji-red" id="lista-kupovine-header-donji-red">
                     UKUPNO: <span id="ukupno-cijena-lista-prikaz">0.00</span> EUR
                 </div>
             </div>
-            <div id="lista-kupovine-stavke-container">
+            <div class="scrollable-content" id="lista-kupovine-stavke-container">
                 <p style="text-align:center; color:#888; margin-top:20px;" id="prazna-lista-poruka">Lista je prazna.</p>
+            </div>
+        </section>
+
+        <!-- Ekran 6: Ekran Povijest Kupovine -->
+        <section id="ekran-povijest-kupovine" class="hidden">
+            <div class="sticky-header">
+                 <div class="header-gornji-red">
+                    <button id="btn-povijest-na-pocetak" class="small-action-button">Na Početak</button>
+                    <h2 style="margin:0; flex-grow:1; text-align:center;">Povijest Kupovine</h2>
+                    <span> </span> <!-- Prazan span za poravnanje -->
+                </div>
+            </div>
+            <div class="scrollable-content" id="povijest-kupovine-container">
+                 <p style="text-align:center; color:#888; margin-top:20px;" id="prazna-povijest-poruka">Nema spremljenih kupovina.</p>
+            </div>
+        </section>
+
+        <!-- Ekran 7: Ekran Specifikacija Kupovine -->
+        <section id="ekran-specifikacija-kupovine" class="hidden">
+            <div class="sticky-header">
+                <div class="header-gornji-red">
+                    <button id="btn-specifikacija-na-povijest" class="small-action-button">Nazad na Povijest</button>
+                    <h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">Specifikacija</h2>
+                     <span> </span>
+                </div>
+                 <div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div>
+            </div>
+            <div class="scrollable-content" id="specifikacija-stavke-container">
+                <!-- Detalji stavki -->
+            </div>
+        </section>
+
+        <!-- Ekran 8: Ekran Usporedbe Cijena -->
+        <section id="ekran-usporedbe-cijena" class="hidden">
+            <div class="sticky-header">
+                <div class="header-gornji-red">
+                     <button id="btn-usporedba-na-skener" class="small-action-button">Nazad na Skener</button>
+                     <h2 style="margin:0; flex-grow:1; text-align:center;" id="usporedba-artikl-naziv">Usporedba</h2>
+                     <span> </span>
+                </div>
+                <div style="text-align:center; font-size:0.9em; color:#ccc;" id="usporedba-artikl-cijena-trenutna"></div>
+            </div>
+            <div class="scrollable-content" id="usporedba-cijena-container">
+                <p style="text-align:center; color:#888; margin-top:20px;" id="usporedba-nema-podataka-poruka">Nema podataka za usporedbu.</p>
             </div>
         </section>
 
     </main>
 
-    <footer>
-        <p>© <span id="trenutna-godina"></span> DUĆAN SKENER</p>
+    <footer style="padding: 10px 1em;"> <!-- Smanjen padding footera -->
+        <p id="zahvala-api" style="margin:0; text-align:center;">Podaci o cijenama ljubaznošću <a href="https://cijene.dev/" target="_blank" rel="noopener noreferrer">cijene.dev</a> (Senko Rašić).</p>
     </footer>
+
+    <!-- Statcounter Code -->
+    <script type="text/javascript">
+    var sc_project=13142545; 
+    var sc_invisible=1; 
+    var sc_security="cd38ae59"; 
+    </script>
+    <script type="text/javascript"
+    src="https://www.statcounter.com/counter/counter.js"
+    async></script>
+    <noscript><div class="statcounter"><a title="Web Analytics"
+    href="https://statcounter.com/" target="_blank"><img
+    class="statcounter"
+    src="https://c.statcounter.com/13142545/0/cd38ae59/1/"
+    alt="Web Analytics"
+    referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+    <!-- End of Statcounter Code -->
 
     <script>
         // --- KONSTANTE ---
         const API_BASE_URL = "https://api.cijene.dev";
-        const API_KEY = "mee5xooThuithei4ees4bae3emos3ook";
+        const API_KEY = "mee5xooThuithei4ees4bae3emos3ook"; // Pravi API ključ
+        const MAX_POVIJEST_KUPVINA = 20; // Koliko kupovina čuvati u povijesti
+        const GOOGLE_APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE'; // *** ZAMIJENI SVOJIM URL-om ***
 
         // --- DOM ELEMENTI (OPĆI) ---
         const pocetniEkran = document.getElementById('pocetni-ekran');
         const ekranOdabirTrgovine = document.getElementById('ekran-odabir-trgovine');
         const glavniEkranAkcija = document.getElementById('glavni-ekran-akcija');
         const ekranSkeniranja = document.getElementById('ekran-skeniranja');
-        const ekranPretrageIListe = document.getElementById('ekran-pretrage-i-liste');
         const ekranListeKupovine = document.getElementById('ekran-liste-kupovine');
+        const ekranPovijestKupovine = document.getElementById('ekran-povijest-kupovine');
+        const ekranSpecifikacijaKupovine = document.getElementById('ekran-specifikacija-kupovine');
+        const ekranUsporedbeCijena = document.getElementById('ekran-usporedbe-cijena');
 
         const btnIzaberiTrgovinu = document.getElementById('btn-izaberi-trgovinu');
-        const btnTraziProizvodePocetna = document.getElementById('btn-trazi-proizvode-pocetna');
         const btnNastaviZadnjaTrgovina = document.getElementById('btn-nastavi-zadnja-trgovina');
+        const btnPovijestKupovine = document.getElementById('btn-povijest-kupovine');
 
         const selectTrgovina = document.getElementById('select-trgovina');
         const btnPotvrdiTrgovinu = document.getElementById('btn-potvrdi-trgovinu');
@@ -334,21 +395,22 @@
         const infoOdabranaTrgovina = document.getElementById('info-odabrana-trgovina'); 
         const infoTrgovinaSkeniranjeOverlay = document.getElementById('info-trgovina-skeniranje-overlay'); 
         const btnSkenirajProizvod = document.getElementById('btn-skeniraj-proizvod');
-        const btnPretraziProizvodeGlavni = document.getElementById('btn-pretrazi-proizvode-glavni');
         const btnPromijeniTrgovinu = document.getElementById('btn-promijeni-trgovinu');
         
-        const nazivTrgovineZaPretragu = document.getElementById('naziv-trgovine-za-pretragu');
         const btnNazadSaSkeniranja = document.getElementById('btn-nazad-sa-skeniranja');
-        const btnNazadSaPretrageNaAkcije = document.getElementById('btn-nazad-sa-pretrage-na-akcije');
         
         const infoSkeniranogProizvodaContainer = document.getElementById('info-skeniranog-proizvoda-container');
         const skeniranNazivEl = document.getElementById('skeniran-naziv');
         const skeniranaCijenaEl = document.getElementById('skenirana-cijena');
         const skeniranaCijenaPoJediniciEl = document.getElementById('skenirana-cijena-po-jedinici');
         const skeniranaKolicinaInput = document.getElementById('skenirana-kolicina');
+        const skeniranItemUkupnoEl = document.getElementById('skeniran-item-ukupno');
         const btnDodajSkeniranoNaListu = document.getElementById('btn-dodaj-skenirano-na-listu');
+        const btnUsporediCijene = document.getElementById('btn-usporedi-cijene');
+        const btnPodijeliAplikaciju = document.getElementById('btn-podijeli-aplikaciju');
+        const shareOverlayMessageEl = document.getElementById('share-overlay-message');
 
-        // --- DOM ELEMENTI (SKENER) ---
+        // SKENER DOM
         const readerDiv = document.getElementById('reader');
         const switchCameraButton = document.getElementById('switch-camera-btn');
         const cameraSelectionOverlay = document.getElementById('camera-selection-overlay');
@@ -357,15 +419,36 @@
         const errorTextSkenerElem = document.getElementById('errorTextSkener');
         const btnPokreniZaustaviSkener = document.getElementById('btn-pokreni-zaustavi-skener');
 
-        // --- DOM ELEMENTI (LISTA KUPNJE) ---
+        // LISTA KUPNJE (SAŽETAK NA EKRANU SKENIRANJA) DOM
         const listaSummaryContainer = document.getElementById('lista-summary-container');
         const ukupnoCijenaSkeniranjeSumEl = document.getElementById('ukupno-cijena-skeniranje-sum');
         const btnPogledajListu = document.getElementById('btn-pogledaj-listu');
+
+        // EKRAN LISTE KUPNJE DOM
         const btnListaNaSkener = document.getElementById('btn-lista-na-skener');
         const btnListaNaPocetak = document.getElementById('btn-lista-na-pocetak');
         const ukupnoCijenaListaPrikazEl = document.getElementById('ukupno-cijena-lista-prikaz');
         const listaKupovineStavkeContainer = document.getElementById('lista-kupovine-stavke-container');
         const praznaListaPorukaEl = document.getElementById('prazna-lista-poruka');
+
+        // EKRAN POVIJESTI KUPNJE DOM
+        const btnPovijestNaPocetak = document.getElementById('btn-povijest-na-pocetak');
+        const povijestKupovineContainer = document.getElementById('povijest-kupovine-container');
+        const praznaPovijestPorukaEl = document.getElementById('prazna-povijest-poruka');
+        
+        // EKRAN SPECIFIKACIJE KUPNJE DOM
+        const btnSpecifikacijaNaPovijest = document.getElementById('btn-specifikacija-na-povijest');
+        const specifikacijaNaslovEl = document.getElementById('specifikacija-naslov');
+        const specifikacijaUkupnoEl = document.getElementById('specifikacija-ukupno');
+        const specifikacijaStavkeContainer = document.getElementById('specifikacija-stavke-container');
+
+        // EKRAN USPOREDBE CIJENA DOM
+        const btnUsporedbaNaSkener = document.getElementById('btn-usporedba-na-skener');
+        const usporedbaArtiklNazivEl = document.getElementById('usporedba-artikl-naziv');
+        const usporedbaArtiklCijenaTrenutnaEl = document.getElementById('usporedba-artikl-cijena-trenutna');
+        const usporedbaCijenaContainer = document.getElementById('usporedba-cijena-container');
+        const usporedbaNemaPodatakaPorukaEl = document.getElementById('usporedba-nema-podataka-poruka');
+
 
         // --- GLOBALNE VARIJABLE ---
         let trenutnoOdabranaTrgovina = null; 
@@ -376,17 +459,36 @@
         let availableCameras = []; 
         const CAMERA_ID_KEY = 'ducanSkenerSelectedCameraID';
         let trenutnaListaKupovine = [];
-        let zadnjiSkeniraniProizvodInfo = null;
+        let zadnjiSkeniraniProizvodInfo = null; // { ean, naziv, cijenaKomad, cijenaJM }
+        let povijestKupovina = JSON.parse(localStorage.getItem('povijestKupovina')) || [];
+        let korisnickiID = localStorage.getItem('ducanSkenerKorisnickiID');
+        let brojPreostalihKupovina = localStorage.getItem('brojPreostalihKupovina') ? parseInt(localStorage.getItem('brojPreostalihKupovina')) : null;
+
+        // --- GENERIRANJE UUID (jednostavna verzija) ---
+        function generirajUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
 
         // --- FUNKCIJE ZA PRIKAZ EKRANA ---
         function prikaziEkran(ekranId) {
-            [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, ekranPretrageIListe, ekranListeKupovine].forEach(ekran => {
+            [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, 
+             ekranListeKupovine, ekranPovijestKupovine, ekranSpecifikacijaKupovine, ekranUsporedbeCijena]
+             .forEach(ekran => {
                 if (ekran && ekran.id === ekranId) ekran.classList.remove('hidden');
                 else if (ekran) ekran.classList.add('hidden');
             });
 
-            if (ekranId === 'ekran-skeniranja') {
+            const fullscreenEkrani = ['ekran-skeniranja', 'ekran-liste-kupovine', 'ekran-povijest-kupovine', 'ekran-specifikacija-kupovine', 'ekran-usporedbe-cijena'];
+            if (fullscreenEkrani.includes(ekranId)) {
                 document.body.classList.add('skener-aktivan');
+            } else {
+                document.body.classList.remove('skener-aktivan');
+            }
+
+            if (ekranId === 'ekran-skeniranja') {
                 if(infoTrgovinaSkeniranjeOverlay && trenutnoOdabranaTrgovina) { 
                     infoTrgovinaSkeniranjeOverlay.textContent = `Trgovina: ${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name)}`; 
                 }
@@ -398,16 +500,14 @@
                     if(errorTextSkenerElem) errorTextSkenerElem.textContent = "";
                 }
                 azurirajPrikazSumarneListe();
+                provjeriBrojKupovinaIPrikaziPoruku(); // Provjeri za poruku dijeljenja
             } else {
-                document.body.classList.remove('skener-aktivan');
-                 if (isScannerRunning && ekranId !== 'ekran-liste-kupovine') {
+                 if (isScannerRunning && ekranId !== 'ekran-liste-kupovine' && ekranId !== 'ekran-usporedbe-cijena') {
                     stopSkener(); 
                 }
             }
-            if (ekranId === 'ekran-liste-kupovine') {
-                 document.body.classList.add('skener-aktivan'); 
-                 renderirajListuKupovine();
-            }
+            if (ekranId === 'ekran-liste-kupovine') { renderirajListuKupovine(); }
+            if (ekranId === 'ekran-povijest-kupovine') { renderirajPovijestKupovine(); }
         }
 
         // --- FUNKCIJE ZA TRGOVINE I PROIZVODE ---
@@ -418,90 +518,114 @@
         }
 
         async function dohvatiITipkajTrgovine() {
-            selectTrgovina.innerHTML = '<option value="">Učitavanje trgovina...</option>';
+            // ... (isto kao prije)
+            selectTrgovina.innerHTML = '<option value="">Učitavanje...</option>';
             selectTrgovina.disabled = true; btnPotvrdiTrgovinu.disabled = true;
             try {
-                const response = await fetch(`${API_BASE_URL}/v1/chains/`, { method: 'GET', headers: { 'Authorization': `Bearer ${API_KEY}`, 'Accept': 'application/json' } });
-                if (!response.ok) {
-                    let errorMsg = `Greška ${response.status}: ${response.statusText}`;
-                    try { const errData = await response.json(); errorMsg += ` - ${errData.detail || JSON.stringify(errData)}`; } catch (e) {}
-                    if (response.status === 401 || response.status === 403) { errorMsg += "\nProvjerite API ključ."; }
-                    throw new Error(errorMsg);
-                }
-                const data = await response.json(); 
-                if (data.chains && data.chains.length > 0) {
-                    selectTrgovina.innerHTML = '<option value="">-- Izaberi trgovinu --</option>';
-                    data.chains.forEach(chainCode => { const option = document.createElement('option'); option.value = chainCode; option.textContent = mapirajKodLancaUNaziv(chainCode); selectTrgovina.appendChild(option); });
+                const r = await fetch(`${API_BASE_URL}/v1/chains/`, { headers: { 'Authorization': `Bearer ${API_KEY}` }});
+                if (!r.ok) throw new Error(`API greška ${r.status}`);
+                const d = await r.json();
+                if (d.chains && d.chains.length > 0) {
+                    selectTrgovina.innerHTML = '<option value="">-- Izaberi --</option>';
+                    d.chains.forEach(c => { const o=document.createElement('option');o.value=c;o.textContent=mapirajKodLancaUNaziv(c);selectTrgovina.appendChild(o);});
                     selectTrgovina.disabled = false; btnPotvrdiTrgovinu.disabled = false;
-                } else { selectTrgovina.innerHTML = '<option value="">Nema dostupnih trgovina.</option>'; }
-            } catch (error) { console.error('Problem s dohvaćanjem trgovina:', error); selectTrgovina.innerHTML = `<option value="">Greška pri učitavanju.</option>`; alert(`Nije moguće učitati listu trgovina: ${error.message}`); }
+                } else { selectTrgovina.innerHTML = '<option value="">Nema trgovina.</option>';}
+            } catch (e) {selectTrgovina.innerHTML =`<option value="">Greška.</option>`; alert(`Učitavanje trgovina: ${e.message}`);}
         }
         
         function izracunajCijenuPoJM(cijenaPakiranjaStr, kolicinaInputStr, jedinicaMjereInput) {
+            // ... (isto kao prije)
             const cijenaPakiranja = parseFloat(cijenaPakiranjaStr);
             let kolicinaStrNumerickiDio = kolicinaInputStr;
-            if (typeof kolicinaInputStr === 'string') { kolicinaStrNumerickiDio = kolicinaInputStr.replace(',', '.'); const match = kolicinaStrNumerickiDio.match(/^[0-9.]+/); if (match && match[0]) { kolicinaStrNumerickiDio = match[0]; } }
+            if (typeof kolicinaInputStr === 'string') { kolicinaStrNumerickiDio = kolicinaInputStr.replace(',', '.').match(/^[0-9.]+/)?.[0] || kolicinaInputStr; }
             let kolicina = parseFloat(kolicinaStrNumerickiDio);
             let jedinicaMjere = jedinicaMjereInput;
-            if (isNaN(cijenaPakiranja) || isNaN(kolicina) || kolicina === 0 || jedinicaMjere === null || jedinicaMjere === undefined) { return "N/A"; }
-            let cijenaPoOsnovnojJM = ""; let osnovnaJM = "";
+            if (isNaN(cijenaPakiranja) || isNaN(kolicina) || kolicina === 0 || !jedinicaMjere) return "N/A";
+            let cijenaPoOsnovnojJM = "", osnovnaJM = "";
             jedinicaMjere = String(jedinicaMjere).toLowerCase();
-            if (jedinicaMjere === "kom" || jedinicaMjere === "ko") { return `${cijenaPakiranja.toFixed(2)} EUR/kom`; }
-            else if (jedinicaMjere === "g" || jedinicaMjere === "gr") { cijenaPoOsnovnojJM = ((cijenaPakiranja / kolicina) * 1000).toFixed(2); osnovnaJM = "kg"; }
-            else if (jedinicaMjere === "ml") { cijenaPoOsnovnojJM = ((cijenaPakiranja / kolicina) * 1000).toFixed(2); osnovnaJM = "l"; }
-            else if (jedinicaMjere === "kg" || jedinicaMjere === "l") { cijenaPoOsnovnojJM = (cijenaPakiranja / kolicina).toFixed(2); osnovnaJM = jedinicaMjere; }
-            else { return "N/A (nepoznata JM)"; }
-            if (isNaN(parseFloat(cijenaPoOsnovnojJM))) { return "N/A (greška u izr.)"; }
-            return `${cijenaPoOsnovnojJM} EUR/${osnovnaJM}`;
+            if (["kom", "ko"].includes(jedinicaMjere)) return `${cijenaPakiranja.toFixed(2)} EUR/kom`;
+            if (["g", "gr"].includes(jedinicaMjere)) { cijenaPoOsnovnojJM = ((cijenaPakiranja/kolicina)*1000).toFixed(2); osnovnaJM="kg";}
+            else if (jedinicaMjere === "ml") { cijenaPoOsnovnojJM = ((cijenaPakiranja/kolicina)*1000).toFixed(2); osnovnaJM="l";}
+            else if (["kg","l"].includes(jedinicaMjere)) { cijenaPoOsnovnojJM = (cijenaPakiranja/kolicina).toFixed(2); osnovnaJM=jedinicaMjere;}
+            else return "N/A (JM?)";
+            return isNaN(parseFloat(cijenaPoOsnovnojJM)) ? "N/A (err)" : `${cijenaPoOsnovnojJM} EUR/${osnovnaJM}`;
         }
 
-        async function dohvatiPodatkeSkeniranogProizvoda(ean, chainCode) {
-            zadnjiSkeniraniProizvodInfo = null; 
-            skeniranNazivEl.textContent = `Tražim podatke za EAN: ${ean}...`;
-            skeniranaCijenaEl.textContent = "..."; skeniranaCijenaPoJediniciEl.textContent = "...";
-            infoSkeniranogProizvodaContainer.classList.remove('hidden'); skeniranaKolicinaInput.value = 1;
-            btnDodajSkeniranoNaListu.disabled = true;
+        async function dohvatiPodatkeSkeniranogProizvoda(ean, chainCode, zaUsporedbu = false) {
+            if (!zaUsporedbu) {
+                zadnjiSkeniraniProizvodInfo = null; 
+                skeniranNazivEl.textContent = `Tražim: ${ean}...`;
+                skeniranaCijenaEl.textContent = "..."; skeniranaCijenaPoJediniciEl.textContent = "...";
+                skeniranItemUkupnoEl.textContent = "Ukupno: ...";
+                infoSkeniranogProizvodaContainer.classList.remove('hidden'); 
+                skeniranaKolicinaInput.value = 1;
+                btnDodajSkeniranoNaListu.disabled = true;
+                btnUsporediCijene.disabled = true;
+            }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/v1/products/${ean}/?chains=${chainCode}`, { method: 'GET', headers: { 'Authorization': `Bearer ${API_KEY}`, 'Accept': 'application/json' } });
+                // Ako je za usporedbu, dohvati za sve lance, inače samo za odabrani
+                const url = zaUsporedbu ? `${API_BASE_URL}/v1/products/${ean}/` : `${API_BASE_URL}/v1/products/${ean}/?chains=${chainCode}`;
+                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${API_KEY}`}});
                 if (!response.ok) {
                     let errorMsg = `Greška (${response.status}): ${response.statusText}`;
-                     if (response.status === 404) { errorMsg = `Proizvod ${ean} nije pronađen u ${mapirajKodLancaUNaziv(chainCode)}.`; }
+                     if (response.status === 404) { errorMsg = `Proizvod ${ean} nije pronađen${zaUsporedbu ? '' : ` u ${mapirajKodLancaUNaziv(chainCode)}`}.`; }
                      else { try { const errData = await response.json(); errorMsg += ` - ${errData.detail || JSON.stringify(errData)}`; } catch (e) {} }
                     throw new Error(errorMsg);
                 }
                 const data = await response.json();
+
+                if (zaUsporedbu) return data; // Vrati sve podatke za prikaz usporedbe
+
                 if (data.chains && data.chains.length > 0) {
                     const productInfo = data.chains[0]; 
                     const nazivPrikaz = productInfo.name || data.name || "Nepoznat naziv";
                     const cijena = parseFloat(productInfo.min_price);
 
-                    if (isNaN(cijena)) { throw new Error("Cijena proizvoda nije broj."); }
+                    if (isNaN(cijena)) { throw new Error("Cijena nije broj."); }
 
                     skeniranNazivEl.textContent = nazivPrikaz;
                     skeniranaCijenaEl.textContent = cijena.toFixed(2);
-                    skeniranaCijenaPoJediniciEl.textContent = izracunajCijenuPoJM(cijena, productInfo.quantity, productInfo.unit);
+                    const cijenaJM = izracunajCijenuPoJM(cijena, productInfo.quantity, productInfo.unit);
+                    skeniranaCijenaPoJediniciEl.textContent = cijenaJM;
                     
-                    zadnjiSkeniraniProizvodInfo = { ean: ean, naziv: nazivPrikaz, cijenaKomad: cijena };
+                    zadnjiSkeniraniProizvodInfo = { ean: ean, naziv: nazivPrikaz, cijenaKomad: cijena, cijenaJM: cijenaJM };
+                    azurirajUkupnoZaSkeniranuStavku(); // Inicijalni izračun ukupnog za količinu 1
                     btnDodajSkeniranoNaListu.disabled = false;
+                    btnUsporediCijene.disabled = false;
                 } else { throw new Error(`Proizvod ${ean} nema podataka za ${mapirajKodLancaUNaziv(chainCode)}.`); }
             } catch (error) {
+                if (!zaUsporedbu) {
+                    skeniranNazivEl.textContent = "Greška";
+                    skeniranaCijenaEl.textContent = "-"; skeniranaCijenaPoJediniciEl.textContent = "-";
+                    skeniranItemUkupnoEl.textContent = "Ukupno: -";
+                    statusTextSkenerElem.textContent = "";
+                    errorTextSkenerElem.textContent = error.message.substring(0,100);
+                    zadnjiSkeniraniProizvodInfo = null;
+                    btnDodajSkeniranoNaListu.disabled = true;
+                    btnUsporediCijene.disabled = true;
+                }
                 console.error('Dohvaćanje proizvoda greška:', error);
-                skeniranNazivEl.textContent = "Greška";
-                skeniranaCijenaEl.textContent = "-"; skeniranaCijenaPoJediniciEl.textContent = "-";
-                statusTextSkenerElem.textContent = "";
-                errorTextSkenerElem.textContent = error.message.substring(0,100);
-                zadnjiSkeniraniProizvodInfo = null;
-                btnDodajSkeniranoNaListu.disabled = true;
+                return null; // Vrati null u slučaju greške ako je za usporedbu
             }
         }
+        
+        function azurirajUkupnoZaSkeniranuStavku() {
+            if (!zadnjiSkeniraniProizvodInfo) return;
+            const kolicina = parseInt(skeniranaKolicinaInput.value) || 0;
+            const ukupno = zadnjiSkeniraniProizvodInfo.cijenaKomad * kolicina;
+            skeniranItemUkupnoEl.textContent = `Ukupno: ${ukupno.toFixed(2)} EUR`;
+        }
+
 
         function azurirajGumbNastavi() {
+            // ... (isto kao prije)
             if (zadnjeOdabranaTrgovinaKod && zadnjeOdabranaTrgovinaNaziv) { btnNastaviZadnjaTrgovina.textContent = `Nastavi s ${mapirajKodLancaUNaziv(zadnjeOdabranaTrgovinaNaziv)}`; btnNastaviZadnjaTrgovina.classList.remove('hidden'); }
             else { btnNastaviZadnjaTrgovina.classList.add('hidden'); }
         }
 
         function postaviOdabranuTrgovinu(kod, naziv) {
+            // ... (isto kao prije, s resetiranjem liste)
             const prethodnaTrgovina = trenutnoOdabranaTrgovina ? trenutnoOdabranaTrgovina.code : null;
             trenutnoOdabranaTrgovina = { code: kod, name: naziv };
             localStorage.setItem('zadnjaTrgovinaKod', kod); localStorage.setItem('zadnjaTrgovinaNaziv', naziv); 
@@ -510,7 +634,7 @@
             const prikazNazivTrgovine = mapirajKodLancaUNaziv(naziv);
             infoOdabranaTrgovina.textContent = `Trgovina: ${prikazNazivTrgovine}`; 
             if(infoTrgovinaSkeniranjeOverlay) { infoTrgovinaSkeniranjeOverlay.textContent = `Trgovina: ${prikazNazivTrgovine}`; }
-            nazivTrgovineZaPretragu.textContent = prikazNazivTrgovine;
+            // nazivTrgovineZaPretragu.textContent = prikazNazivTrgovine; // Ako se koristi ekran pretrage
 
             if (prethodnaTrgovina !== kod && prethodnaTrgovina !== null) {
                 trenutnaListaKupovine = []; 
@@ -521,133 +645,12 @@
         }
         
         // --- FUNKCIJE SKENERA ---
-        function clearSkenerMessages() {
-            if(statusTextSkenerElem) statusTextSkenerElem.textContent = '';
-            if(errorTextSkenerElem) errorTextSkenerElem.textContent = '';
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            clearSkenerMessages();
-            statusTextSkenerElem.textContent = `Skeniran kod: ${decodedText.substring(0,20)}...`;
-            stopSkener();
-            if (trenutnoOdabranaTrgovina && trenutnoOdabranaTrgovina.code) {
-                dohvatiPodatkeSkeniranogProizvoda(decodedText, trenutnoOdabranaTrgovina.code);
-            } else {
-                alert("Nije odabrana trgovina.");
-                prikaziEkran('ekran-odabir-trgovine');
-                dohvatiITipkajTrgovine();
-            }
-        }
+        function clearSkenerMessages() { /* ... (isto kao prije) ... */ if(statusTextSkenerElem)statusTextSkenerElem.textContent='';if(errorTextSkenerElem)errorTextSkenerElem.textContent='';}
+        function onScanSuccess(decodedText, decodedResult) { /* ... (isto kao prije) ... */ clearSkenerMessages();statusTextSkenerElem.textContent=`Skeniran kod: ${decodedText.substring(0,20)}...`;stopSkener();if(trenutnoOdabranaTrgovina&&trenutnoOdabranaTrgovina.code){dohvatiPodatkeSkeniranogProizvoda(decodedText,trenutnoOdabranaTrgovina.code);}else{alert("Nije odabrana trgovina.");prikaziEkran('ekran-odabir-trgovine');dohvatiITipkajTrgovine();}}
         function onScanFailure(error) { /* Ignoriraj */ }
-
-        async function initializeAndStartScanner(requestedCameraId = null) {
-            if (isScannerRunning) return;
-            clearSkenerMessages();
-            statusTextSkenerElem.textContent = "Inicijalizacija skenera...";
-            readerDiv.innerHTML = ""; 
-            if (switchCameraButton) switchCameraButton.style.display = 'none';
-            if (cameraSelectionOverlay) cameraSelectionOverlay.style.display = 'none';
-            infoSkeniranogProizvodaContainer.classList.add('hidden');
-
-            if (!html5QrCode) {
-                try { html5QrCode = new Html5Qrcode(readerDiv.id); } 
-                catch (e) { errorTextSkenerElem.textContent = "Greška: Skener init."; statusTextSkenerElem.textContent = ""; return; }
-            }
-            const config = { fps: 10, qrbox: (vw, vh) => ({ width: Math.max(200, Math.min(vw*0.8, vh*0.8, 400)), height: Math.max(70, Math.min(vw*0.8, vh*0.8, 400)*0.35) }) };
-
-            try {
-                if (availableCameras.length === 0 && Html5Qrcode.getCameras) {
-                    statusTextSkenerElem.textContent = "Dohvaćam kamere...";
-                    const devices = await Html5Qrcode.getCameras();
-                    if (devices && devices.length) { availableCameras = devices; } 
-                    else { errorTextSkenerElem.textContent = "Nema kamera."; statusTextSkenerElem.textContent = ""; return; }
-                }
-                let cameraIdToUse = requestedCameraId;
-                if (!cameraIdToUse) {
-                    const savedCameraId = localStorage.getItem(CAMERA_ID_KEY);
-                    if (savedCameraId && availableCameras.some(d => d.id === savedCameraId)) { cameraIdToUse = savedCameraId; } 
-                    else {
-                        const rearCamera = availableCameras.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('zadnja') || d.label.toLowerCase().includes('environment'));
-                        if (rearCamera) cameraIdToUse = rearCamera.id;
-                        else if (availableCameras.length > 0) cameraIdToUse = availableCameras[0].id;
-                    }
-                }
-                if (!cameraIdToUse && availableCameras.length > 0) { cameraIdToUse = availableCameras[0].id; } 
-                else if (!cameraIdToUse) { errorTextSkenerElem.textContent = "Kamera nije odabrana."; statusTextSkenerElem.textContent = ""; return; }
-
-                statusTextSkenerElem.textContent = "Pokretanje kamere...";
-                await html5QrCode.start(cameraIdToUse, config, onScanSuccess, onScanFailure);
-                isScannerRunning = true;
-                localStorage.setItem(CAMERA_ID_KEY, cameraIdToUse);
-                btnPokreniZaustaviSkener.textContent = "Zaustavi Skener";
-                statusTextSkenerElem.textContent = "Kamera aktivna.";
-                if (availableCameras.length > 1 && switchCameraButton) { switchCameraButton.style.display = 'block'; }
-            } catch (err) {
-                isScannerRunning = false;
-                btnPokreniZaustaviSkener.textContent = "Pokreni Skener";
-                statusTextSkenerElem.textContent = ""; 
-                errorTextSkenerElem.textContent = `Greška kamere: ${err.name || err.message || "Nepoznata greška"}`;
-                if (String(err).toLowerCase().includes("notallowederror")) { errorTextSkenerElem.textContent += " Provjerite dozvole."; }
-                if (switchCameraButton) switchCameraButton.style.display = 'none';
-                if (html5QrCode && typeof html5QrCode.getState === 'function' && html5QrCode.getState() === 2 ) { 
-                    html5QrCode.stop().catch(stopErr => {});
-                }
-            }
-        }
-
-        async function stopSkener() {
-            if (!isScannerRunning || !html5QrCode) {
-                isScannerRunning = false;
-                btnPokreniZaustaviSkener.textContent = "Pokreni Skener";
-                readerDiv.innerHTML = ""; 
-                if (switchCameraButton) switchCameraButton.style.display = 'none';
-                if (cameraSelectionOverlay) cameraSelectionOverlay.style.display = 'none';
-                return;
-            }
-            statusTextSkenerElem.textContent = ""; 
-            if (errorTextSkenerElem) errorTextSkenerElem.textContent = "";
-
-            try { await html5QrCode.stop(); } 
-            catch (err) { errorTextSkenerElem.textContent = "Greška zaustavljanja."; } 
-            finally {
-                isScannerRunning = false;
-                btnPokreniZaustaviSkener.textContent = "Pokreni Skener";
-                readerDiv.innerHTML = ""; 
-                if (switchCameraButton) switchCameraButton.style.display = 'none';
-                if (cameraSelectionOverlay) cameraSelectionOverlay.style.display = 'none';
-            }
-        }
-
-        function toggleCameraSelection() {
-            if (!switchCameraButton || !cameraSelectionOverlay || !cameraListUl) return;
-            if (cameraSelectionOverlay.style.display === 'block') {
-                cameraSelectionOverlay.style.display = 'none'; return;
-            }
-            if (!availableCameras || availableCameras.length <= 1) {
-                statusTextSkenerElem.textContent = "Nema drugih kamera.";
-                setTimeout(() => { if(isScannerRunning) statusTextSkenerElem.textContent = "Kamera aktivna."; else statusTextSkenerElem.textContent = ""; }, 2000);
-                return;
-            }
-            cameraListUl.innerHTML = ''; 
-            const currentActiveCameraId = localStorage.getItem(CAMERA_ID_KEY);
-            availableCameras.forEach(device => {
-                const listItem = document.createElement('li');
-                listItem.textContent = device.label || `Kamera ${device.id.substring(0, 10)}...`;
-                listItem.dataset.cameraId = device.id;
-                listItem.title = device.label || device.id; 
-                if (device.id === currentActiveCameraId) { listItem.classList.add('selected-camera'); }
-                listItem.addEventListener('click', async () => {
-                    cameraSelectionOverlay.style.display = 'none';
-                    if (device.id !== localStorage.getItem(CAMERA_ID_KEY) || !isScannerRunning) {
-                        statusTextSkenerElem.textContent = `Mijenjam...`;
-                        await stopSkener(); 
-                        initializeAndStartScanner(device.id); 
-                    } else { statusTextSkenerElem.textContent = "Kamera aktivna."; }
-                });
-                cameraListUl.appendChild(listItem);
-            });
-            cameraSelectionOverlay.style.display = 'block';
-        }
+        async function initializeAndStartScanner(requestedCameraId = null) { /* ... (isto kao prije) ... */ if(isScannerRunning)return;clearSkenerMessages();statusTextSkenerElem.textContent="Inicijalizacija...";readerDiv.innerHTML="";if(switchCameraButton)switchCameraButton.style.display='none';if(cameraSelectionOverlay)cameraSelectionOverlay.style.display='none';infoSkeniranogProizvodaContainer.classList.add('hidden');if(!html5QrCode){try{html5QrCode=new Html5Qrcode(readerDiv.id);}catch(e){errorTextSkenerElem.textContent="Greška: Skener init.";statusTextSkenerElem.textContent="";return;}}const config={fps:10,qrbox:(vw,vh)=>({width:Math.max(200,Math.min(vw*0.8,vh*0.8,400)),height:Math.max(70,Math.min(vw*0.8,vh*0.8,400)*0.35)})};try{if(availableCameras.length===0&&Html5Qrcode.getCameras){statusTextSkenerElem.textContent="Dohvaćam kamere...";const d=await Html5Qrcode.getCameras();if(d&&d.length){availableCameras=d;}else{errorTextSkenerElem.textContent="Nema kamera.";statusTextSkenerElem.textContent="";return;}}let camId=requestedCameraId;if(!camId){const scId=localStorage.getItem(CAMERA_ID_KEY);if(scId&&availableCameras.some(d=>d.id===scId)){camId=scId;}else{const rc=availableCameras.find(d=>d.label.toLowerCase().includes('back')||d.label.toLowerCase().includes('zadnja'));if(rc)camId=rc.id;else if(availableCameras.length>0)camId=availableCameras[0].id;}}if(!camId&&availableCameras.length>0){camId=availableCameras[0].id;}else if(!camId){errorTextSkenerElem.textContent="Kamera nije odabrana.";statusTextSkenerElem.textContent="";return;}statusTextSkenerElem.textContent="Pokretanje kamere...";await html5QrCode.start(camId,config,onScanSuccess,onScanFailure);isScannerRunning=true;localStorage.setItem(CAMERA_ID_KEY,camId);btnPokreniZaustaviSkener.textContent="Zaustavi Skener";statusTextSkenerElem.textContent="Kamera aktivna.";if(availableCameras.length>1&&switchCameraButton){switchCameraButton.style.display='block';}}catch(err){isScannerRunning=false;btnPokreniZaustaviSkener.textContent="Pokreni Skener";statusTextSkenerElem.textContent="";errorTextSkenerElem.textContent=`Greška kamere: ${err.name||err.message||"err"}`;if(String(err).toLowerCase().includes("notallowederror")){errorTextSkenerElem.textContent+=" Provjerite dozvole.";}if(switchCameraButton)switchCameraButton.style.display='none';if(html5QrCode&&typeof html5QrCode.getState==='function'&&html5QrCode.getState()===2){html5QrCode.stop().catch(se=>{});}}}
+        async function stopSkener() { /* ... (isto kao prije) ... */ if(!isScannerRunning||!html5QrCode){isScannerRunning=false;btnPokreniZaustaviSkener.textContent="Pokreni Skener";readerDiv.innerHTML="";if(switchCameraButton)switchCameraButton.style.display='none';if(cameraSelectionOverlay)cameraSelectionOverlay.style.display='none';return;}statusTextSkenerElem.textContent="";if(errorTextSkenerElem)errorTextSkenerElem.textContent="";try{await html5QrCode.stop();}catch(err){errorTextSkenerElem.textContent="Greška zaustavljanja.";}finally{isScannerRunning=false;btnPokreniZaustaviSkener.textContent="Pokreni Skener";readerDiv.innerHTML="";if(switchCameraButton)switchCameraButton.style.display='none';if(cameraSelectionOverlay)cameraSelectionOverlay.style.display='none';}}
+        function toggleCameraSelection() { /* ... (isto kao prije) ... */ if(!switchCameraButton||!cameraSelectionOverlay||!cameraListUl)return;if(cameraSelectionOverlay.style.display==='block'){cameraSelectionOverlay.style.display='none';return;}if(!availableCameras||availableCameras.length<=1){statusTextSkenerElem.textContent="Nema drugih kamera.";setTimeout(()=>{if(isScannerRunning)statusTextSkenerElem.textContent="Kamera aktivna.";else statusTextSkenerElem.textContent="";},2000);return;}cameraListUl.innerHTML='';const ccaId=localStorage.getItem(CAMERA_ID_KEY);availableCameras.forEach(d=>{const li=document.createElement('li');li.textContent=d.label||`Kamera ${d.id.substring(0,10)}...`;li.dataset.cameraId=d.id;li.title=d.label||d.id;if(d.id===ccaId){li.classList.add('selected-camera');}li.addEventListener('click',async()=>{cameraSelectionOverlay.style.display='none';if(d.id!==localStorage.getItem(CAMERA_ID_KEY)||!isScannerRunning){statusTextSkenerElem.textContent=`Mijenjam...`;await stopSkener();initializeAndStartScanner(d.id);}else{statusTextSkenerElem.textContent="Kamera aktivna.";}});cameraListUl.appendChild(li);});cameraSelectionOverlay.style.display='block';}
 
         // --- FUNKCIJE ZA LISTU KUPNJE ---
         function dodajProizvodNaListu() {
@@ -665,8 +668,10 @@
             infoSkeniranogProizvodaContainer.classList.add('hidden');
             zadnjiSkeniraniProizvodInfo = null;
             statusTextSkenerElem.textContent = "Dodan na listu!";
-            setTimeout(() => { if(statusTextSkenerElem.textContent === "Dodan na listu!") statusTextSkenerElem.textContent = "";}, 1500);
+            setTimeout(() => { if(statusTextSkenerElem.textContent === "Dodan na listu!") statusTextSkenerElem.textContent = (isScannerRunning ? "Kamera aktivna." : "");}, 1500);
             azurirajPrikazSumarneListe();
+            // Ne spremamo cijelu kupovinu ovdje, već na kraju ili pri izlasku (ili ako želimo perzistenciju između sesija)
+            // Za sada, lista živi samo u memoriji dok se ne implementira spremanje povijesti za "završenu" kupovinu.
         }
 
         function obrisiStavkuSaListe(eanZaBrisanje) {
@@ -706,10 +711,10 @@
                 const cijenaStavkeUkupno = (stavka.cijenaKomad * stavka.kolicina).toFixed(2);
                 divStavke.innerHTML = `
                     <div class="stavka-liste-info">
-                        <div class="stavka-liste-naziv">${stavka.naziv}</div>
-                        <div class="stavka-liste-detalji">${stavka.kolicina} x ${stavka.cijenaKomad.toFixed(2)} EUR</div>
+                        <div class="stavka-naziv">${stavka.naziv}</div>
+                        <div class="stavka-detalji">${stavka.kolicina} x ${stavka.cijenaKomad.toFixed(2)} EUR</div>
                     </div>
-                    <div class="stavka-liste-ukupno">${cijenaStavkeUkupno} EUR</div>
+                    <div class="stavka-ukupno">${cijenaStavkeUkupno} EUR</div>
                     <button class="btn-brisi-stavku" data-ean="${stavka.ean}">X</button>
                 `;
                 listaKupovineStavkeContainer.appendChild(divStavke);
@@ -718,6 +723,195 @@
                 btn.addEventListener('click', (e) => obrisiStavkuSaListe(e.target.dataset.ean));
             });
         }
+
+        // --- FUNKCIJE ZA POVIJEST KUPNJE ---
+        function spremiTrenutnuKupovinu() {
+            if (trenutnaListaKupovine.length === 0 || !trenutnoOdabranaTrgovina) return;
+
+            const novaKupovina = {
+                id: generirajUUID(), // Jedinstveni ID za ovu kupovinu
+                datum: new Date().toISOString(),
+                trgovinaKod: trenutnoOdabranaTrgovina.code,
+                trgovinaNaziv: mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name),
+                stavke: JSON.parse(JSON.stringify(trenutnaListaKupovine)), // Duboka kopija
+                ukupanIznos: izracunajUkupnuCijenuListe()
+            };
+
+            povijestKupovina.unshift(novaKupovina); // Dodaj na početak
+            if (povijestKupovina.length > MAX_POVIJEST_KUPVINA) {
+                povijestKupovina.pop(); // Ukloni najstariju ako je limit premašen
+            }
+            localStorage.setItem('povijestKupovina', JSON.stringify(povijestKupovina));
+            
+            // Slanje na Google Sheets ako je brojač aktivan
+            if (brojPreostalihKupovina !== null && brojPreostalihKupovina >= 0) { // Šalji samo ako je gamifikacija aktivna
+                 posaljiNaGoogleSheets('kupovina', {
+                    trgovina: novaKupovina.trgovinaNaziv,
+                    iznos: novaKupovina.ukupanIznos,
+                    brojStavki: novaKupovina.stavke.length
+                });
+            }
+        }
+
+        function renderirajPovijestKupovine() {
+            povijestKupovineContainer.innerHTML = '';
+            if (povijestKupovina.length === 0) {
+                praznaPovijestPorukaEl.classList.remove('hidden'); return;
+            }
+            praznaPovijestPorukaEl.classList.add('hidden');
+
+            povijestKupovina.forEach(kupovina => {
+                const divKupovine = document.createElement('div');
+                divKupovine.classList.add('povijest-stavka');
+                divKupovine.dataset.kupovinaId = kupovina.id;
+                const datumFormatiran = new Date(kupovina.datum).toLocaleDateString('hr-HR', {day:'2-digit', month:'2-digit', year:'numeric'});
+                divKupovine.innerHTML = `
+                    <div class="povijest-stavka-info">
+                        <div class="stavka-naziv">${datumFormatiran} - ${kupovina.trgovinaNaziv}</div>
+                    </div>
+                    <div class="povijest-iznos">${kupovina.ukupanIznos.toFixed(2)} EUR</div>
+                `;
+                divKupovine.addEventListener('click', () => prikaziSpecifikacijuKupovine(kupovina.id));
+                povijestKupovineContainer.appendChild(divKupovine);
+            });
+        }
+        
+        function prikaziSpecifikacijuKupovine(kupovinaId) {
+            const kupovina = povijestKupovina.find(k => k.id === kupovinaId);
+            if (!kupovina) return;
+
+            specifikacijaNaslovEl.textContent = `Specifikacija (${new Date(kupovina.datum).toLocaleDateString('hr-HR')})`;
+            specifikacijaUkupnoEl.textContent = `UKUPNO: ${kupovina.ukupanIznos.toFixed(2)} EUR`;
+            specifikacijaStavkeContainer.innerHTML = '';
+
+            kupovina.stavke.forEach(stavka => {
+                const divStavke = document.createElement('div');
+                divStavke.classList.add('stavka-liste'); // Koristi iste stilove kao za trenutnu listu
+                const cijenaStavkeUkupno = (stavka.cijenaKomad * stavka.kolicina).toFixed(2);
+                divStavke.innerHTML = `
+                    <div class="stavka-liste-info">
+                        <div class="stavka-naziv">${stavka.naziv}</div>
+                        <div class="stavka-detalji">${stavka.kolicina} x ${stavka.cijenaKomad.toFixed(2)} EUR</div>
+                    </div>
+                    <div class="stavka-ukupno">${cijenaStavkeUkupno} EUR</div>
+                `; // Nema gumba za brisanje u povijesti
+                specifikacijaStavkeContainer.appendChild(divStavke);
+            });
+            prikaziEkran('ekran-specifikacija-kupovine');
+        }
+
+        // --- FUNKCIJE ZA USPOREDBU CIJENA ---
+        async function prikaziUsporedbuCijena() {
+            if (!zadnjiSkeniraniProizvodInfo || !zadnjiSkeniraniProizvodInfo.ean) {
+                alert("Prvo skenirajte proizvod."); return;
+            }
+            prikaziEkran('ekran-usporedbe-cijena');
+            usporedbaArtiklNazivEl.textContent = zadnjiSkeniraniProizvodInfo.naziv;
+            usporedbaArtiklCijenaTrenutnaEl.textContent = `Cijena u ${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name)}: ${zadnjiSkeniraniProizvodInfo.cijenaKomad.toFixed(2)} EUR`;
+            usporedbaCijenaContainer.innerHTML = '<p style="text-align:center;">Učitavam usporedbu...</p>';
+            usporedbaNemaPodatakaPorukaEl.classList.add('hidden');
+
+            const sviPodaci = await dohvatiPodatkeSkeniranogProizvoda(zadnjiSkeniraniProizvodInfo.ean, null, true);
+
+            if (sviPodaci && sviPodaci.chains && sviPodaci.chains.length > 0) {
+                usporedbaCijenaContainer.innerHTML = '';
+                sviPodaci.chains.sort((a,b) => (a.min_price || Infinity) - (b.min_price || Infinity) ).forEach(chainInfo => { // Sortiraj po cijeni
+                    if (chainInfo.chain_code === trenutnoOdabranaTrgovina.code) return; // Preskoči trenutnu trgovinu
+
+                    const divUsporedbe = document.createElement('div');
+                    divUsporedbe.classList.add('usporedba-stavka');
+                    const cijena = chainInfo.min_price !== null ? parseFloat(chainInfo.min_price).toFixed(2) + " EUR" : "N/A";
+                    divUsporedbe.innerHTML = `
+                        <div class="usporedba-stavka-info">
+                            <div class="stavka-naziv">${mapirajKodLancaUNaziv(chainInfo.chain_code)}</div>
+                        </div>
+                        <div class="usporedba-cijena">${cijena}</div>
+                    `;
+                    usporedbaCijenaContainer.appendChild(divUsporedbe);
+                });
+                if(usporedbaCijenaContainer.children.length === 0) { // Ako su ostale samo trenutne trgovine
+                    usporedbaNemaPodatakaPorukaEl.textContent = "Nema podataka o cijenama u drugim trgovinama.";
+                    usporedbaNemaPodatakaPorukaEl.classList.remove('hidden');
+                }
+
+            } else {
+                usporedbaCijenaContainer.innerHTML = '';
+                usporedbaNemaPodatakaPorukaEl.textContent = "Nema podataka za usporedbu ili je došlo do greške.";
+                usporedbaNemaPodatakaPorukaEl.classList.remove('hidden');
+            }
+        }
+        
+        // --- FUNKCIJE ZA GAMIFIKACIJU I GOOGLE SHEETS ---
+        async function dohvatiInicijalniBrojKupovina() {
+            if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+                console.warn("URL za Google Apps Script nije postavljen. Gamifikacija je onemogućena.");
+                brojPreostalihKupovina = -1; // Onemogući gamifikaciju
+                localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
+                return;
+            }
+            try {
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getScanLimit`);
+                if (!response.ok) throw new Error('Greška pri dohvaćanju limita.');
+                const data = await response.json();
+                if (data && typeof data.scanLimit === 'number') {
+                    brojPreostalihKupovina = data.scanLimit;
+                    localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
+                    console.log("Inicijalni broj kupovina postavljen na:", brojPreostalihKupovina);
+                } else {
+                    throw new Error('Neispravan format odgovora za limit.');
+                }
+            } catch (error) {
+                console.error("Greška dohvaćanja limita:", error);
+                brojPreostalihKupovina = 5; // Fallback na 5 ako dohvat ne uspije
+                localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
+            }
+        }
+
+        function umanjiBrojKupovina() {
+            if (brojPreostalihKupovina === null || brojPreostalihKupovina < 0) return; // Gamifikacija nije aktivna ili je neograničeno
+
+            if (brojPreostalihKupovina > 0) {
+                brojPreostalihKupovina--;
+                localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
+            }
+            provjeriBrojKupovinaIPrikaziPoruku();
+        }
+
+        function provjeriBrojKupovinaIPrikaziPoruku() {
+            if (brojPreostalihKupovina === 0) {
+                shareOverlayMessageEl.textContent = "Želiš još? Podijeli Dućan Skener s prijateljem i poruka će nestati!";
+                shareOverlayMessageEl.classList.remove('hidden');
+            } else {
+                shareOverlayMessageEl.classList.add('hidden');
+            }
+        }
+        
+        async function posaljiNaGoogleSheets(actionType, dataPayload) {
+            if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE' || !korisnickiID) return;
+
+            const payload = {
+                userId: korisnickiID,
+                action: actionType, // 'kupovina', 'dijeljenje', 'prviPristup'
+                timestamp: new Date().toISOString(),
+                ...dataPayload
+            };
+
+            try {
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Za jednostavne POST zahtjeve na Apps Script bez preflighta
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload) 
+                    // Napomena: Apps Script treba biti postavljen da parsira e.postData.contents
+                });
+                // Za no-cors ne možemo provjeriti response.ok
+                console.log("Podaci poslani na Google Sheets (no-cors):", payload);
+            } catch (error) {
+                console.error("Greška slanja na Google Sheets:", error);
+            }
+        }
+
 
         // --- EVENT LISTENERS ---
         btnIzaberiTrgovinu.addEventListener('click', () => { prikaziEkran('ekran-odabir-trgovine'); dohvatiITipkajTrgovine(); });
@@ -728,7 +922,7 @@
             else { alert("Molimo odaberite trgovinu."); } 
         });
         btnNastaviZadnjaTrgovina.addEventListener('click', () => { if (zadnjeOdabranaTrgovinaKod && zadnjeOdabranaTrgovinaNaziv) { postaviOdabranuTrgovinu(zadnjeOdabranaTrgovinaKod, zadnjeOdabranaTrgovinaNaziv); prikaziEkran('glavni-ekran-akcija'); } });
-        // btnTraziProizvodePocetna.addEventListener('click', ...); // Ako se ekran pretrage koristi
+        btnPovijestKupovine.addEventListener('click', () => prikaziEkran('ekran-povijest-kupovine'));
         
         btnSkenirajProizvod.addEventListener('click', () => {
             if (!trenutnoOdabranaTrgovina) { alert("Prvo odaberi trgovinu."); prikaziEkran('ekran-odabir-trgovine'); dohvatiITipkajTrgovine(); return; }
@@ -736,7 +930,20 @@
         });
         
         btnNazadSaSkeniranja.addEventListener('click', () => { 
-            stopSkener(); prikaziEkran('glavni-ekran-akcija'); 
+            // Prije povratka, ako lista nije prazna, pitaj za spremanje? Ili automatski spremi?
+            // Za sada, samo se vraćamo. Lista ostaje u memoriji.
+            // Ako želimo da se lista "završi" i spremi, ovdje bi bio poziv spremiTrenutnuKupovinu()
+            // i onda resetiranje trenutnaListaKupovine = []; azurirajPrikazSumarneListe();
+            // Za sada, odlučimo da se kupovina sprema samo kada se izlazi iz aplikacije ili mijenja trgovina.
+            // ILI, možda je bolje da se kupovina SPREMI ovdje, a lista resetira? To je logičnije.
+            if (trenutnaListaKupovine.length > 0) {
+                spremiTrenutnuKupovinu(); // Spremi prije izlaska
+                umanjiBrojKupovina();     // Umanji brojač nakon spremljene kupovine
+                trenutnaListaKupovine = []; // Resetiraj za iduću
+                azurirajPrikazSumarneListe();
+            }
+            stopSkener(); 
+            prikaziEkran('glavni-ekran-akcija'); 
         });
         
         btnPokreniZaustaviSkener.addEventListener('click', () => {
@@ -757,20 +964,80 @@
             }
         });
 
+        skeniranaKolicinaInput.addEventListener('input', azurirajUkupnoZaSkeniranuStavku);
         skeniranaKolicinaInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') { event.preventDefault(); btnDodajSkeniranoNaListu.click(); }
+            if (event.key === 'Enter') { 
+                event.preventDefault(); 
+                azurirajUkupnoZaSkeniranuStavku(); // Samo ažuriraj ukupno, ne dodaj na listu
+                // Možda prebaci fokus na gumb "Dodaj na listu"
+                // btnDodajSkeniranoNaListu.focus();
+            }
         });
         btnDodajSkeniranoNaListu.addEventListener('click', dodajProizvodNaListu);
+        btnUsporediCijene.addEventListener('click', prikaziUsporedbuCijena);
+
         btnPogledajListu.addEventListener('click', () => prikaziEkran('ekran-liste-kupovine'));
         btnListaNaSkener.addEventListener('click', () => prikaziEkran('ekran-skeniranja'));
-        btnListaNaPocetak.addEventListener('click', () => prikaziEkran('pocetni-ekran'));
+        btnListaNaPocetak.addEventListener('click', () => {
+            if (trenutnaListaKupovine.length > 0) {
+                spremiTrenutnuKupovinu();
+                umanjiBrojKupovina();
+                trenutnaListaKupovine = [];
+                azurirajPrikazSumarneListe();
+            }
+            prikaziEkran('pocetni-ekran');
+        });
+        
+        btnPovijestNaPocetak.addEventListener('click', () => prikaziEkran('pocetni-ekran'));
+        btnSpecifikacijaNaPovijest.addEventListener('click', () => prikaziEkran('ekran-povijest-kupovine'));
+        btnUsporedbaNaSkener.addEventListener('click', () => prikaziEkran('ekran-skeniranja'));
+
+        btnPodijeliAplikaciju.addEventListener('click', async () => {
+            const shareData = {
+                title: 'Dućan Skener',
+                text: 'Provjeri cijene proizvoda s Dućan Skenerom!',
+                url: window.location.href // Dijeli trenutnu stranicu
+            };
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                    console.log('Aplikacija uspješno podijeljena!');
+                    shareOverlayMessageEl.classList.add('hidden'); // Sakrij poruku
+                    await dohvatiInicijalniBrojKupovina(); // Resetiraj brojač na početnu vrijednost
+                    await posaljiNaGoogleSheets('dijeljenje', { url: window.location.href });
+                } else {
+                    alert('Dijeljenje nije podržano na ovom pregledniku. Možete ručno kopirati link: ' + window.location.href);
+                }
+            } catch (err) {
+                console.error('Greška pri dijeljenju:', err);
+                // Ako korisnik odustane od dijeljenja, Web Share API može baciti AbortError, ne prikazuj alert za to.
+                if (err.name !== 'AbortError') {
+                     alert('Nije uspjelo dijeljenje.');
+                }
+            }
+        });
 
         // --- INICIJALIZACIJA ---
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('trenutna-godina').textContent = new Date().getFullYear();
+
+            if (!korisnickiID) {
+                korisnickiID = generirajUUID();
+                localStorage.setItem('ducanSkenerKorisnickiID', korisnickiID);
+                localStorage.setItem('ducanSkenerPrviPristup', new Date().toISOString());
+                await posaljiNaGoogleSheets('prviPristup', { datum: localStorage.getItem('ducanSkenerPrviPristup') });
+                await dohvatiInicijalniBrojKupovina(); // Dohvati limit samo pri prvom pristupu
+            } else if (brojPreostalihKupovina === null) { 
+                 // Korisnik postoji, ali nema brojač (npr. stari korisnik nakon update-a)
+                await dohvatiInicijalniBrojKupovina();
+            }
+
+
             azurirajGumbNastavi();
             prikaziEkran('pocetni-ekran');
             azurirajPrikazSumarneListe();
+            provjeriBrojKupovinaIPrikaziPoruku();
+
 
             if (Html5Qrcode.getCameras) {
                 Html5Qrcode.getCameras()
