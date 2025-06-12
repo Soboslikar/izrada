@@ -46,7 +46,7 @@
             // Može se ignorirati
         }
 
-        async function dohvatiCijeneZaSpar(ean) {
+              async function dohvatiCijeneZaSpar(ean) {
             try {
                 const response = await fetch(`${API_BASE_URL}/v1/products/${ean}/?chains=${TARGET_CHAIN_CODE}`, {
                     headers: { 'Authorization': `Bearer ${API_KEY}` }
@@ -65,12 +65,14 @@
                 const data = await response.json();
                 
                 if (data.chains && data.chains.length > 0) {
-                    const sparData = data.chains[0]; // Trebao bi biti samo Spar
+                    const sparData = data.chains[0];
                     let htmlRezultat = `<h3>Podaci za proizvod: ${sparData.name || data.name || 'N/A'} (EAN: ${ean}) u Sparu</h3>`;
                     
-                    htmlRezultat += `<p><span class="cijena-label">Minimalna cijena (min_price):</span> ${sparData.min_price !== null ? sparData.min_price.toFixed(2) + ' EUR' : 'N/A'}</p>`;
-                    htmlRezultat += `<p><span class="cijena-label">Maksimalna cijena (max_price):</span> ${sparData.max_price !== null ? sparData.max_price.toFixed(2) + ' EUR' : 'N/A'}</p>`;
-                    htmlRezultat += `<p><span class="cijena-label">Prosječna cijena (avg_price):</span> ${sparData.avg_price !== null ? sparData.avg_price.toFixed(2) + ' EUR' : 'N/A'}</p>`;
+                    // Provjera prije .toFixed()
+                    htmlRezultat += `<p><span class="cijena-label">Minimalna cijena (min_price):</span> ${sparData.min_price !== null && sparData.min_price !== undefined ? parseFloat(sparData.min_price).toFixed(2) + ' EUR' : 'N/A'}</p>`;
+                    htmlRezultat += `<p><span class="cijena-label">Maksimalna cijena (max_price):</span> ${sparData.max_price !== null && sparData.max_price !== undefined ? parseFloat(sparData.max_price).toFixed(2) + ' EUR' : 'N/A'}</p>`;
+                    htmlRezultat += `<p><span class="cijena-label">Prosječna cijena (avg_price):</span> ${sparData.avg_price !== null && sparData.avg_price !== undefined ? parseFloat(sparData.avg_price).toFixed(2) + ' EUR' : 'N/A'}</p>`;
+                    
                     htmlRezultat += `<p><span class="cijena-label">Količina pakiranja:</span> ${sparData.quantity || 'N/A'} ${sparData.unit || ''}</p>`;
                     htmlRezultat += `<p><span class="cijena-label">Kategorija:</span> ${sparData.category || data.category || 'N/A'}</p>`;
                     htmlRezultat += `<p><span class="cijena-label">Brand:</span> ${sparData.brand || data.brand || 'N/A'}</p>`;
@@ -78,14 +80,14 @@
                     if (sparData.price_history && sparData.price_history.length > 0) {
                         htmlRezultat += `<h4>Povijest cijena (price_history):</h4>`;
                         sparData.price_history.forEach(entry => {
-                            htmlRezultat += `<div class="price-history-item">Datum: ${entry.date}, Cijena: ${entry.price.toFixed(2)} EUR</div>`;
+                            // Provjera i za cijene u povijesti
+                            htmlRezultat += `<div class="price-history-item">Datum: ${entry.date}, Cijena: ${entry.price !== null && entry.price !== undefined ? parseFloat(entry.price).toFixed(2) + ' EUR' : 'N/A'}</div>`;
                         });
                     } else {
                         htmlRezultat += `<p>Nema dostupne povijesti cijena.</p>`;
                     }
                     htmlRezultat += `<hr><h4>Sirovi podaci za Spar (chain[0]):</h4><pre>${JSON.stringify(sparData, null, 2)}</pre>`;
                     htmlRezultat += `<hr><h4>Sirovi globalni podaci o proizvodu:</h4><pre>${JSON.stringify({ean: data.ean, name: data.name, category: data.category, brand: data.brand}, null, 2)}</pre>`;
-
 
                     rezultatDiv.innerHTML = htmlRezultat;
                 } else {
