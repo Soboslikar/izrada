@@ -338,6 +338,8 @@
 
     <footer style="padding: 10px 1em;">
         <p id="zahvala-api" style="margin:0; text-align:center;">Podaci o cijenama ljubaznošću <a href="https://cijene.dev/" target="_blank" rel="noopener noreferrer">cijene.dev</a> (Senko Rašić).</p>
+        <!-- Dodan span za trenutnu godinu ako nije već tu -->
+        <p style="margin:5px 0 0 0; text-align:center; font-size: 0.8em;">© <span id="trenutna-godina"></span> DUĆAN SKENER</p>
     </footer>
 
     <!-- Statcounter Code -->
@@ -503,7 +505,7 @@
         }
         
         function azurirajUkupnoZaSkeniranuStavku() {
-            if (!zadnjiSkeniraniProizvodInfo || isNaN(zadnjiSkeniraniProizvodInfo.cijenaKomad)) { // Provjera za cijenuKomad
+            if (!zadnjiSkeniraniProizvodInfo || isNaN(zadnjiSkeniraniProizvodInfo.cijenaKomad)) {
                  skeniranItemUkupnoEl.textContent = "Ukupno: -";
                  return;
             }
@@ -532,7 +534,6 @@
         function renderirajPovijestKupovine(){povijestKupovineContainer.innerHTML='';if(povijestKupovina.length===0){praznaPovijestPorukaEl.classList.remove('hidden');return;}praznaPovijestPorukaEl.classList.add('hidden');povijestKupovina.forEach(k=>{const dk=document.createElement('div');dk.classList.add('povijest-stavka');dk.dataset.kupovinaId=k.id;const df=new Date(k.datum).toLocaleDateString('hr-HR',{day:'2-digit',month:'2-digit',year:'numeric'});dk.innerHTML=`<div class="povijest-stavka-info"><div class="stavka-naziv">${df} - ${k.trgovinaNaziv}</div></div><div class="povijest-iznos">${k.ukupanIznos.toFixed(2)} EUR</div>`;dk.addEventListener('click',()=>prikaziSpecifikacijuKupovine(k.id));povijestKupovineContainer.appendChild(dk);});}
         function prikaziSpecifikacijuKupovine(kupovinaId){const k=povijestKupovina.find(k=>k.id===kupovinaId);if(!k)return;specifikacijaNaslovEl.textContent=`Specifikacija (${new Date(k.datum).toLocaleDateString('hr-HR')})`;specifikacijaUkupnoEl.textContent=`UKUPNO: ${k.ukupanIznos.toFixed(2)} EUR`;specifikacijaStavkeContainer.innerHTML='';k.stavke.forEach(s=>{const d=document.createElement('div');d.classList.add('stavka-liste');const csu=(s.cijenaKomad*s.kolicina).toFixed(2);d.innerHTML=`<div class="stavka-liste-info"><div class="stavka-naziv">${s.naziv}</div><div class="stavka-detalji">${s.kolicina} x ${s.cijenaKomad.toFixed(2)} EUR</div></div><div class="stavka-ukupno">${csu} EUR</div>`;specifikacijaStavkeContainer.appendChild(d);});prikaziEkran('ekran-specifikacija-kupovine');}
 
-        // IZMJENA OVDJE:
         async function prikaziUsporedbuCijena() {
             if (!zadnjiSkeniraniProizvodInfo || !zadnjiSkeniraniProizvodInfo.ean || !trenutnoOdabranaTrgovina) {
                 alert("Prvo skenirajte proizvod i odaberite trgovinu."); return;
@@ -549,7 +550,7 @@
 
             if (sviPodaci && sviPodaci.chains && sviPodaci.chains.length > 0) {
                 usporedbaCijenaContainer.innerHTML = '';
-                const ostaleTrgovine = sviPodaci.chains.filter(chainInfo => chainInfo.chain_code !== trenutnoOdabranaTrgovina.code);
+                const ostaleTrgovine = sviPodaci.chains.filter(chainInfo => chainInfo.chain !== trenutnoOdabranaTrgovina.code); // KORISTI chainInfo.chain
 
                 if (ostaleTrgovine.length === 0) {
                     usporedbaNemaPodatakaPorukaEl.textContent = "Nema podataka o cijenama u drugim trgovinama za ovaj proizvod.";
@@ -559,7 +560,7 @@
 
                 ostaleTrgovine.sort((a,b) => (a.min_price === null ? Infinity : a.min_price) - (b.min_price === null ? Infinity : b.min_price) )
                 .forEach(chainInfo => {
-                    console.log("Chain Info za usporedbu:", chainInfo); // DODAN CONSOLE.LOG ZA DEBUG
+                    // console.log("Chain Info za usporedbu:", chainInfo); // Ostavljeno za debug ako treba
 
                     const divUsporedbe = document.createElement('div');
                     divUsporedbe.classList.add('usporedba-stavka');
@@ -575,10 +576,10 @@
                             klasaBojeCijene = 'cijena-skuplje'; 
                         }
                     }
-
+                    // KORISTI chainInfo.chain za mapiranje
                     divUsporedbe.innerHTML = `
                         <div class="usporedba-stavka-info">
-                            <div class="stavka-naziv">${mapirajKodLancaUNaziv(chainInfo.chain_code)}</div>
+                            <div class="stavka-naziv">${mapirajKodLancaUNaziv(chainInfo.chain)}</div>
                         </div>
                         <div class="usporedba-cijena ${klasaBojeCijene}">${cijenaPrikaz}</div>
                     `;
@@ -613,7 +614,7 @@
             if (event.key === 'Enter') { 
                 event.preventDefault(); 
                 azurirajUkupnoZaSkeniranuStavku();
-                btnDodajSkeniranoNaListu.focus(); // IZMJENA: Prebaci fokus
+                btnDodajSkeniranoNaListu.focus();
             }
         });
         btnDodajSkeniranoNaListu.addEventListener('click', dodajProizvodNaListu);
@@ -626,7 +627,33 @@
         btnUsporedbaNaSkener.addEventListener('click', () => prikaziEkran('ekran-skeniranja'));
         btnPodijeliAplikaciju.addEventListener('click', async () => { const sd={title:'Dućan Skener',text:'Provjeri cijene!',url:window.location.href};try{if(navigator.share){await navigator.share(sd);shareOverlayMessageEl.classList.add('hidden');await dohvatiInicijalniBrojKupovina();await posaljiNaGoogleSheets('dijeljenje',{url:window.location.href});}else{alert('Dijeljenje nije podržano. Kopiraj: '+window.location.href);}}catch(err){if(err.name!=='AbortError'){alert('Nije uspjelo dijeljenje.');}}});
 
-        document.addEventListener('DOMContentLoaded', async () => { document.getElementById('trenutna-godina').textContent=new Date().getFullYear();if(!korisnickiID){korisnickiID=generirajUUID();localStorage.setItem('ducanSkenerKorisnickiID',korisnickiID);localStorage.setItem('ducanSkenerPrviPristup',new Date().toISOString());await posaljiNaGoogleSheets('prviPristup',{datum:localStorage.getItem('ducanSkenerPrviPristup')});await dohvatiInicijalniBrojKupovina();}else if(brojPreostalihKupovina===null){await dohvatiInicijalniBrojKupovina();}azurirajGumbNastavi();prikaziEkran('pocetni-ekran');azurirajPrikazSumarneListe();provjeriBrojKupovinaIPrikaziPoruku();if(Html5Qrcode.getCameras){Html5Qrcode.getCameras().then(d=>{if(d&&d.length){availableCameras=d;}}).catch(err=>{console.warn("Kamere init greška:",err.message||err);});}});
+        document.addEventListener('DOMContentLoaded', async () => { 
+            const godinaElement = document.getElementById('trenutna-godina');
+            if (godinaElement) {
+                godinaElement.textContent = new Date().getFullYear();
+            } else {
+                console.error("Element s ID-om 'trenutna-godina' nije pronađen!");
+            }
+            
+            if(!korisnickiID){
+                korisnickiID=generirajUUID();
+                localStorage.setItem('ducanSkenerKorisnickiID',korisnickiID);
+                localStorage.setItem('ducanSkenerPrviPristup',new Date().toISOString());
+                await posaljiNaGoogleSheets('prviPristup',{datum:localStorage.getItem('ducanSkenerPrviPristup')});
+                await dohvatiInicijalniBrojKupovina();
+            } else if (brojPreostalihKupovina===null){
+                await dohvatiInicijalniBrojKupovina();
+            }
+            azurirajGumbNastavi();
+            prikaziEkran('pocetni-ekran');
+            azurirajPrikazSumarneListe();
+            provjeriBrojKupovinaIPrikaziPoruku();
+            if(Html5Qrcode.getCameras){
+                Html5Qrcode.getCameras()
+                    .then(d=>{if(d&&d.length){availableCameras=d;}})
+                    .catch(err=>{console.warn("Kamere init greška:",err.message||err);});
+            }
+        });
     </script>
 </body>
 </html>
