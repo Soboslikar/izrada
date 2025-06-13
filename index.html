@@ -47,11 +47,24 @@
 
         /* --- STILOVI SKENERA --- */
         #reader-container { 
-            position: relative; width: 100%; max-width: 500px; 
-            height: 30vh; min-height: 250px; background-color: #000; 
-            margin-bottom: 5px; overflow: hidden; 
-            margin-left: auto; margin-right: auto; 
-        }
+    position: relative;
+    /* Širina - npr. 90% širine ekrana, ali ne više od 450px */
+    width: 90vw; 
+    max-width: 450px; /* Prilagodi po želji */
+
+    /* Visina - da bude jednaka širini za kockasti oblik */
+    height: 90vw; /* Isto kao width */
+    max-height: 450px; /* Isto kao max-width */
+    
+    /* Ukloni ili prilagodi stari min-height ako smeta */
+    min-height: 0; /* Ili postavi na neku manju vrijednost ako je potrebno */
+
+    background-color: #000; 
+    margin-bottom: 5px; 
+    overflow: hidden; 
+    margin-left: auto; 
+    margin-right: auto; 
+}
         #reader { width: 100%; height: 100%; }
         #reader video, 
         #reader > div > video,
