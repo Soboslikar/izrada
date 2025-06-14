@@ -45,7 +45,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- STILOVI SKENERA (SVI ISPRAVCI UKLJUČENI) --- */
+        /* --- STILOVI SKENERA (S KONAČNIM ISPRAVKOM) --- */
         #reader-container { 
             position: relative; width: 100%; max-width: 500px; 
             height: 30vh; min-height: 250px; background-color: #000; 
@@ -54,20 +54,21 @@
         }
         
         #reader { 
-            width: 100%; 
-            height: 100%; 
-            border: none !important; /* Ovo uklanja neželjene vertikalne crte */
+            width: 100%; height: 100%; 
+        }
+
+        /* === OVDJE JE KONAČNI ISPRAVAK ZA SVE NEŽELJENE CRTE === */
+        /* Ovo pravilo cilja elemente koje biblioteka sama stvara unutar čitača */
+        #reader > div, #reader > div > video {
+            border: none !important;
         }
         
         /* Novi, poboljšani stil za ciljnik s uglovima */
         #viewfinder-overlay {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 75%; 
-            max-width: 280px;
-            padding-top: 75%;
-            max-height: 280px;
+            top: 50%; left: 50%;
+            width: 75%; max-width: 280px;
+            padding-top: 75%; max-height: 280px;
             transform: translate(-50%, -50%);
             border: none;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
@@ -317,7 +318,7 @@
             </div>
         </section>
 
-        <!-- Ekran 5: Ekran Liste Kupovine -->
+        <!-- Ostatak HTML-a (Ekrani 5 do 8) -->
         <section id="ekran-liste-kupovine" class="hidden">
             <div class="sticky-header" id="lista-kupovine-header">
                 <div class="header-gornji-red" id="lista-kupovine-header-gornji-red">
@@ -332,8 +333,6 @@
                 <p style="text-align:center; color:#888; margin-top:20px;" id="prazna-lista-poruka">Lista je prazna.</p>
             </div>
         </section>
-
-        <!-- Ekran 6: Ekran Povijest Kupovine -->
         <section id="ekran-povijest-kupovine" class="hidden">
             <div class="sticky-header">
                  <div class="header-gornji-red">
@@ -346,8 +345,6 @@
                  <p style="text-align:center; color:#888; margin-top:20px;" id="prazna-povijest-poruka">Nema spremljenih kupovina.</p>
             </div>
         </section>
-
-        <!-- Ekran 7: Ekran Specifikacija Kupovine -->
         <section id="ekran-specifikacija-kupovine" class="hidden">
             <div class="sticky-header">
                 <div class="header-gornji-red">
@@ -359,8 +356,6 @@
             </div>
             <div class="scrollable-content" id="specifikacija-stavke-container"></div>
         </section>
-
-        <!-- Ekran 8: Ekran Usporedbe Cijena -->
         <section id="ekran-usporedbe-cijena" class="hidden">
             <div class="sticky-header">
                 <div class="header-gornji-red">
@@ -397,8 +392,7 @@
     alt="Web Analytics"
     referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
     <!-- End of Statcounter Code -->
-
-    <script>
+        <script>
         // --- KONSTANTE ---
         const API_BASE_URL = "https://api.cijene.dev";
         const API_KEY = "mee5xooThuithei4ees4bae3emos3ook";
@@ -463,7 +457,8 @@
         const usporedbaArtiklCijenaTrenutnaEl = document.getElementById('usporedba-artikl-cijena-trenutna');
         const usporedbaCijenaContainer = document.getElementById('usporedba-cijena-container');
         const usporedbaNemaPodatakaPorukaEl = document.getElementById('usporedba-nema-podataka-poruka');
-                // --- GLOBALNE VARIJABLE ---
+        
+        // --- GLOBALNE VARIJABLE ---
         let trenutnoOdabranaTrgovina = null; 
         let zadnjeOdabranaTrgovinaKod = localStorage.getItem('zadnjaTrgovinaKod');
         let zadnjeOdabranaTrgovinaNaziv = localStorage.getItem('zadnjaTrgovinaNaziv');
@@ -486,18 +481,12 @@
             });
         }
         
-        /**
-         * Prikazuje specificirani ekran, a skriva sve ostale.
-         * @param {string} ekranId ID HTML elementa ekrana koji treba prikazati.
-         */
         function prikaziEkran(ekranId) {
             const sviEkrani = [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, ekranListeKupovine, ekranPovijestKupovine, ekranSpecifikacijaKupovine, ekranUsporedbeCijena];
             const fullscreenEkrani = ['ekran-skeniranja', 'ekran-liste-kupovine', 'ekran-povijest-kupovine', 'ekran-specifikacija-kupovine', 'ekran-usporedbe-cijena'];
 
             sviEkrani.forEach(ekran => {
-                if (ekran) {
-                    ekran.classList.toggle('hidden', ekran.id !== ekranId);
-                }
+                if (ekran) ekran.classList.toggle('hidden', ekran.id !== ekranId);
             });
 
             document.body.classList.toggle('skener-aktivan', fullscreenEkrani.includes(ekranId));
@@ -507,9 +496,7 @@
                     infoTrgovinaSkeniranjeOverlay.textContent = `Trgovina: ${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name)}`;
                 }
                 infoSkeniranogProizvodaContainer.classList.add('hidden');
-                if (!isScannerRunning) {
-                    clearSkenerMessages();
-                }
+                if (!isScannerRunning) clearSkenerMessages();
                 azurirajPrikazSumarneListe();
                 provjeriBrojKupovinaIPrikaziPoruku();
             } else if (isScannerRunning && !fullscreenEkrani.includes(ekranId)) {
@@ -520,11 +507,6 @@
             if (ekranId === 'ekran-povijest-kupovine') renderirajPovijestKupovine();
         }
         
-        /**
-         * Pretvara kod lanca trgovine (npr. 'konzum') u puni, formatirani naziv (npr. 'Konzum').
-         * @param {string} kod Kod lanca trgovine.
-         * @returns {string} Formatirani naziv trgovine.
-         */
         function mapirajKodLancaUNaziv(kod) {
             if (!kod) return "Nepoznato";
             const imenaTrgovina = {"konzum": "Konzum", "lidl": "Lidl", "spar": "Spar", "plodine": "Plodine", "kaufland": "Kaufland", "tommy": "Tommy", "studenac": "Studenac", "eurospin": "Eurospin", "dm": "dm", "ktc": "KTC", "metro": "Metro", "trgocentar": "Trgocentar", "zabac": "Žabac", "vrutak": "Vrutak", "ribola": "Ribola", "ntl": "NTL"};
@@ -548,12 +530,10 @@
                         selectTrgovina.appendChild(option);
                     });
                     selectTrgovina.disabled = false;
-                    btnPotvrdiTrgovinu.disabled = true; // Ostaviti disabled dok se ne odabere
                 } else {
-                    selectTrgovina.innerHTML = '<option value="">Nema dostupnih trgovina.</option>';
+                    selectTrgovina.innerHTML = '<option value="">Nema trgovina.</option>';
                 }
             } catch (error) {
-                console.error("Greška pri učitavanju trgovina:", error);
                 selectTrgovina.innerHTML = `<option value="">Greška.</option>`;
                 alert(`Učitavanje trgovina: ${error.message}`);
             }
@@ -892,7 +872,7 @@
             specifikacijaStavkeContainer.innerHTML = '';
             kupovina.stavke.forEach(s => {
                 const div = document.createElement('div');
-                div.className = 'stavka-liste'; // Koristimo isti stil
+                div.className = 'stavka-liste'; 
                 div.innerHTML = `
                     <div class="stavka-liste-info">
                         <div class="stavka-naziv">${s.naziv}</div>
@@ -919,15 +899,15 @@
                     throw new Error("Nema podataka o cijenama u drugim trgovinama.");
                 }
                 const ostaleTrgovine = sviPodaci.chains
-                    .filter(c => c.chain !== trenutnoOdabranaTrgovina.code && c.price !== null)
-                    .sort((a, b) => a.price - b.price);
+                    .filter(c => c.chain !== trenutnoOdabranaTrgovina.code && (c.price !== null || c.min_price !== null))
+                    .sort((a, b) => (a.price || a.min_price) - (b.price || b.min_price));
 
                 if (ostaleTrgovine.length === 0) {
                     throw new Error("Nema podataka o cijenama u drugim trgovinama.");
                 }
                 usporedbaCijenaContainer.innerHTML = '';
                 ostaleTrgovine.forEach(c => {
-                    const cijena = parseFloat(c.price);
+                    const cijena = parseFloat(c.price || c.min_price);
                     let klasaBoje = '';
                     if (cijena < cijenaUTrenutnojTrgovini) klasaBoje = 'cijena-jeftinije';
                     else if (cijena > cijenaUTrenutnojTrgovini) klasaBoje = 'cijena-skuplje';
@@ -948,7 +928,7 @@
         
         async function dohvatiInicijalniBrojKupovina() {
              if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-                brojPreostalihKupovina = -1; // -1 znači beskonačno
+                brojPreostalihKupovina = -1; 
                 localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
                 return;
             }
@@ -957,15 +937,14 @@
                 const d = await r.json();
                 brojPreostalihKupovina = (d && typeof d.scanLimit === 'number') ? d.scanLimit : 5;
             } catch (e) {
-                brojPreostalihKupovina = 5; // Fallback
+                brojPreostalihKupovina = 5;
             } finally {
                 localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
             }
         }
 
         function umanjiBrojKupovina() {
-            if (brojPreostalihKupovina === null || brojPreostalihKupovina < 0) return;
-            if (brojPreostalihKupovina > 0) {
+            if (brojPreostalihKupovina !== null && brojPreostalihKupovina > 0) {
                 brojPreostalihKupovina--;
                 localStorage.setItem('brojPreostalihKupovina', brojPreostalihKupovina);
             }
@@ -1006,6 +985,7 @@
             }
         });
         btnPovijestKupovine.addEventListener('click', () => prikaziEkran('ekran-povijest-kupovine'));
+        btnPromijeniTrgovinu.addEventListener('click', () => { prikaziEkran('ekran-odabir-trgovine'); dohvatiITipkajTrgovine(); });
         btnSkenirajProizvod.addEventListener('click', () => prikaziEkran('ekran-skeniranja'));
         btnNazadSaSkeniranja.addEventListener('click', () => {
             if (trenutnaListaKupovine.length > 0) {
