@@ -145,8 +145,11 @@
         body.skener-aktivan #ekran-specifikacija-kupovine {
              padding-top: 2px; background-color: #000; color: #f0f0f0; 
         }
-        body.skener-aktivan h2 { color: #f0f0f0; text-align: center; margin-top: 5px; margin-bottom: 10px; }
+        body.skener-aktivan h2 { color: #f0f0f0 !important; text-align: center; margin-top: 5px; margin-bottom: 10px; }
+        body.skener-aktivan #ekran-specifikacija-kupovine h2, 
+        body.skener-aktivan #ekran-povijest-kupovine h2 { color: #f0f0f0 !important; }
         body.skener-aktivan #btn-pokreni-zaustavi-skener { margin-top: 0; margin-bottom: 5px; }
+        
         #share-overlay-message {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
             background-color: rgba(255, 223, 186, 0.9); color: #333; padding: 20px; border-radius: 10px;
@@ -290,7 +293,7 @@
                  <p style="text-align:center; color:#888; margin-top:20px;" id="prazna-povijest-poruka">Nema spremljenih kupovina.</p>
             </div>
             <div style="padding: 0 10px 10px 10px;">
-                <button id="btn-ocisti-povijest" style="background-color:#dc3545;">Očisti Povijest</button>
+                <button id="btn-ocisti-povijest" style="background-color:#dc3545;" class="hidden">Očisti Povijest</button>
             </div>
         </section>
 
@@ -340,7 +343,9 @@
     <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
     <noscript><div class="statcounter"><a title="Web Analytics" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/13142545/0/cd38ae59/1/" alt="Web Analytics" referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
     <!-- End of Statcounter Code -->
-            // --- KONSTANTE ---
+
+    <script>
+        // --- KONSTANTE ---
         const API_BASE_URL = "https://api.cijene.dev";
         const API_KEY = "mee5xooThuithei4ees4bae3emos3ook";
         const MAX_POVIJEST_KUPVINA = 20;
@@ -432,7 +437,6 @@
         function prikaziEkran(ekranId) {
             const sviEkrani = [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, ekranListeKupovine, ekranPovijestKupovine, ekranSpecifikacijaKupovine, ekranUsporedbeCijena];
             const fullscreenEkrani = ['ekran-skeniranja', 'ekran-liste-kupovine', 'ekran-povijest-kupovine', 'ekran-specifikacija-kupovine', 'ekran-usporedbe-cijena'];
-
             sviEkrani.forEach(ekran => { if (ekran) ekran.classList.toggle('hidden', ekran.id !== ekranId); });
             document.body.classList.toggle('skener-aktivan', fullscreenEkrani.includes(ekranId));
 
@@ -498,15 +502,10 @@
 
         async function dohvatiPodatkeSkeniranogProizvoda(ean, chainCode, zaUsporedbu = false) {
             if (!zaUsporedbu) {
-                zadnjiSkeniraniProizvodInfo = null;
-                infoSkeniranogProizvodaContainer.classList.remove('hidden');
-                skeniranNazivEl.textContent = `Tražim: ${ean}...`;
-                skeniranaCijenaEl.textContent = "...";
-                skeniranaCijenaPoJediniciEl.textContent = "...";
-                skeniranItemUkupnoEl.textContent = "Ukupno: ...";
-                skeniranaKolicinaInput.value = 1;
-                btnDodajSkeniranoNaListu.disabled = true;
-                btnUsporediCijene.disabled = true;
+                zadnjiSkeniraniProizvodInfo = null; infoSkeniranogProizvodaContainer.classList.remove('hidden');
+                skeniranNazivEl.textContent = `Tražim: ${ean}...`; skeniranaCijenaEl.textContent = "...";
+                skeniranaCijenaPoJediniciEl.textContent = "..."; skeniranItemUkupnoEl.textContent = "Ukupno: ...";
+                skeniranaKolicinaInput.value = 1; btnDodajSkeniranoNaListu.disabled = true; btnUsporediCijene.disabled = true;
             }
             try {
                 const url = zaUsporedbu ? `${API_BASE_URL}/v1/products/${ean}/` : `${API_BASE_URL}/v1/products/${ean}/?chains=${chainCode}`;
@@ -524,13 +523,10 @@
                     const nazivPrikaz = productInfo.name || data.name || "Nepoznat naziv";
                     const cijenaZaPrikaz = parseFloat(productInfo.price) || parseFloat(productInfo.max_price) || parseFloat(productInfo.avg_price) || parseFloat(productInfo.min_price);
                     if (isNaN(cijenaZaPrikaz)) throw new Error("Cijena nije dostupna.");
-                    skeniranNazivEl.textContent = nazivPrikaz;
-                    skeniranaCijenaEl.textContent = cijenaZaPrikaz.toFixed(2);
+                    skeniranNazivEl.textContent = nazivPrikaz; skeniranaCijenaEl.textContent = cijenaZaPrikaz.toFixed(2);
                     skeniranaCijenaPoJediniciEl.textContent = izracunajCijenuPoJM(cijenaZaPrikaz, productInfo.quantity, productInfo.unit);
                     zadnjiSkeniraniProizvodInfo = { ean, naziv: nazivPrikaz, cijenaKomad: cijenaZaPrikaz };
-                    azurirajUkupnoZaSkeniranuStavku();
-                    btnDodajSkeniranoNaListu.disabled = false;
-                    btnUsporediCijene.disabled = false;
+                    azurirajUkupnoZaSkeniranuStavku(); btnDodajSkeniranoNaListu.disabled = false; btnUsporediCijene.disabled = false;
                 } else { throw new Error(`Proizvod ${ean} nema podataka za ${mapirajKodLancaUNaziv(chainCode)}.`); }
             } catch (error) {
                 if (!zaUsporedbu) {
@@ -666,6 +662,7 @@
         }
         
         function izracunajUkupnuCijenuListe() { return trenutnaListaKupovine.reduce((t, i) => t + (i.cijenaKomad * i.kolicina), 0); }
+        
         function azurirajPrikazSumarneListe() {
             const ukupno = izracunajUkupnuCijenuListe();
             ukupnoCijenaSkeniranjeSumEl.textContent = ukupno.toFixed(2);
@@ -696,8 +693,9 @@
 
         function renderirajPovijestKupovine() {
             povijestKupovineContainer.innerHTML = '';
-            praznaPovijestPorukaEl.classList.toggle('hidden', povijestKupovina.length === 0);
-            btnOcistiPovijest.classList.toggle('hidden', povijestKupovina.length === 0);
+            const imaPovijesti = povijestKupovina.length > 0;
+            praznaPovijestPorukaEl.classList.toggle('hidden', imaPovijesti);
+            btnOcistiPovijest.classList.toggle('hidden', !imaPovijesti);
             povijestKupovina.forEach(k => {
                 const div = document.createElement('div'); div.className = 'povijest-stavka'; div.dataset.kupovinaId = k.id;
                 const datumFormatiran = new Date(k.datum).toLocaleDateString('hr-HR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -816,6 +814,7 @@
         listaKupovineStavkeContainer.addEventListener('click', e => { if (e.target.classList.contains('btn-brisi-stavku')) obrisiStavkuSaListe(e.target.dataset.ean); });
         povijestKupovineContainer.addEventListener('click', e => { const el = e.target.closest('.povijest-stavka'); if (el) prikaziSpecifikacijuKupovine(el.dataset.kupovinaId); });
         selectTrgovina.addEventListener('change', () => { btnPotvrdiTrgovinu.disabled = selectTrgovina.value === ""; });
+        
         btnOcistiPovijest.addEventListener('click', () => {
             if (povijestKupovina.length === 0) { alert("Povijest je već prazna."); return; }
             if (confirm("Jeste li sigurni da želite trajno obrisati cijelu povijest kupovine?")) {
@@ -823,10 +822,11 @@
                 renderirajPovijestKupovine(); alert("Povijest kupovine je obrisana.");
             }
         });
+
         btnUsporediKosaricu.addEventListener('click', () => {
             if (!trenutnoPrikazanaKupovinaId) return;
             const kupovina = povijestKupovina.find(k => k.id === trenutnoPrikazanaKupovinaId);
-            console.log("Uspoređujemo kupovinu:", kupovina);
+            console.log("Planirana usporedba za:", kupovina);
             alert("Funkcionalnost usporedbe cijele košarice je u izradi!");
         });
 
@@ -844,8 +844,7 @@
             prikaziEkran('pocetni-ekran');
             azurirajPrikazSumarneListe();
             provjeriBrojKupovinaIPrikaziPoruku();
-          });
-
+        });
     </script>
 </body>
 </html>
