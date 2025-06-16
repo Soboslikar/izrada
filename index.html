@@ -811,34 +811,39 @@ async function prikaziUsporedbuKosarice() {
         }
 
         sortiraniRezultati.forEach(rezultat => {
-            // --- Logika za bojanje ---
+            // --- FINALNA, PRECIZNA LOGIKA ZA BOJANJE ---
             
-            let klasaBojeCijene = '';
-            if (rezultat.ukupno.toFixed(2) === originalnaKupovina.ukupanIznos.toFixed(2)) {
-                 klasaBojeCijene = 'text-neutral';
-            } else if (rezultat.ukupno < originalnaKupovina.ukupanIznos) {
-                klasaBojeCijene = 'cijena-jeftinije';
-            } else if (rezultat.ukupno > originalnaKupovina.ukupanIznos) {
-                klasaBojeCijene = 'cijena-skuplje';
-            }
-
-            let infoKlasaBoje = ''; 
+            let klasaNazivaICijene = '';
+            let klasaDetalja = ''; // Klasa za tekst "Pronađeno X od Y"
             const sviPronadjeni = rezultat.pronadjeno === originalnaKupovina.stavke.length;
 
-            if (!sviPronadjeni) {
-                infoKlasaBoje = 'text-dimmed';
+            if (sviPronadjeni) {
+                // Ako su svi pronađeni, detalji su uvijek neutralni
+                klasaDetalja = 'text-neutral';
+
+                // A naziv i cijena ovise o iznosu
+                if (rezultat.ukupno.toFixed(2) === originalnaKupovina.ukupanIznos.toFixed(2)) {
+                    klasaNazivaICijene = 'text-neutral';
+                } else if (rezultat.ukupno < originalnaKupovina.ukupanIznos) {
+                    klasaNazivaICijene = 'cijena-jeftinije';
+                } else {
+                    klasaNazivaICijene = 'cijena-skuplje';
+                }
             } else {
-                infoKlasaBoje = klasaBojeCijene; // Preuzima zelenu, crvenu ili neutralnu boju
+                // Ako NISU svi pronađeni, SVE je prigušeno (sivo)
+                klasaNazivaICijene = 'text-dimmed';
+                klasaDetalja = 'text-dimmed';
             }
 
             const div = document.createElement('div');
             div.className = 'usporedba-stavka';
+            
             div.innerHTML = `
-                <div class="usporedba-stavka-info ${infoKlasaBoje}">
-                    <div class="stavka-naziv">${mapirajKodLancaUNaziv(rezultat.kod)}</div>
-                    <div class="stavka-detalji">Pronađeno ${rezultat.pronadjeno} od ${originalnaKupovina.stavke.length} artikala</div>
+                <div class="usporedba-stavka-info">
+                    <div class="stavka-naziv ${klasaNazivaICijene}">${mapirajKodLancaUNaziv(rezultat.kod)}</div>
+                    <div class="stavka-detalji ${klasaDetalja}">Pronađeno ${rezultat.pronadjeno} od ${originalnaKupovina.stavke.length} artikala</div>
                 </div>
-                <div class="usporedba-cijena ${klasaBojeCijene}">${rezultat.ukupno.toFixed(2)} EUR</div>
+                <div class="usporedba-cijena ${klasaNazivaICijene}">${rezultat.ukupno.toFixed(2)} EUR</div>
             `;
             usporedbaKosariceContainer.appendChild(div);
         });
