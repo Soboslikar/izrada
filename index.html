@@ -539,47 +539,64 @@
         }, 1500);
     }
     
-    async function dohvatiPodatkeSkeniranogProizvoda(ean, chainCode, zaUsporedbu = false) {
-        if (!zaUsporedbu) {
-            zadnjiSkeniraniProizvodInfo = null;
-            statusTextSkenerElem.textContent = "Tražim proizvod...";
-        }
-        try {
-            const url = zaUsporedbu ? `${API_BASE_URL}/v1/products/${ean}/` : `${API_BASE_URL}/v1/products/${ean}/?chains=${chainCode}`;
-            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${API_KEY}` } });
-            if (!response.ok) {
-                let errorMsg = `Greška (${response.status})`;
-                if (response.status === 404) errorMsg = `Proizvod nije pronađen.`;
-                throw new Error(errorMsg);
-            }
-            const data = await response.json();
-            if (zaUsporedbu) return data;
-            if (data.chains && data.chains.length > 0) {
-                const productInfo = data.chains[0];
-                const cijenaZaPrikaz = parseFloat(productInfo.price) || 0;
-
-                // ISPRAVAK BUGA: Ignoriraj cijenu 0.00
-                if (cijenaZaPrikaz <= 0) throw new Error("Proizvod pronađen, ali cijena nije dostupna.");
-                
-                prikaziScanFeedback('ima', 'UČITANO');
-                infoSkeniranogProizvodaContainer.classList.remove('hidden');
-                const nazivPrikaz = productInfo.name || data.name || "Nepoznat naziv";
-                skeniranNazivEl.textContent = nazivPrikaz; skeniranaCijenaEl.textContent = cijenaZaPrikaz.toFixed(2);
-                skeniranaCijenaPoJediniciEl.textContent = izracunajCijenuPoJM(cijenaZaPrikaz, productInfo.quantity, productInfo.unit);
-                zadnjiSkeniraniProizvodInfo = { ean, naziv: nazivPrikaz, cijenaKomad: cijenaZaPrikaz };
-                azurirajUkupnoZaSkeniranuStavku(); btnDodajSkeniranoNaListu.disabled = false; btnUsporediCijene.disabled = false;
-            } else {
-                throw new Error(`Proizvod nema podataka za ${mapirajKodLancaUNaziv(chainCode)}.`);
-            }
-        } catch (error) {
-            if (!zaUsporedbu) {
-                prikaziScanFeedback('nema', 'NEPOZNATO');
-                infoSkeniranogProizvodaContainer.classList.add('hidden');
-                errorTextSkenerElem.textContent = error.message.substring(0, 100);
-            }
-            console.error('Dohvaćanje proizvoda greška:', error); return null;
-        }
+ async function dohvatiPodatkeSkeniranogProizvoda(ean, chainCode, zaUsporedbu = false) {
+    if (!zaUsporedbu) {
+        zadnjiSkeniraniProizvodInfo = null;
+        // Više ne prikazujemo tekst ovdje, nego čekamo feedback
+        clearSkenerMessages();
     }
+    try {
+        const url = zaUsporedbu ? `${API_BASE_URL}/v1/products/${ean}/` : `${API_BASE_URL}/v1/products/${ean}/?chains=${chainCode}`;
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${API_KEY}` } });
+        if (!response.ok) {
+            let errorMsg = `Greška (${response.status})`;
+            if (response.status === 404) errorMsg = `Proizvod nije pronađen.`;
+            else { try { const d = await response.json(); errorMsg += `: ${d.detail || ''}`; } catch (e) {} }
+            throw new Error(errorMsg);
+        }
+        const data = await response.json();
+        
+        // Ako je za usporedbu košarice, samo vrati sve podatke
+        if (zaUsporedbu) return data;
+
+        // Ako je za prikaz jednog proizvoda
+        if (data.chains && data.chains.length > 0) {
+            const productInfo = data.chains[0];
+            
+            // --- OVDJE JE BIO BUG, SADA JE ISPRAVLJENO ---
+            // Vraćamo robusnu provjeru za više mogućih polja s cijenom
+            const cijenaZaPrikaz = parseFloat(productInfo.price) || parseFloat(productInfo.max_price) || parseFloat(productInfo.avg_price) || parseFloat(productInfo.min_price);
+
+            // Provjeravamo je li cijena validan broj i veća od 0
+            if (isNaN(cijenaZaPrikaz) || cijenaZaPrikaz <= 0) {
+                throw new Error("Proizvod pronađen, ali cijena nije dostupna.");
+            }
+            
+            prikaziScanFeedback('ima', 'UČITANO');
+            infoSkeniranogProizvodaContainer.classList.remove('hidden');
+            const nazivPrikaz = productInfo.name || data.name || "Nepoznat naziv";
+            skeniranNazivEl.textContent = nazivPrikaz;
+            skeniranaCijenaEl.textContent = cijenaZaPrikaz.toFixed(2);
+            skeniranaCijenaPoJediniciEl.textContent = izracunajCijenuPoJM(cijenaZaPrikaz, productInfo.quantity, productInfo.unit);
+            zadnjiSkeniraniProizvodInfo = { ean, naziv: nazivPrikaz, cijenaKomad: cijenaZaPrikaz };
+            azurirajUkupnoZaSkeniranuStavku();
+            btnDodajSkeniranoNaListu.disabled = false;
+            btnUsporediCijene.disabled = false;
+        } else {
+            // Nema podataka za traženu trgovinu
+            throw new Error(`Proizvod nema podataka za ${mapirajKodLancaUNaziv(chainCode)}.`);
+        }
+    } catch (error) {
+        if (!zaUsporedbu) {
+            prikaziScanFeedback('nema', 'NEPOZNATO');
+            infoSkeniranogProizvodaContainer.classList.add('hidden');
+            // Prikazujemo grešku ispod kamere za dodatni info
+            errorTextSkenerElem.textContent = error.message.substring(0, 100);
+        }
+        console.error('Dohvaćanje proizvoda greška:', error);
+        return null;
+    }
+}
     
     function azurirajUkupnoZaSkeniranuStavku() { if (!zadnjiSkeniraniProizvodInfo) return; const k = parseInt(skeniranaKolicinaInput.value) || 0; skeniranItemUkupnoEl.textContent = `Ukupno: ${(zadnjiSkeniraniProizvodInfo.cijenaKomad * k).toFixed(2)} EUR`; }
     function azurirajGumbNastavi() { if (zadnjeOdabranaTrgovinaKod) { btnNastaviZadnjaTrgovina.textContent = `Nastavi s ${mapirajKodLancaUNaziv(zadnjeOdabranaTrgovinaNaziv)}`; btnNastaviZadnjaTrgovina.classList.remove('hidden'); } else { btnNastaviZadnjaTrgovina.classList.add('hidden'); } }
