@@ -327,6 +327,22 @@
                 <p style="text-align:center; color:#888; margin-top:20px;" id="usporedba-nema-podataka-poruka">Nema podataka za usporedbu.</p>
             </div>
         </section>
+                <!-- Ekran 9: Ekran Usporedbe Cijele Košarice (NOVO) -->
+        <section id="ekran-usporedba-kosarice" class="hidden">
+            <div class="sticky-header">
+                <div class="header-gornji-red">
+                     <button id="btn-usporedba-kosarice-nazad" class="small-action-button">Nazad na Kupovinu</button>
+                     <h2 style="margin:0; flex-grow:1; text-align:center;">Usporedba Košarice</h2>
+                     <span> </span>
+                </div>
+                <div style="text-align:center; font-size:0.9em; color:#ccc;" id="usporedba-kosarice-original">
+                    <!-- Ovdje će ići info o originalnoj kupovini -->
+                </div>
+            </div>
+            <div class="scrollable-content" id="usporedba-kosarice-container">
+                <!-- Ovdje će ići rezultati usporedbe -->
+            </div>
+        </section>
     </main>
 
     <footer style="padding: 10px 1em;">
@@ -411,7 +427,10 @@
         const usporedbaNemaPodatakaPorukaEl = document.getElementById('usporedba-nema-podataka-poruka');
         const btnOcistiPovijest = document.getElementById('btn-ocisti-povijest');
         const btnUsporediKosaricu = document.getElementById('btn-usporedi-kosaricu');
-        
+        const ekranUsporedbaKosarice = document.getElementById('ekran-usporedba-kosarice');
+        const btnUsporedbaKosariceNazad = document.getElementById('btn-usporedba-kosarice-nazad');
+        const usporedbaKosariceOriginalEl = document.getElementById('usporedba-kosarice-original');
+        const usporedbaKosariceContainer = document.getElementById('usporedba-kosarice-container');
         // --- GLOBALNE VARIJABLE ---
         let trenutnoOdabranaTrgovina = null; 
         let zadnjeOdabranaTrgovinaKod = localStorage.getItem('zadnjaTrgovinaKod');
@@ -435,8 +454,8 @@
         }
         
         function prikaziEkran(ekranId) {
-            const sviEkrani = [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, ekranListeKupovine, ekranPovijestKupovine, ekranSpecifikacijaKupovine, ekranUsporedbeCijena];
-            const fullscreenEkrani = ['ekran-skeniranja', 'ekran-liste-kupovine', 'ekran-povijest-kupovine', 'ekran-specifikacija-kupovine', 'ekran-usporedbe-cijena'];
+            const sviEkrani = [pocetniEkran, ekranOdabirTrgovine, glavniEkranAkcija, ekranSkeniranja, ekranListeKupovine, ekranPovijestKupovine, ekranSpecifikacijaKupovine, ekranUsporedbeCijena, ekranUsporedbaKosarice];
+            const fullscreenEkrani = ['ekran-skeniranja', 'ekran-liste-kupovine', 'ekran-povijest-kupovine', 'ekran-specifikacija-kupovine', 'ekran-usporedbe-cijena', 'ekran-usporedba-kosarice'];
             sviEkrani.forEach(ekran => { if (ekran) ekran.classList.toggle('hidden', ekran.id !== ekranId); });
             document.body.classList.toggle('skener-aktivan', fullscreenEkrani.includes(ekranId));
 
@@ -748,6 +767,83 @@
                 usporedbaNemaPodatakaPorukaEl.classList.remove('hidden');
             }
         }
+        async function prikaziUsporedbuKosarice() {
+    if (!trenutnoPrikazanaKupovinaId) return;
+    const originalnaKupovina = povijestKupovina.find(k => k.id === trenutnoPrikazanaKupovinaId);
+    if (!originalnaKupovina) return;
+
+    // 1. Priprema: Prikaži ekran i poruku o učitavanju
+    prikaziEkran('ekran-usporedba-kosarice');
+    usporedbaKosariceContainer.innerHTML = `<p style="text-align:center; color:#ccc; margin-top:20px;">Učitavam cijene... Ovo može potrajati nekoliko sekundi.</p>`;
+    usporedbaKosariceOriginalEl.textContent = `Original: ${originalnaKupovina.trgovinaNaziv} - ${originalnaKupovina.ukupanIznos.toFixed(2)} EUR`;
+
+    try {
+        // Struktura za spremanje rezultata: { 'konzum': { ukupno: 0, pronadjeno: 0 }, ... }
+        const rezultatiPoTrgovini = {};
+
+        // 2. Srce logike: Prikupljanje cijena za sve artikle
+        // Kreiramo listu svih API poziva koje trebamo izvršiti
+        const apiPozivi = originalnaKupovina.stavke.map(stavka => 
+            dohvatiPodatkeSkeniranogProizvoda(stavka.ean, null, true)
+        );
+
+        // Promise.all izvršava sve pozive "istovremeno" i čeka da se svi završe
+        const rezultatiArtikala = await Promise.all(apiPozivi);
+
+        // Sada obrađujemo rezultate za svaki artikl
+        originalnaKupovina.stavke.forEach((stavka, index) => {
+            const podaciArtikla = rezultatiArtikala[index];
+            if (podaciArtikla && podaciArtikla.chains) {
+                podaciArtikla.chains.forEach(chainInfo => {
+                    const cijena = parseFloat(chainInfo.price || chainInfo.min_price);
+                    if (!isNaN(cijena)) {
+                        // Ako trgovina još ne postoji u našim rezultatima, inicijaliziraj je
+                        if (!rezultatiPoTrgovini[chainInfo.chain]) {
+                            rezultatiPoTrgovini[chainInfo.chain] = { ukupno: 0, pronadjeno: 0 };
+                        }
+                        // Dodaj cijenu na ukupni iznos
+                        rezultatiPoTrgovini[chainInfo.chain].ukupno += cijena * stavka.kolicina;
+                        rezultatiPoTrgovini[chainInfo.chain].pronadjeno += 1;
+                    }
+                });
+            }
+        });
+
+        // 3. Prikaz rezultata: Sortiraj i generiraj HTML
+        usporedbaKosariceContainer.innerHTML = ''; // Očisti poruku o učitavanju
+
+        const sortiraniRezultati = Object.entries(rezultatiPoTrgovini)
+            .map(([kod, podaci]) => ({ kod, ...podaci }))
+            .filter(r => r.kod !== originalnaKupovina.trgovinaKod) // Makni originalnu trgovinu iz usporedbe
+            .sort((a, b) => a.ukupno - b.ukupno);
+
+        if (sortiraniRezultati.length === 0) {
+            usporedbaKosariceContainer.innerHTML = `<p style="text-align:center; color:#888;">Nije pronađen nijedan artikl u drugim trgovinama za usporedbu.</p>`;
+            return;
+        }
+
+        sortiraniRezultati.forEach(rezultat => {
+            let klasaBoje = '';
+            if (rezultat.ukupno < originalnaKupovina.ukupanIznos) klasaBoje = 'cijena-jeftinije';
+            else if (rezultat.ukupno > originalnaKupovina.ukupanIznos) klasaBoje = 'cijena-skuplje';
+
+            const div = document.createElement('div');
+            div.className = 'usporedba-stavka';
+            div.innerHTML = `
+                <div class="usporedba-stavka-info">
+                    <div class="stavka-naziv">${mapirajKodLancaUNaziv(rezultat.kod)}</div>
+                    <div class="stavka-detalji">Pronađeno ${rezultat.pronadjeno} od ${originalnaKupovina.stavke.length} artikala</div>
+                </div>
+                <div class="usporedba-cijena ${klasaBoje}">${rezultat.ukupno.toFixed(2)} EUR</div>
+            `;
+            usporedbaKosariceContainer.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error("Greška kod usporedbe košarice:", error);
+        usporedbaKosariceContainer.innerHTML = `<p style="text-align:center; color:#dc3545; margin-top:20px;">Došlo je do greške prilikom dohvaćanja cijena.</p>`;
+    }
+}
         
         async function dohvatiInicijalniBrojKupovina() {
              if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') { brojPreostalihKupovina = -1; localStorage.setItem('brojPreostalihKupovina', -1); return; }
@@ -823,12 +919,11 @@
             }
         });
 
-        btnUsporediKosaricu.addEventListener('click', () => {
-            if (!trenutnoPrikazanaKupovinaId) return;
-            const kupovina = povijestKupovina.find(k => k.id === trenutnoPrikazanaKupovinaId);
-            console.log("Planirana usporedba za:", kupovina);
-            alert("Funkcionalnost usporedbe cijele košarice je u izradi!");
-        });
+         btnUsporediKosaricu.addEventListener('click', prikaziUsporedbuKosarice);
+        btnUsporedbaKosariceNazad.addEventListener('click', () => {
+    prikaziEkran('ekran-specifikacija-kupovine');
+});
+        
 
         // --- INICIJALIZACIJA APLIKACIJE ---
         document.addEventListener('DOMContentLoaded', async () => { 
