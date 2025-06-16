@@ -184,7 +184,8 @@
         .cijena-jeftinije { color: #28a745 !important; } 
         .cijena-skuplje { color: #dc3545 !important; } 
         .text-dimmed { color: #888 !important; }
-        .text-neutral { color: #333 !important; } /* CRNA boja za neutralni status na bijeloj pozadini */
+        .text-neutral { color: #333 !important; font-weight: bold !important; }
+        .text-neutral-nobold { color: #333 !important; }
         .btn-brisi-stavku {
             background-color: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; 
             height: 28px; font-size: 1em; line-height: 28px; padding: 0; cursor: pointer; margin-left: 10px; flex-shrink: 0;
@@ -778,10 +779,15 @@ async function prikaziUsporedbuKosarice() {
     usporedbaKosariceOriginalEl.textContent = `Original: ${originalnaKupovina.trgovinaNaziv} - ${originalnaKupovina.ukupanIznos.toFixed(2)} EUR`;
 
     try {
+        // Struktura za rezultate je sada pametnija:
+        // { 'konzum': { ukupno: 0, pronadjeniEAN: new Set() }, ... }
+        // Set() osigurava da svaki EAN možemo dodati samo jednom.
         const rezultatiPoTrgovini = {};
+
         const apiPozivi = originalnaKupovina.stavke.map(stavka => dohvatiPodatkeSkeniranogProizvoda(stavka.ean, null, true));
         const rezultatiArtikala = await Promise.all(apiPozivi);
 
+        // --- ISPRAVLJENA LOGIKA ZBRAJANJA I BROJANJA ---
         originalnaKupovina.stavke.forEach((stavka, index) => {
             const podaciArtikla = rezultatiArtikala[index];
             if (podaciArtikla && podaciArtikla.chains) {
@@ -789,18 +795,48 @@ async function prikaziUsporedbuKosarice() {
                     const cijena = parseFloat(chainInfo.price || chainInfo.min_price);
                     if (!isNaN(cijena)) {
                         if (!rezultatiPoTrgovini[chainInfo.chain]) {
-                            rezultatiPoTrgovini[chainInfo.chain] = { ukupno: 0, pronadjeno: 0 };
+                            // Inicijaliziramo sa Set-om za praćenje jedinstvenih EAN-ova
+                            rezultatiPoTrgovini[chainInfo.chain] = { ukupno: 0, pronadjeniEAN: new Set() };
                         }
-                        rezultatiPoTrgovini[chainInfo.chain].ukupno += cijena * stavka.kolicina;
-                        rezultatiPoTrgovini[chainInfo.chain].pronadjeno += 1;
+                        
+                        // Dodaj EAN u set. Ako već postoji, neće se ništa dogoditi.
+                        rezultatiPoTrgovini[chainInfo.chain].pronadjeniEAN.add(stavka.ean);
+                        
+                        // Zbrajamo cijenu artikla, ali samo JEDNOM po trgovini, da izbjegnemo duple cijene.
+                        // Ovaj dio se izvršava više puta ako artikl ima više cijena, pa zbrajanje radimo van ove petlje.
                     }
                 });
             }
         });
 
+        // Sada kada imamo sve podatke, izračunavamo ukupne cijene
+        // na temelju jedinstveno pronađenih artikala.
+        for (const kodTrgovine in rezultatiPoTrgovini) {
+            let ukupanIznosZaTrgovinu = 0;
+            rezultatiPoTrgovini[kodTrgovine].pronadjeniEAN.forEach(pronadjeniEAN => {
+                 // Pronađi originalnu stavku da dobiješ količinu
+                const originalnaStavka = originalnaKupovina.stavke.find(s => s.ean === pronadjeniEAN);
+                // Pronađi cijenu za ovaj EAN u ovoj trgovini
+                const rezultatArtikla = rezultatiArtikala.find(r => r && r.ean === pronadjeniEAN);
+                const chainInfo = rezultatArtikla.chains.find(c => c.chain === kodTrgovine);
+                
+                if (originalnaStavka && chainInfo) {
+                    const cijena = parseFloat(chainInfo.price || chainInfo.min_price);
+                    ukupanIznosZaTrgovinu += cijena * originalnaStavka.kolicina;
+                }
+            });
+            rezultatiPoTrgovini[kodTrgovine].ukupno = ukupanIznosZaTrgovinu;
+        }
+
+
         usporedbaKosariceContainer.innerHTML = ''; 
         const sortiraniRezultati = Object.entries(rezultatiPoTrgovini)
-            .map(([kod, podaci]) => ({ kod, ...podaci }))
+            .map(([kod, podaci]) => ({ 
+                kod, 
+                ukupno: podaci.ukupno,
+                // Ispravno brojanje je sada veličina Set-a
+                pronadjeno: podaci.pronadjeniEAN.size 
+            }))
             .filter(r => r.kod !== originalnaKupovina.trgovinaKod)
             .sort((a, b) => a.ukupno - b.ukupno);
 
@@ -810,19 +846,20 @@ async function prikaziUsporedbuKosarice() {
         }
 
         sortiraniRezultati.forEach(rezultat => {
-            // --- FINALNA, PRECIZNA LOGIKA ZA BOJANJE ---
+            // --- FINALNA, PRECIZNA LOGIKA ZA BOJANJE I BOLDANJE ---
             
             let klasaNazivaICijene = '';
             let klasaDetalja = ''; // Klasa za tekst "Pronađeno X od Y"
             const sviPronadjeni = rezultat.pronadjeno === originalnaKupovina.stavke.length;
 
             if (sviPronadjeni) {
-                // Ako su svi pronađeni, detalji su uvijek neutralni
-                klasaDetalja = 'text-neutral';
+                // Ako su svi pronađeni, detalji su uvijek neutralni (ali ne boldani)
+                // Da bismo izbjegli boldanje, ne koristimo klasu `.text-neutral` ovdje
+                // nego ostavljamo default (samo boja će biti naslijeđena)
+                klasaDetalja = 'text-neutral-nobold'; // Moramo dodati novi stil
 
-                // A naziv i cijena ovise o iznosu
                 if (rezultat.ukupno.toFixed(2) === originalnaKupovina.ukupanIznos.toFixed(2)) {
-                    klasaNazivaICijene = 'text-neutral';
+                    klasaNazivaICijene = 'text-neutral'; // Neutralna boja i BOLD
                 } else if (rezultat.ukupno < originalnaKupovina.ukupanIznos) {
                     klasaNazivaICijene = 'cijena-jeftinije';
                 } else {
