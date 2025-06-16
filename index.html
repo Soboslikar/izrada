@@ -183,6 +183,8 @@
         .stavka-ukupno, .povijest-iznos, .usporedba-cijena { font-size: 0.9em; font-weight: bold; white-space: nowrap; margin-left:10px; }
         .cijena-jeftinije { color: #28a745 !important; } 
         .cijena-skuplje { color: #dc3545 !important; } 
+        .text-dimmed { color: #888 !important; }
+        .text-neutral { color: #f0f0f0 !important; } /* Svijetla boja za neutralni status */
 
         .btn-brisi-stavku {
             background-color: #dc3545; color: white; border: none; border-radius: 50%; width: 28px; 
@@ -767,41 +769,29 @@
                 usporedbaNemaPodatakaPorukaEl.classList.remove('hidden');
             }
         }
-        async function prikaziUsporedbuKosarice() {
+async function prikaziUsporedbuKosarice() {
     if (!trenutnoPrikazanaKupovinaId) return;
     const originalnaKupovina = povijestKupovina.find(k => k.id === trenutnoPrikazanaKupovinaId);
     if (!originalnaKupovina) return;
 
-    // 1. Priprema: Prikaži ekran i poruku o učitavanju
     prikaziEkran('ekran-usporedba-kosarice');
-    usporedbaKosariceContainer.innerHTML = `<p style="text-align:center; color:#ccc; margin-top:20px;">Učitavam cijene... Ovo može potrajati nekoliko sekundi.</p>`;
+    usporedbaKosariceContainer.innerHTML = `<p style="text-align:center; color:#ccc; margin-top:20px;">Učitavam cijene... Ovo može potrajati.</p>`;
     usporedbaKosariceOriginalEl.textContent = `Original: ${originalnaKupovina.trgovinaNaziv} - ${originalnaKupovina.ukupanIznos.toFixed(2)} EUR`;
 
     try {
-        // Struktura za spremanje rezultata: { 'konzum': { ukupno: 0, pronadjeno: 0 }, ... }
         const rezultatiPoTrgovini = {};
-
-        // 2. Srce logike: Prikupljanje cijena za sve artikle
-        // Kreiramo listu svih API poziva koje trebamo izvršiti
-        const apiPozivi = originalnaKupovina.stavke.map(stavka => 
-            dohvatiPodatkeSkeniranogProizvoda(stavka.ean, null, true)
-        );
-
-        // Promise.all izvršava sve pozive "istovremeno" i čeka da se svi završe
+        const apiPozivi = originalnaKupovina.stavke.map(stavka => dohvatiPodatkeSkeniranogProizvoda(stavka.ean, null, true));
         const rezultatiArtikala = await Promise.all(apiPozivi);
 
-        // Sada obrađujemo rezultate za svaki artikl
         originalnaKupovina.stavke.forEach((stavka, index) => {
             const podaciArtikla = rezultatiArtikala[index];
             if (podaciArtikla && podaciArtikla.chains) {
                 podaciArtikla.chains.forEach(chainInfo => {
                     const cijena = parseFloat(chainInfo.price || chainInfo.min_price);
                     if (!isNaN(cijena)) {
-                        // Ako trgovina još ne postoji u našim rezultatima, inicijaliziraj je
                         if (!rezultatiPoTrgovini[chainInfo.chain]) {
                             rezultatiPoTrgovini[chainInfo.chain] = { ukupno: 0, pronadjeno: 0 };
                         }
-                        // Dodaj cijenu na ukupni iznos
                         rezultatiPoTrgovini[chainInfo.chain].ukupno += cijena * stavka.kolicina;
                         rezultatiPoTrgovini[chainInfo.chain].pronadjeno += 1;
                     }
@@ -809,12 +799,10 @@
             }
         });
 
-        // 3. Prikaz rezultata: Sortiraj i generiraj HTML
-        usporedbaKosariceContainer.innerHTML = ''; // Očisti poruku o učitavanju
-
+        usporedbaKosariceContainer.innerHTML = ''; 
         const sortiraniRezultati = Object.entries(rezultatiPoTrgovini)
             .map(([kod, podaci]) => ({ kod, ...podaci }))
-            .filter(r => r.kod !== originalnaKupovina.trgovinaKod) // Makni originalnu trgovinu iz usporedbe
+            .filter(r => r.kod !== originalnaKupovina.trgovinaKod)
             .sort((a, b) => a.ukupno - b.ukupno);
 
         if (sortiraniRezultati.length === 0) {
@@ -823,18 +811,34 @@
         }
 
         sortiraniRezultati.forEach(rezultat => {
-            let klasaBoje = '';
-            if (rezultat.ukupno < originalnaKupovina.ukupanIznos) klasaBoje = 'cijena-jeftinije';
-            else if (rezultat.ukupno > originalnaKupovina.ukupanIznos) klasaBoje = 'cijena-skuplje';
+            // --- Logika za bojanje ---
+            
+            let klasaBojeCijene = '';
+            if (rezultat.ukupno.toFixed(2) === originalnaKupovina.ukupanIznos.toFixed(2)) {
+                 klasaBojeCijene = 'text-neutral';
+            } else if (rezultat.ukupno < originalnaKupovina.ukupanIznos) {
+                klasaBojeCijene = 'cijena-jeftinije';
+            } else if (rezultat.ukupno > originalnaKupovina.ukupanIznos) {
+                klasaBojeCijene = 'cijena-skuplje';
+            }
+
+            let infoKlasaBoje = ''; 
+            const sviPronadjeni = rezultat.pronadjeno === originalnaKupovina.stavke.length;
+
+            if (!sviPronadjeni) {
+                infoKlasaBoje = 'text-dimmed';
+            } else {
+                infoKlasaBoje = klasaBojeCijene; // Preuzima zelenu, crvenu ili neutralnu boju
+            }
 
             const div = document.createElement('div');
             div.className = 'usporedba-stavka';
             div.innerHTML = `
-                <div class="usporedba-stavka-info">
+                <div class="usporedba-stavka-info ${infoKlasaBoje}">
                     <div class="stavka-naziv">${mapirajKodLancaUNaziv(rezultat.kod)}</div>
                     <div class="stavka-detalji">Pronađeno ${rezultat.pronadjeno} od ${originalnaKupovina.stavke.length} artikala</div>
                 </div>
-                <div class="usporedba-cijena ${klasaBoje}">${rezultat.ukupno.toFixed(2)} EUR</div>
+                <div class="usporedba-cijena ${klasaBojeCijene}">${rezultat.ukupno.toFixed(2)} EUR</div>
             `;
             usporedbaKosariceContainer.appendChild(div);
         });
