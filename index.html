@@ -89,15 +89,14 @@
         }
 
         .animacija-pulsiranje-horizontalno {
-            animation: pulseHorizontalAnim 2.5s infinite ease-in-out; /* Promijenjena animacija */
+            animation: pulseHorizontalAnim 2.0s infinite;
         }
 
-        @keyframes pulseHorizontalAnim { /* Promijenjena animacija */
+        @keyframes pulseHorizontalAnim {
             0% { transform: scaleX(1); }
-            25% { transform: scaleX(0.92); } 
-            50% { transform: scaleX(1); }    
-            75% { transform: scaleX(1.08); } 
-            100% { transform: scaleX(1); }  
+            25% { transform: scaleX(0.92); } /* Skupljanje */
+            75% { transform: scaleX(1.08); } /* Širenje */
+            100% { transform: scaleX(1); }
         }
 
         footer p, footer a { font-size: 0.85em; color: #ccc; } footer a:hover { color: #fff; }
@@ -106,7 +105,9 @@
         #ekran-skeniranja #btn-nazad-sa-skeniranja {
             padding: 10px 15px;
             font-size: 0.9em;
-            /* margin-bottom je sada postavljen inline za btn-nazad-sa-skeniranja */
+        }
+         #ekran-skeniranja #btn-nazad-sa-skeniranja {
+            /* margin-bottom je sada 5px (inline stil) */
         }
 
         #sadrzaj-ispod-skenera .button-group button,
@@ -166,8 +167,8 @@
                     <div class="button-group" style="margin-top:8px;"><button id="btn-usporedi-cijene" class="btn-zut">Usporedi</button><button id="btn-dodaj-skenirano-na-listu" class="btn-zeleni">Dodaj na listu</button></div>
                 </div>
                 <div id="lista-summary-container" class="hidden"><div id="lista-summary-tekst">UKUPNO: <span id="ukupno-cijena-skeniranje-sum">0.00</span> EUR</div><button id="btn-pogledaj-listu">Pogledaj Listu</button></div>
-                <button id="btn-nazad-sa-skeniranja" style="margin-top: 8px; margin-bottom: 3px;">Završi i spremi</button> 
-                <button id="btn-podijeli-aplikaciju-skener" class="gumb-za-dijeljenje animacija-pulsiranje-horizontalno" style="margin-top: 3px; margin-bottom: 8px;">Podijeli Dućan Skener</button>
+                <button id="btn-nazad-sa-skeniranja" style="margin-top:5px; margin-bottom: 5px;">Završi i spremi</button>
+                <button id="btn-podijeli-aplikaciju-skener" class="gumb-za-dijeljenje animacija-pulsiranje-horizontalno" style="margin-top: 5px;">Podijeli Dućan Skener</button>
             </div>
         </section>
 
