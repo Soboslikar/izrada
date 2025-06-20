@@ -19,7 +19,6 @@
         .btn-zut { background-color: #ffc107 !important; color: #212529 !important; font-weight: bold; }
         .btn-zut:hover { background-color: #e0a800 !important; }
         
-        /* Izvorno pravilo za #btn-nastavi-zadnja-trgovina i #btn-podijeli-aplikaciju-pocetna je sada razdvojeno */
         #btn-nastavi-zadnja-trgovina { background-color: #1e7e34; }
         #btn-nastavi-zadnja-trgovina:hover { background-color: #155d27; }
 
@@ -80,11 +79,6 @@
         #marquee-container-skener { position: absolute; top: 0; left: 0; width: 100%; z-index: 25; background-color: rgba(0,0,0,0.75); padding: 6px 0; }
         #marquee-container-skener .marquee-text { font-size: 1.3em; color: #ffc107; }
         
-        /* Stara animacija (pulse) je uklonjena ili će biti zamijenjena novom */
-        /* #btn-podijeli-aplikaciju-pocetna { animation: pulse 2.5s infinite; } */
-        /* @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } } */
-        
-        /* Stil za gumbe za dijeljenje aplikacije */
         .gumb-za-dijeljenje {
             background-color: #1e7e34 !important; 
             color: white !important;
@@ -94,15 +88,14 @@
             background-color: #155d27 !important; 
         }
 
-        /* Klasa za horizontalnu pulsirajuću animaciju */
         .animacija-pulsiranje-horizontalno {
             animation: pulseHorizontalAnim 2.0s infinite;
         }
 
-        /* Definicija horizontalne pulsirajuće animacije */
         @keyframes pulseHorizontalAnim {
             0% { transform: scaleX(1); }
-            50% { transform: scaleX(1.08); } 
+            25% { transform: scaleX(0.92); } /* Skupljanje */
+            75% { transform: scaleX(1.08); } /* Širenje */
             100% { transform: scaleX(1); }
         }
 
@@ -112,10 +105,9 @@
         #ekran-skeniranja #btn-nazad-sa-skeniranja {
             padding: 10px 15px;
             font-size: 0.9em;
-            /* margin-bottom ostaje default 10px, osim ako nije overridean inline */
         }
          #ekran-skeniranja #btn-nazad-sa-skeniranja {
-            /* Inline stil će dodati margin-bottom: 5px */
+            /* margin-bottom je sada 5px (inline stil) */
         }
 
         #sadrzaj-ispod-skenera .button-group button,
@@ -136,7 +128,7 @@
             <h2>Dobrodošli!</h2>
             <button id="btn-izaberi-trgovinu">Izaberi trgovinu</button>
             <button id="btn-nastavi-zadnja-trgovina" class="hidden">Nastavi s [Naziv Zadnje Trgovine]</button>
-            <button id="btn-pronadji-proizvod">Pronađi Proizvod</button> 
+            <button id="btn-pronadji-proizvod" class="btn-zut">Pronađi Proizvod</button> 
             <button id="btn-povijest-kupovine" class="btn-sivi">Povijest Kupovine</button> 
             <button id="btn-podijeli-aplikaciju-pocetna" class="gumb-za-dijeljenje animacija-pulsiranje-horizontalno" style="margin-top: 15px;">Podijeli Dućan Skener</button>
         </section>
