@@ -43,9 +43,35 @@
         .messages-skener .error { color: #dc3545; font-weight: bold; margin:0; padding: 2px 0; }
         #sadrzaj-ispod-skenera { padding: 5px 10px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
         #info-skeniranog-proizvoda-container { border: 1px solid #ccc; padding: 12px; margin-bottom: 8px; background-color: #fff; width: 100%; max-width: 500px; color: #333; font-size: 1.1em; }
-        #info-skeniranog-proizvoda-container h3 { margin-top:0; }
-        #info-skeniranog-proizvoda-container p, #info-skeniranog-proizvoda-container label, #info-skeniranog-proizvoda-container .kolicina-ukupno-grupa { color: #333; }
-        input[type="number"]#skenirana-kolicina { background-color: #f1f1f1; color: #333; border: 1px solid #ccc; width: 70px !important; padding: 8px !important; font-size:1em; margin:0 5px 0 0 !important; }
+        /* #info-skeniranog-proizvoda-container h3 { margin-top:0; } - Uklonjeno jer je h3 uklonjen */
+        #info-skeniranog-proizvoda-container p, #info-skeniranog-proizvoda-container label { color: #333; }
+        #info-skeniranog-proizvoda-container p:first-of-type { margin-top: 0; } /* Novi stil */
+
+        input[type="number"]#skenirana-kolicina { 
+            background-color: #f1f1f1; 
+            color: #333; 
+            border: 1px solid #ccc; 
+            width: 55px !important; /* SMANJENA ŠIRINA */
+            padding: 8px !important; 
+            font-size:1em; 
+            margin:0 5px 0 0 !important; 
+        }
+        .kolicina-ukupno-red-flex { /* Novi stil */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 10px; 
+            padding: 5px 0; 
+        }
+        .kolicina-ukupno-red-flex > div { /* Novi stil */
+            display: flex;
+            align-items: center;
+        }
+        .kolicina-ukupno-red-flex label { /* Novi stil */
+            margin-right: 5px; 
+        }
+
         #lista-summary-container { padding: 8px; margin-bottom: 8px; background-color: #333; width: 100%; max-width: 500px; color: #f0f0f0; border: 1px solid #333; }
         #lista-summary-tekst { font-size: 1.1em; font-weight: bold; margin-bottom: 8px; text-align: center; }
         body.fullscreen { background-color: #000 !important; padding: 0 !important; }
@@ -89,15 +115,14 @@
         }
 
         .animacija-pulsiranje-horizontalno {
-            animation: pulseHorizontalAnim 2.5s infinite ease-in-out; /* Promijenjena animacija */
+            animation: pulseHorizontalShrinkReturn 2.0s infinite ease-in-out; 
         }
 
-        @keyframes pulseHorizontalAnim { /* Promijenjena animacija */
-            0% { transform: scaleX(1); }
-            25% { transform: scaleX(0.92); } 
-            50% { transform: scaleX(1); }    
-            75% { transform: scaleX(1.08); } 
-            100% { transform: scaleX(1); }  
+        @keyframes pulseHorizontalShrinkReturn {
+            0%   { transform: scaleX(1); }
+            45%  { transform: scaleX(0.75); } 
+            55%  { transform: scaleX(0.75); }
+            100% { transform: scaleX(1); }
         }
 
         footer p, footer a { font-size: 0.85em; color: #ccc; } footer a:hover { color: #fff; }
@@ -106,7 +131,6 @@
         #ekran-skeniranja #btn-nazad-sa-skeniranja {
             padding: 10px 15px;
             font-size: 0.9em;
-            /* margin-bottom je sada postavljen inline za btn-nazad-sa-skeniranja */
         }
 
         #sadrzaj-ispod-skenera .button-group button,
@@ -158,15 +182,23 @@
             <button id="btn-pokreni-zaustavi-skener" class="btn-zeleni">Pokreni Skener</button>
             <div id="sadrzaj-ispod-skenera">
                 <div id="info-skeniranog-proizvoda-container" class="hidden">
-                    <h3>Skenirani proizvod:</h3>
                     <p><strong>Naziv:</strong> <span id="skeniran-naziv"></span></p>
                     <p><strong>Cijena/kom:</strong> <span id="skenirana-cijena"></span> EUR</p>
                     <p><strong>Cijena po JM:</strong> <span id="skenirana-cijena-po-jedinici"></span></p>
-                    <div class="kolicina-ukupno-grupa"><div class="kolicina-grupa"><label for="skenirana-kolicina">Količina:</label><input type="number" id="skenirana-kolicina" value="1" min="1"></div><div id="skeniran-item-ukupno">Ukupno: 0.00 EUR</div></div>
-                    <div class="button-group" style="margin-top:8px;"><button id="btn-usporedi-cijene" class="btn-zut">Usporedi</button><button id="btn-dodaj-skenirano-na-listu" class="btn-zeleni">Dodaj na listu</button></div>
+                    <div class="kolicina-ukupno-red-flex">
+                        <div>
+                            <label for="skenirana-kolicina">Količina:</label>
+                            <input type="number" id="skenirana-kolicina" value="1" min="1">
+                        </div>
+                        <div id="skeniran-item-ukupno">Ukupno: 0.00 EUR</div>
+                    </div>
+                    <div class="button-group" style="margin-top:8px;">
+                        <button id="btn-usporedi-cijene" class="btn-zut">Usporedi</button>
+                        <button id="btn-dodaj-skenirano-na-listu" class="btn-zeleni">Dodaj na listu</button>
+                    </div>
                 </div>
                 <div id="lista-summary-container" class="hidden"><div id="lista-summary-tekst">UKUPNO: <span id="ukupno-cijena-skeniranje-sum">0.00</span> EUR</div><button id="btn-pogledaj-listu">Pogledaj Listu</button></div>
-                <button id="btn-nazad-sa-skeniranja" style="margin-top: 8px; margin-bottom: 3px;">Završi i spremi</button> 
+                <button id="btn-nazad-sa-skeniranja" style="margin-top: 4px; margin-bottom: 3px;">Završi i spremi</button> 
                 <button id="btn-podijeli-aplikaciju-skener" class="gumb-za-dijeljenje animacija-pulsiranje-horizontalno" style="margin-top: 3px; margin-bottom: 8px;">Podijeli Dućan Skener</button>
             </div>
         </section>
@@ -355,7 +387,15 @@
             }
         }       
         
-        function azurirajUkupnoZaSkeniranuStavku(){if(!zadnjiSkeniraniProizvodInfo)return;const e=parseInt(skeniranaKolicinaInput.value)||0;skeniranItemUkupnoEl.textContent=`Ukupno: ${(zadnjiSkeniraniProizvodInfo.cijenaKomad*e).toFixed(2)} EUR`}
+        function azurirajUkupnoZaSkeniranuStavku(){
+            if(!zadnjiSkeniraniProizvodInfo) {
+                // Ako nema info o proizvodu (npr. u "pronađi proizvod" modu prije skeniranja), sakrij ukupno.
+                if (skeniranItemUkupnoEl) skeniranItemUkupnoEl.textContent = "Ukupno: 0.00 EUR"; // Resetiraj ili sakrij
+                return;
+            }
+            const e=parseInt(skeniranaKolicinaInput.value)||0;
+            if (skeniranItemUkupnoEl) skeniranItemUkupnoEl.textContent=`Ukupno: ${(zadnjiSkeniraniProizvodInfo.cijenaKomad*e).toFixed(2)} EUR`;
+        }
         
         function azurirajGumbNastavi(){zadnjeOdabranaTrgovinaKod?(btnNastaviZadnjaTrgovina.textContent=`Nastavi s ${mapirajKodLancaUNaziv(zadnjeOdabranaTrgovinaNaziv)}`,btnNastaviZadnjaTrgovina.classList.remove("hidden")):btnNastaviZadnjaTrgovina.classList.add("hidden")}
         
@@ -721,6 +761,7 @@
             korisnickiID||(korisnickiID=generirajUUID(),localStorage.setItem(LS_KEYS.KORISNICKI_ID,korisnickiID));
             azurirajGumbNastavi();
             prikaziEkran("pocetni-ekran");
+            azurirajUkupnoZaSkeniranuStavku(); // Pozovi da se inicijalno postavi ukupno na 0.00 EUR
         });
     </script>
 </body>
