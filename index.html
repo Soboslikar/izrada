@@ -17,16 +17,23 @@
             margin-bottom: 10px; 
             width: 95%; 
             max-width: 600px; 
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; 
+            /* Uklonjen display:flex s maina, sekcije će se redati blokovski */
+            /* flex-grow: 1; */ /* Uklonjeno */
         }
         main > section {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; 
+             width: 100%; 
+             box-sizing: border-box;
         }
         main > section.hidden { display: none !important; }
+
+        /* Specifično za ekran pretrage po nazivu - ključno za sticky header i scroll */
+        #ekran-pretraga-nazivom {
+            display: flex; 
+            flex-direction: column;
+            /* Visina je bitna za scrollable content unutar.
+               Prilagodi 120px ako je potrebno (visina headera aplikacije + footera aplikacije + gornja/donja margina main elementa) */
+            height: calc(100vh - 140px); /* Malo povećao oduzimanje za svaki slučaj */
+        }
 
 
         h1, h2, h3 { color: #333; }
@@ -98,7 +105,7 @@
         body.fullscreen header, body.fullscreen footer { display: none; }
         
         .sticky-header { 
-            padding: 8px 10px; 
+            padding: 10px; 
             background-color: #f8f9fa; 
             border-bottom: 1px solid #dee2e6; 
             position: sticky; 
@@ -115,12 +122,20 @@
         #ekran-pretraga-nazivom .sticky-header {
             padding-bottom: 8px; 
         }
-        #ekran-pretraga-nazivom .header-gornji-red {
-           margin-bottom: 8px; 
+        #ekran-pretraga-nazivom .sticky-header .header-gornji-red {
+           margin-bottom: 10px; 
            align-items: center; 
         }
+        #ekran-pretraga-nazivom .sticky-header .header-gornji-red h2 {
+            margin:0; 
+            flex-grow:0; 
+            text-align:center; 
+        }
+
         #input-pretraga-naziv {
             width: 100%; 
+            padding: 10px;
+            font-size: 1em;
             margin-top: 0; 
             margin-bottom: 8px; 
             box-sizing: border-box;
@@ -134,10 +149,16 @@
             margin: 0;
         }
 
+        #ekran-pretraga-nazivom .scrollable-content {
+            /* flex-grow: 1; // Već naslijeđeno općenito */
+            /* overflow-y: auto; // Već naslijeđeno općenito */
+            /* padding: 10px; // Već naslijeđeno općenito */
+        }
+
 
         .stavka-liste, .povijest-stavka, .usporedba-stavka, .pronadji-rezultati-stavka, .pretraga-nazivom-stavka { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #eee; margin-bottom: 5px; color: #333; }
         .stavka-liste:last-child, .povijest-stavka:last-child, .usporedba-stavka:last-child, .pronadji-rezultati-stavka:last-child, .pretraga-nazivom-stavka:last-child { border-bottom: none; margin-bottom: 0;}
-        .stavka-liste-info, .povijest-stavka-info, .usporedba-stavka-info, .pronadji-rezultati-stavka-info, .pretraga-nazivom-stavka-info { flex-grow: 1; margin-right: 5px; /* Mali razmak da se tekst ne lijepi za cijenu */ }
+        .stavka-liste-info, .povijest-stavka-info, .usporedba-stavka-info, .pronadji-rezultati-stavka-info, .pretraga-nazivom-stavka-info { flex-grow: 1; margin-right: 5px; }
         .stavka-naziv, .pretraga-nazivom-naziv-proizvoda { font-weight: bold; font-size: 1em; margin-bottom: 3px; word-break: break-word; }
         .stavka-detalji, .pretraga-nazivom-detalji { font-size: 0.85em; color: #6c757d; margin-bottom: 3px; word-break: break-word; }
         .stavka-ukupno, .povijest-iznos, .usporedba-cijena, .pronadji-rezultati-cijena, .pretraga-nazivom-cijena { font-size: 0.9em; font-weight: bold; white-space: nowrap; margin-left:10px; text-align: right; }
@@ -263,7 +284,7 @@
                 <div class="header-gornji-red">
                     <button id="btn-pretraga-nazivom-nazad" class="small-action-button">Nazad</button>
                     <h2 style="margin:0; flex-grow:1; text-align:center;"> </h2> 
-                    <span style="width: auto; min-width: 60px;"> </span>
+                    <span style="width: auto; min-width: 60px; visibility: hidden;"> </span>
                 </div>
                 <input type="text" id="input-pretraga-naziv" placeholder="Upiši pojam za pretragu (min. 3 znaka)">
                 <p class="sticky-header-subtext">Podaci o cijenama preuzeti iz cijene.api</p>
@@ -778,8 +799,8 @@
                     data.products.forEach(product => {
                         if (product.chains && product.chains.length > 0) {
                             product.chains.forEach(chain => {
-                                console.log("API Chain data for product:", product.name, chain); // LOGIRANJE CIJELOG CHAIN OBJEKTA
-                                const cijena = parseFloat(chain.price || chain.min_price || chain.avg_price); // Preferiraj price, pa min_price, pa avg_price
+                                console.log("API Chain data for product:", product.name, chain);
+                                const cijena = parseFloat(chain.price || chain.min_price || chain.avg_price); 
                                 if (cijena > 0) {
                                     sveStavkeZaPrikaz.push({ 
                                         nazivLanca: mapirajKodLancaUNaziv(chain.chain),
@@ -880,7 +901,7 @@
             if (pronadjiProizvodMode) {
                 pronadjiProizvodMode = false;
                 inputPretragaNaziv.value = ''; 
-                rezultatiPretrageNazivomContainer.innerHTML = '<p style="text-align:center; color:#6c757d; margin-top:20px;">Upišite pojam za pretragu.</p>'; // Resetiraj poruku
+                rezultatiPretrageNazivomContainer.innerHTML = '<p style="text-align:center; color:#6c757d; margin-top:20px;">Upišite pojam za pretragu.</p>'; 
                 prikaziEkran("pocetni-ekran");
             } else {
                 if(0<trenutnaListaKupovine.length){
