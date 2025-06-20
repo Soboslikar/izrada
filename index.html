@@ -43,20 +43,19 @@
         .messages-skener .error { color: #dc3545; font-weight: bold; margin:0; padding: 2px 0; }
         #sadrzaj-ispod-skenera { padding: 5px 10px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
         #info-skeniranog-proizvoda-container { border: 1px solid #ccc; padding: 12px; margin-bottom: 8px; background-color: #fff; width: 100%; max-width: 500px; color: #333; font-size: 1.1em; }
-        /* #info-skeniranog-proizvoda-container h3 { margin-top:0; } - Uklonjeno jer je h3 uklonjen */
         #info-skeniranog-proizvoda-container p, #info-skeniranog-proizvoda-container label { color: #333; }
-        #info-skeniranog-proizvoda-container p:first-of-type { margin-top: 0; } /* Novi stil */
+        #info-skeniranog-proizvoda-container p:first-of-type { margin-top: 0; }
 
         input[type="number"]#skenirana-kolicina { 
             background-color: #f1f1f1; 
             color: #333; 
             border: 1px solid #ccc; 
-            width: 55px !important; /* SMANJENA ŠIRINA */
+            width: 55px !important; 
             padding: 8px !important; 
             font-size:1em; 
             margin:0 5px 0 0 !important; 
         }
-        .kolicina-ukupno-red-flex { /* Novi stil */
+        .kolicina-ukupno-red-flex { 
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -64,11 +63,11 @@
             margin-bottom: 10px; 
             padding: 5px 0; 
         }
-        .kolicina-ukupno-red-flex > div { /* Novi stil */
+        .kolicina-ukupno-red-flex > div { 
             display: flex;
             align-items: center;
         }
-        .kolicina-ukupno-red-flex label { /* Novi stil */
+        .kolicina-ukupno-red-flex label {
             margin-right: 5px; 
         }
 
@@ -182,15 +181,16 @@
             <button id="btn-pokreni-zaustavi-skener" class="btn-zeleni">Pokreni Skener</button>
             <div id="sadrzaj-ispod-skenera">
                 <div id="info-skeniranog-proizvoda-container" class="hidden">
+                    <!-- <h3>Skenirani proizvod:</h3> Uklonjeno -->
                     <p><strong>Naziv:</strong> <span id="skeniran-naziv"></span></p>
                     <p><strong>Cijena/kom:</strong> <span id="skenirana-cijena"></span> EUR</p>
                     <p><strong>Cijena po JM:</strong> <span id="skenirana-cijena-po-jedinici"></span></p>
-                    <div class="kolicina-ukupno-red-flex">
-                        <div>
+                    <div class="kolicina-ukupno-red-flex"> <!-- Novi div za flex raspored -->
+                        <div> <!-- Lijeva strana: Količina -->
                             <label for="skenirana-kolicina">Količina:</label>
                             <input type="number" id="skenirana-kolicina" value="1" min="1">
                         </div>
-                        <div id="skeniran-item-ukupno">Ukupno: 0.00 EUR</div>
+                        <div id="skeniran-item-ukupno">Ukupno: 0.00 EUR</div> <!-- Desna strana: Ukupno -->
                     </div>
                     <div class="button-group" style="margin-top:8px;">
                         <button id="btn-usporedi-cijene" class="btn-zut">Usporedi</button>
@@ -217,7 +217,7 @@
         <section id="ekran-specifikacija-kupovine" class="hidden">
             <div class="sticky-header"><div class="header-gornji-red"><button id="btn-specifikacija-na-povijest" class="small-action-button">Nazad na Povijest</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">Kupovina</h2><span> </span></div><div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div></div>
             <div class="scrollable-content" id="specifikacija-stavke-container"></div>
-            <div style="padding: 0 10px 10px 10px;"><button id="btn-usporedi-kosaricu">Usporedi Cijelu Košaricu</button></div>
+            <div style="padding: 0 10px 10px 10px;"><button id="btn-usporedi-kosaricu" class="btn-zut">Usporedi Cijelu Košaricu</button></div>
         </section>
 
         <section id="ekran-usporedbe-cijena" class="hidden">
@@ -389,8 +389,7 @@
         
         function azurirajUkupnoZaSkeniranuStavku(){
             if(!zadnjiSkeniraniProizvodInfo) {
-                // Ako nema info o proizvodu (npr. u "pronađi proizvod" modu prije skeniranja), sakrij ukupno.
-                if (skeniranItemUkupnoEl) skeniranItemUkupnoEl.textContent = "Ukupno: 0.00 EUR"; // Resetiraj ili sakrij
+                if (skeniranItemUkupnoEl) skeniranItemUkupnoEl.textContent = "Ukupno: 0.00 EUR"; 
                 return;
             }
             const e=parseInt(skeniranaKolicinaInput.value)||0;
@@ -761,7 +760,7 @@
             korisnickiID||(korisnickiID=generirajUUID(),localStorage.setItem(LS_KEYS.KORISNICKI_ID,korisnickiID));
             azurirajGumbNastavi();
             prikaziEkran("pocetni-ekran");
-            azurirajUkupnoZaSkeniranuStavku(); // Pozovi da se inicijalno postavi ukupno na 0.00 EUR
+            azurirajUkupnoZaSkeniranuStavku(); 
         });
     </script>
 </body>
