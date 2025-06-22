@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -439,19 +440,19 @@
         </section>
 
         <section id="ekran-povijest-kupovine" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-povijest-na-pocetak" class="small-action-button">NA POČETAK</button><h2 style="margin:0; flex-grow:1; text-align:center;">POVIJEST KUPOVINE</h2><span> </span></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-povijest-na-pocetak" class="small-action-button">NA POČETAK</button><h2 style="margin:0; flex-grow:1; text-align:center;">POVIJEST KUPOVINE</h2><span>&nbsp;</span></div></div>
             <div class="scrollable-content" id="povijest-kupovine-container"><p id="prazna-povijest-poruka" style="text-align:center; color:#6c757d; margin-top:20px;">NEMA SPREMLJENIH KUPOVINA.</p></div>
             <div style="padding: 0 10px 10px 10px;"><button id="btn-ocisti-povijest" style="background-color:#dc3545;" class="hidden">OČISTI POVIJEST</button></div>
         </section>
 
         <section id="ekran-specifikacija-kupovine" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-specifikacija-na-povijest" class="small-action-button">NAZAD NA POVIJEST</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">KUPOVINA</h2><span> </span></div><div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-specifikacija-na-povijest" class="small-action-button">NAZAD NA POVIJEST</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">KUPOVINA</h2><span>&nbsp;</span></div><div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div></div>
             <div class="scrollable-content" id="specifikacija-stavke-container"></div>
             <div style="padding: 0 10px 10px 10px;"><button id="btn-usporedi-kosaricu" class="btn-zut">USPOREDI CIJELU KOŠARICU</button></div>
         </section>
 
         <section id="ekran-usporedbe-cijena" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-na-skener" class="small-action-button">NAZAD NA SKENER</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="usporedba-artikl-naziv">USPOREDBA</h2><span> </span></div><div style="text-align:center; font-size:0.9em; color:#6c757d;" id="usporedba-artikl-cijena-trenutna"></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-na-skener" class="small-action-button">NAZAD NA SKENER</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="usporedba-artikl-naziv">USPOREDBA</h2><span>&nbsp;</span></div><div style="text-align:center; font-size:0.9em; color:#6c757d;" id="usporedba-artikl-cijena-trenutna"></div></div>
             <div class="scrollable-content" id="usporedba-cijena-container"><p id="usporedba-nema-podataka-poruka" style="text-align:center; color:#6c757d; margin-top:20px;">NEMA PODATAKA ZA USPOREDBU.</p></div>
         </section>
 
@@ -469,7 +470,7 @@
         </section>
 
         <section id="ekran-usporedba-kosarice" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-kosarice-nazad" class="small-action-button">NAZAD NA KUPOVINU</button><h2 style="margin:0; flex-grow:1; text-align:center;">USPOREDBA KOŠARICE</h2><span> </span></div><div id="usporedba-kosarice-original"></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-kosarice-nazad" class="small-action-button">NAZAD NA KUPOVINU</button><h2 style="margin:0; flex-grow:1; text-align:center;">USPOREDBA KOŠARICE</h2><span>&nbsp;</span></div><div id="usporedba-kosarice-original"></div></div>
             <div class="scrollable-content" id="usporedba-kosarice-container"></div>
         </section>
     </main>
@@ -553,7 +554,6 @@
                 if (document.querySelector('footer')) document.querySelector('footer').style.display = 'none';
                 if (marqueeContainer) marqueeContainer.classList.add("hidden");
 
-                // Postavi inicijalnu poruku samo ako nema aktivne pretrage ili rezultata
                 if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && originalniRezultatiPretrageNazivom.length === 0) {
                      rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
                 }
@@ -612,7 +612,49 @@
 
         async function dohvatiITipkajTrgovine(){selectTrgovina.innerHTML='<option value="">UČITAVANJE...</option>',selectTrgovina.disabled=!0,btnPotvrdiTrgovinu.disabled=!0;try{const e=await fetch(`${API_BASE_URL}/v1/chains/`,{headers:{Authorization:`Bearer ${API_KEY}`}});if(!e.ok)throw new Error(`API greška ${e.status}`);const t=await e.json();t.chains&&t.chains.length>0?(selectTrgovina.innerHTML='<option value="">-- IZABERI --</option>',t.chains.sort((e,t)=>mapirajKodLancaUNaziv(e).localeCompare(mapirajKodLancaUNaziv(t))).forEach(e=>{const t=document.createElement("option");t.value=e,t.textContent=mapirajKodLancaUNaziv(e),selectTrgovina.appendChild(t)}),selectTrgovina.disabled=!1):selectTrgovina.innerHTML='<option value="">NEMA TRGOVINA.</option>'}catch(e){selectTrgovina.innerHTML='<option value="">GREŠKA.</option>',console.error(`UČITAVANJE TRGOVINA: ${e.message}`)}}
 
-        function izracunajCijenuPoJM(e,t,a){const n=parseFloat(e);let i=String(t||"").replace(",",".").match(/^[0-9.]+/)?.[0]||"",o=parseFloat(i),r=String(a||"").toLowerCase();if(isNaN(n)||isNaN(o)||0===o||!r)return"N/A";if(["kom","ko", ""].includes(r) && o === 1 && (t === "1" || t === 1 || !t) )return`${n.toFixed(2)} EUR/KOM`;if(["kom","ko", ""].includes(r))return`${(n/o).toFixed(2)} EUR/KOM`;let l=0,d="";return["g","gr","grama","gram"].includes(r)?(l=n/o*1e3,d="KG"):"ml".includes(r)?(l=n/o*1e3,d="L"):["kg","kilogram"].includes(r)?(l=n/o,d="KG"):["l","litra"].includes(r)?(l=n/o,d="L"):"N/A (JM?)",isNaN(l)?"N/A (err)":`${l.toFixed(2)} EUR/${d.toUpperCase()}`}
+        function izracunajCijenuPoJM(cijena, kolicinaOriginal, jedinicaOriginal) {
+            const cijenaFloat = parseFloat(cijena);
+            let kolicina = parseFloat(String(kolicinaOriginal || "").replace(',', '.'));
+            let jedinica = String(jedinicaOriginal || "").toLowerCase().trim();
+
+            if (isNaN(cijenaFloat) || isNaN(kolicina) || kolicina <= 0) return "N/A";
+
+            // Ako je jedinica prazna ili 'kom', 'ko', a količina je 1 (ili se podrazumijeva 1), to je cijena po komadu.
+            if ((jedinica === "" || jedinica === "kom" || jedinica === "ko") && (kolicina === 1 || !kolicinaOriginal)) {
+                return `${cijenaFloat.toFixed(2)} EUR/KOM`;
+            }
+            // Ako je više komada, npr. "6 kom"
+            if (jedinica === "kom" || jedinica === "ko") {
+                 return `${(cijenaFloat / kolicina).toFixed(2)} EUR/KOM`;
+            }
+
+            let cijenaPoOsnovnojJedinici = 0;
+            let osnovnaJedinicaPrikaz = "";
+
+            if (jedinica === "g" || jedinica === "gr" || jedinica === "gram" || jedinica === "grama") {
+                if (kolicina === 0) return "N/A";
+                cijenaPoOsnovnojJedinici = (cijenaFloat / kolicina) * 1000;
+                osnovnaJedinicaPrikaz = "KG";
+            } else if (jedinica === "kg" || jedinica === "kilogram" || jedinica === "kila" || jedinica === "k") {
+                if (kolicina === 0) return "N/A";
+                cijenaPoOsnovnojJedinici = cijenaFloat / kolicina;
+                osnovnaJedinicaPrikaz = "KG";
+            } else if (jedinica === "ml" || jedinica === "mililitar") {
+                if (kolicina === 0) return "N/A";
+                cijenaPoOsnovnojJedinici = (cijenaFloat / kolicina) * 1000;
+                osnovnaJedinicaPrikaz = "L";
+            } else if (jedinica === "l" || jedinica === "lit" || jedinica === "litra") {
+                if (kolicina === 0) return "N/A";
+                cijenaPoOsnovnojJedinici = cijenaFloat / kolicina;
+                osnovnaJedinicaPrikaz = "L";
+            } else {
+                return "N/A (nepoznata JM)";
+            }
+
+            if (isNaN(cijenaPoOsnovnojJedinici) || !isFinite(cijenaPoOsnovnojJedinici)) return "N/A (izračun)";
+            return `${cijenaPoOsnovnojJedinici.toFixed(2)} EUR/${osnovnaJedinicaPrikaz}`;
+        }
+
 
         function prikaziScanFeedback(e,t){pustiZvuk(e),scanFeedbackOverlay.textContent=t,scanFeedbackOverlay.className="show","ima"===e||"TRAŽIM..."===t ?scanFeedbackOverlay.classList.add("success"):scanFeedbackOverlay.classList.add("error"),setTimeout(()=>{scanFeedbackOverlay.classList.remove("show")},1500)}
 
@@ -993,51 +1035,109 @@
         // --- FUNKCIJE ZA FILTRIRANJE NA EKRANU PRETRAGE NAZIVOM ---
 
         function normalizirajPakiranje(kolicinaInput, jedinicaInput) {
-            let kolicina = parseFloat(String(kolicinaInput || "").replace(',', '.'));
+            let kolicina = parseFloat(String(kolicinaInput || "0").replace(',', '.')); // Default na 0 ako je null/undefined
             let jedinica = String(jedinicaInput || "").toLowerCase().trim();
 
-            let kljucZaFilter = `nepoznato-${Math.random()}`; // Jedinstveni ključ za neprepoznate
+            // Početne vrijednosti ako ne uspijemo normalizirati ili je količina 0
+            // Koristimo originalne vrijednosti za ključ i prikaz ako je kolicina 0 ili NaN, da se ne izgubi info ako je bitno
+            // Ali sortVrijednost će biti visoka da takvi idu na kraj ili se filtriraju
+            let kljucZaFilter = `${kolicinaInput || '?'}_${jedinicaInput || '?'}`;
             let prikazZaFilterGumb = `${kolicinaInput || '?'} ${jedinicaInput || ''}`.trim();
             let sortVrijednost = Infinity;
             let tipJedinice = 'ostalo'; // masa, volumen, komad, ostalo
 
-            if (isNaN(kolicina) || kolicina <= 0) {
-                return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
+            if (isNaN(kolicina) || kolicina < 0) { // Ako je NaN ili negativno, nema smisla
+                 return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
             }
+             if (kolicina === 0 && !(jedinica === 'kom' || jedinica === '')) { // Količina 0 nema smisla osim ako je komad (možda neki API tako vraća)
+                 return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+            }
+
 
             if (jedinica === 'kg' || jedinica === 'kilogram' || jedinica === 'kila' || jedinica === 'k') {
                 const grami = Math.round(kolicina * 1000);
-                kljucZaFilter = `${grami}g`;
-                prikazZaFilterGumb = (kolicina >= 1 && kolicina % 1 === 0) ? `${Math.round(kolicina)} kg` : (kolicina < 1 ? `${grami} g` : `${kolicina.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 3})} kg`);
+                if (grami === 0 && kolicina > 0) { // Ako je npr. 0.0001 kg, zaokruženo na 0g
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
+                kljucZaFilter = `${grami}g`; // Interni ključ je uvijek u gramima
+                prikazZaFilterGumb = (kolicina >= 1 && kolicina % 1 === 0) ? `${Math.round(kolicina)} kg` : (kolicina < 1 && grami > 0 ? `${grami} g` : `${kolicina.toLocaleString(undefined, {minimumFractionDigits: (kolicina % 1 === 0 ? 0 : 1), maximumFractionDigits: 3})} kg`);
                 sortVrijednost = grami;
                 tipJedinice = 'masa';
             } else if (jedinica === 'g' || jedinica === 'gr' || jedinica === 'grama' || jedinica === 'gram') {
                 const grami = Math.round(kolicina);
+                 if (grami === 0 && kolicina > 0) {
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
                 kljucZaFilter = `${grami}g`;
-                prikazZaFilterGumb = grami < 1000 ? `${grami} g` : `${(grami/1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 3})} kg`;
+                prikazZaFilterGumb = grami < 1000 ? `${grami} g` : `${(grami/1000).toLocaleString(undefined, {minimumFractionDigits: ( (grami/1000) % 1 === 0 ? 0 : 1), maximumFractionDigits: 3})} kg`;
                 sortVrijednost = grami;
                 tipJedinice = 'masa';
             } else if (jedinica === 'l' || jedinica === 'lit' || jedinica === 'litra') {
                 const ml = Math.round(kolicina * 1000);
+                if (ml === 0 && kolicina > 0) {
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
                 kljucZaFilter = `${ml}ml`;
-                prikazZaFilterGumb = (kolicina >= 1 && kolicina % 1 === 0) ? `${Math.round(kolicina)} L` : (kolicina < 1 ? `${ml} ml` : `${kolicina.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 3})} L`);
-                sortVrijednost = ml + 10000000; // Dodajemo offset da se volumen sortira nakon mase (g vs ml)
+                prikazZaFilterGumb = (kolicina >= 1 && kolicina % 1 === 0) ? `${Math.round(kolicina)} L` : (kolicina < 1 && ml > 0 ? `${ml} ml` : `${kolicina.toLocaleString(undefined, {minimumFractionDigits: (kolicina % 1 === 0 ? 0 : 1), maximumFractionDigits: 3})} L`);
+                sortVrijednost = ml; // Za sortiranje, ne treba offset ako tipJedinice koristimo
                 tipJedinice = 'volumen';
             } else if (jedinica === 'ml' || jedinica === 'mililitar') {
                 const ml = Math.round(kolicina);
+                if (ml === 0 && kolicina > 0) {
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
                 kljucZaFilter = `${ml}ml`;
-                prikazZaFilterGumb = ml < 1000 ? `${ml} ml` : `${(ml/1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 3})} L`;
-                sortVrijednost = ml + 10000000;
+                prikazZaFilterGumb = ml < 1000 ? `${ml} ml` : `${(ml/1000).toLocaleString(undefined, {minimumFractionDigits: ( (ml/1000) % 1 === 0 ? 0 : 1), maximumFractionDigits: 3})} L`;
+                sortVrijednost = ml;
                 tipJedinice = 'volumen';
-            } else if (jedinica === 'kom' || jedinica === 'komad' || jedinica === 'ko' || jedinica === '' || jedinica === 'rola' || jedinica === 'pak') { // Prazna jedinica ili 'rola' često znači komad
+            } else if (jedinica === 'kom' || jedinica === 'komad' || jedinica === 'ko' || jedinica === '' || jedinica === 'rola' || jedinica === 'pak' || jedinica === 'tableta' || jedinica === 'kapsula') {
                 const kom = Math.round(kolicina);
-                kljucZaFilter = `${kom}kom`; // Jedinstveni ključ za komade
-                prikazZaFilterGumb = `${kom} kom`;
+                 if (kom === 0 && kolicina > 0) { // Ako je 0.5 kom, nema smisla za filter
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
+                if (kom <= 0) { // Ako je kolicina 0 ili manje, a jedinica komad, ne prikazuj
+                     return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
+                kljucZaFilter = `${kom}${jedinica || 'kom'}`; // Uključi specifičnu jedinicu ako je 'rola', 'pak'
+                prikazZaFilterGumb = `${kom} ${jedinica || 'kom'}`;
                 if (jedinica === 'rola') prikazZaFilterGumb = `${kom} rola`;
-                if (jedinica === 'pak') prikazZaFilterGumb = `${kom} pak`;
-                sortVrijednost = kom + 20000000; // Veći offset za komade
+                else if (jedinica === 'pak') prikazZaFilterGumb = `${kom} pak`;
+                else if (jedinica === 'tableta') prikazZaFilterGumb = `${kom} tab.`;
+                else if (jedinica === 'kapsula') prikazZaFilterGumb = `${kom} kap.`;
+                else if (jedinica === '') prikazZaFilterGumb = `${kom} kom`;
+
+                sortVrijednost = kom;
                 tipJedinice = 'komad';
+                 // Dodaj specifičnu jedinicu (rola, pak) u ključ da se razlikuju
+                if (['rola', 'pak', 'tableta', 'kapsula'].includes(jedinica)) {
+                    kljucZaFilter = `${kom}${jedinica}`;
+                } else {
+                    kljucZaFilter = `${kom}kom`;
+                }
+
+            } else { // Ako jedinica nije prepoznata, a količina postoji
+                 if (kolicina > 0) {
+                    kljucZaFilter = `${kolicina}${jedinica}`;
+                    prikazZaFilterGumb = `${kolicina.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})} ${jedinica}`;
+                    sortVrijednost = kolicina; // Sortiraj po broju, ali tip je 'ostalo'
+                    tipJedinice = 'ostalo';
+                } else { // Ako je količina 0 ili NaN a jedinica nepoznata
+                    return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+                }
             }
+
+            // Provjera za ekstremno velike vrijednosti koje su vjerojatno greška
+            if (tipJedinice === 'masa' && sortVrijednost > 50000) { // 50kg
+                 return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+            }
+            if (tipJedinice === 'volumen' && sortVrijednost > 50000) { // 50L
+                 return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+            }
+            if (tipJedinice === 'komad' && sortVrijednost > 500) { // 500 komada
+                 return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
+            }
+
+
             return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
         }
 
@@ -1046,10 +1146,10 @@
             const opcijeMap = {
                 pakiranjeKljuc: new Map(),
                 brand: new Map()
-                // Ovdje možemo dodati 'category' ako se odlučimo
             };
 
             proizvodi.forEach(stavka => {
+                // Za pakiranje, dodaj samo ako ključ nije null (tj. ako je pakiranje validno)
                 if (stavka.pakiranjeKljuc && !opcijeMap.pakiranjeKljuc.has(stavka.pakiranjeKljuc)) {
                     opcijeMap.pakiranjeKljuc.set(stavka.pakiranjeKljuc, {
                         prikaz: stavka.pakiranjePrikaz,
@@ -1058,23 +1158,20 @@
                     });
                 }
                 if (stavka.brand && !opcijeMap.brand.has(stavka.brand)) {
-                     opcijeMap.brand.set(stavka.brand, {prikaz: stavka.brand, sort: stavka.brand});
+                     opcijeMap.brand.set(stavka.brand, {prikaz: stavka.brand, sort: stavka.brand}); // Sort za brand je sam brand (string)
                 }
             });
 
             const formatirajOpcije = (map, sortFn) => {
-                return Array.from(map.entries()).map(([kljuc, data]) => ({
-                    kljuc: kljuc,
-                    prikaz: data.prikaz,
-                    sort: data.sort,
-                    tip: data.tip // Dodajemo tip za sortiranje pakiranja
-                })).sort(sortFn);
+                return Array.from(map.values()) // Uzmi samo vrijednosti (objekte s prikaz, sort, tip)
+                        .filter(val => val.prikaz != null) // Dodatna provjera, iako bi null ključevi trebali biti filtrirani ranije
+                        .sort(sortFn);
             };
 
+
             return {
-                // Sortiraj pakiranja prvo po tipu (masa, volumen, komad), onda po sort vrijednosti
                 pakiranje: formatirajOpcije(opcijeMap.pakiranjeKljuc, (a, b) => {
-                    const tipOrder = { 'masa': 1, 'volumen': 2, 'komad': 3, 'ostalo': 4 };
+                    const tipOrder = { 'masa': 1, 'volumen': 2, 'komad': 3, 'ostalo': 4, 'neispravno': 5 };
                     if (tipOrder[a.tip] !== tipOrder[b.tip]) {
                         return tipOrder[a.tip] - tipOrder[b.tip];
                     }
@@ -1089,8 +1186,12 @@
             filteriContainer.innerHTML = '';
             let imaLiFiltera = false;
 
-            const createFilterGroup = (tipAtributaStavke, labela, vrijednosti) => { // tipAtributaStavke npr. 'pakiranjeKljuc'
+            const createFilterGroup = (tipAtributaStavke, labela, vrijednosti) => {
                 if (!vrijednosti || vrijednosti.length === 0) return;
+                // Dodatno filtriraj null/undefined prikaze prije nego što se odluči ima li filtera
+                const validneVrijednosti = vrijednosti.filter(v => v.prikaz != null && v.kljuc != null);
+                if (validneVrijednosti.length === 0) return;
+
                 imaLiFiltera = true;
 
                 const grupaDiv = document.createElement('div');
@@ -1104,11 +1205,11 @@
                 const wrapperDiv = document.createElement('div');
                 wrapperDiv.className = 'filter-opcije-wrapper';
 
-                vrijednosti.forEach(valObj => {
+                validneVrijednosti.forEach(valObj => {
                     const btn = document.createElement('button');
                     btn.className = 'filter-opcija';
                     btn.textContent = valObj.prikaz;
-                    btn.dataset.filterType = tipAtributaStavke; // Koristimo stvarni atribut iz objekta stavke
+                    btn.dataset.filterType = tipAtributaStavke;
                     btn.dataset.filterValue = valObj.kljuc;
                     if (aktivniFilteriPretrageNazivom[tipAtributaStavke] === valObj.kljuc) {
                         btn.classList.add('aktivan');
@@ -1119,10 +1220,10 @@
                 filteriContainer.appendChild(grupaDiv);
             };
 
-            if (opcije.pakiranje && opcije.pakiranje.length > 0) {
+            if (opcije.pakiranje) { // Provjeri postoji li niz prije pristupa length
                 createFilterGroup('pakiranjeKljuc', 'Pakiranje', opcije.pakiranje);
             }
-            if (opcije.brand && opcije.brand.length > 0) {
+            if (opcije.brand) {
                  createFilterGroup('brand', 'Brand', opcije.brand);
             }
 
@@ -1141,7 +1242,7 @@
             }
 
             let filtriraniRezultati = originalniRezultatiPretrageNazivom.filter(stavka => {
-                for (const tipFiltera in aktivniFilteriPretrageNazivom) { // tipFiltera je npr. 'pakiranjeKljuc' ili 'brand'
+                for (const tipFiltera in aktivniFilteriPretrageNazivom) {
                     const aktivnaVrijednostFiltera = aktivniFilteriPretrageNazivom[tipFiltera];
                     if (aktivnaVrijednostFiltera) {
                         if (stavka[tipFiltera] !== aktivnaVrijednostFiltera) {
@@ -1157,7 +1258,7 @@
 
         function iscrtajRezultatePretrageNazivom(proizvodiZaPrikaz) {
             rezultatiPretrageNazivomContainer.innerHTML = '';
-             if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && !proizvodiZaPrikaz.length) { // Provjeri i duljinu inputa
+             if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && !proizvodiZaPrikaz.length) {
                 rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
                 return;
             }
@@ -1187,7 +1288,7 @@
             filteriContainer.innerHTML = '';
             filteriContainer.style.display = 'none';
             originalniRezultatiPretrageNazivom = [];
-            aktivniFilteriPretrageNazivom = {}; // Resetiraj aktivne filtere za novu pretragu
+            aktivniFilteriPretrageNazivom = {};
 
             if (query.length < MIN_SEARCH_QUERY_LENGTH) {
                 rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UNESITE BAREM ${MIN_SEARCH_QUERY_LENGTH} ZNAKA ZA PRETRAGU.</p>`;
@@ -1212,11 +1313,12 @@
                         if (product.chains && product.chains.length > 0) {
                             product.chains.forEach(chain => {
                                 const cijena = parseFloat(chain.price || chain.min_price || chain.avg_price);
-                                const kolicina = product.quantity || chain.quantity; // Prioritet EAN level
-                                const jedinica = product.unit || chain.unit;     // Prioritet EAN level
+                                const kolicina = product.quantity || chain.quantity;
+                                const jedinica = product.unit || chain.unit;
                                 const normPak = normalizirajPakiranje(kolicina, jedinica);
 
-                                if (cijena > 0) {
+                                // Dodajemo stavku samo ako je pakiranje uspješno normalizirano (ključ nije null)
+                                if (cijena > 0 && normPak.kljucZaFilter !== null) {
                                     sveStavkeZaPrikaz.push({
                                         idProizvoda: product.ean + '-' + chain.chain,
                                         ean: product.ean,
@@ -1230,7 +1332,6 @@
                                         cijena: cijena,
                                         cijenaPoJM: izracunajCijenuPoJM(cijena, kolicina, jedinica),
                                         brand: product.brand ? product.brand.toUpperCase() : null,
-                                        // category: chain.category ? chain.category.toUpperCase() : null // Za budući filter
                                     });
                                 }
                             });
@@ -1307,7 +1408,7 @@
             prikaziEkran("ekran-skeniranja");
         });
 
-        btnPokaziPretraguNazivom.addEventListener("click", () => { // Gumb sa ekrana skenera
+        btnPokaziPretraguNazivom.addEventListener("click", () => {
             inputPretragaNaziv.value = '';
             originalniRezultatiPretrageNazivom = [];
             aktivniFilteriPretrageNazivom = {};
@@ -1329,26 +1430,20 @@
             const button = e.target.closest('button.filter-opcija');
             if (button) {
                 pustiZvuk("klik");
-                const filterType = button.dataset.filterType; // npr. 'pakiranjeKljuc' ili 'brand'
+                const filterType = button.dataset.filterType;
                 const filterValue = button.dataset.filterValue;
 
                 if (button.classList.contains('aktivan')) {
                     delete aktivniFilteriPretrageNazivom[filterType];
                     button.classList.remove('aktivan');
                 } else {
-                    // Deaktiviraj ostale gumbe istog tipa (ako postoje)
                     filteriContainer.querySelectorAll(`.filter-opcija[data-filter-type="${filterType}"]`).forEach(btn => {
                         btn.classList.remove('aktivan');
                     });
-                    // Aktiviraj ovaj i postavi filter
                     aktivniFilteriPretrageNazivom[filterType] = filterValue;
                     button.classList.add('aktivan');
                 }
                 primijeniFiltereNaRezultate();
-
-                // Za kaskadne filtere, trebali bismo ovdje pozvati ponovno generiranje opcija za ostale filtere
-                // const noveOpcije = izvuciOpcijeFiltera(originalniRezultatiPretrageNazivom, aktivniFilteriPretrageNazivom);
-                // prikaziFiltere(noveOpcije); // Ovo bi bio korak za kaskadne
             }
         });
 
