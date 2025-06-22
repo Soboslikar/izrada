@@ -230,13 +230,15 @@
             text-transform: uppercase;
         }
         #filteri-container {
-            padding: 8px 0 5px 0; /* Padding oko filtera */
+            padding: 8px 0 5px 0;
             border-top: 1px solid #e0e0e0;
             margin-top: 5px;
-            background-color: #f8f9fa; /* Ista kao header da se stopi */
+            background-color: #f8f9fa;
+            display: none; /* Inicijalno sakriven dok nema opcija */
         }
         .filter-grupa {
             margin-bottom: 8px;
+            padding: 0 10px; /* Dodan padding lijevo/desno za grupu */
         }
         .filter-grupa:last-child {
             margin-bottom: 0;
@@ -251,22 +253,22 @@
         }
         .filter-opcije-wrapper {
             display: flex;
-            flex-wrap: wrap; /* Omogućava prelamanje gumba u više redova */
-            gap: 6px; /* Razmak između gumba filtera */
+            flex-wrap: wrap;
+            gap: 6px;
         }
         button.filter-opcija {
             padding: 5px 10px;
             font-size: 0.85em;
-            margin-bottom: 0; /* Uklonjena margina s općenitog button stila */
-            width: auto; /* Da gumbi budu širine sadržaja */
-            background-color: #e9ecef; /* Svjetlija defaultna boja */
+            margin-bottom: 0;
+            width: auto;
+            background-color: #e9ecef;
             color: #212529;
             border: 1px solid #ced4da;
-            text-transform: none; /* Normalan tekst za opcije */
+            text-transform: none;
             font-weight: normal;
         }
         button.filter-opcija.aktivan {
-            background-color: #007bff !important; /* Plava za aktivne */
+            background-color: #007bff !important;
             color: white !important;
             border-color: #0056b3 !important;
             font-weight: bold;
@@ -383,7 +385,6 @@
         </section>
 
         <section id="ekran-skeniranja" class="hidden">
-            <!-- Sadržaj ekrana skeniranja ostaje isti -->
             <div id="marquee-container-skener" class="marquee-container hidden"><span id="marquee-text-skener" class="marquee-text">Učitavanje novosti...</span></div>
             <div id="reader-container">
                 <div id="reader"></div><div id="viewfinder-overlay"></div><div id="scan-feedback-overlay"></div>
@@ -419,7 +420,7 @@
         <section id="ekran-pretraga-nazivom" class="hidden">
             <div class="sticky-header">
                 <div class="header-gornji-red">
-                    <button id="btn-pretraga-nazivom-nazad" class="small-action-button">NAZAD NA SKENER</button>
+                    <button id="btn-pretraga-nazivom-nazad" class="small-action-button">NAZAD</button>
                     <h2 style="margin:0; flex-grow:1; text-align:center;">PRETRAGA NAZIVOM</h2>
                     <span style="width: auto; min-width: 100px; visibility: hidden;">Placeholder</span>
                 </div>
@@ -430,7 +431,6 @@
                 <p class="sticky-header-subtext">PODACI O CIJENAMA PREUZETI IZ CIJENE.API</p>
             </div>
             <div class="scrollable-content" id="rezultati-pretrage-nazivom-container">
-                 <!-- Inicijalno prazno, poruka se dodaje JS-om ako treba -->
             </div>
         </section>
 
@@ -522,7 +522,7 @@
         pronadjiProizvodMode = false,
         debounceTimeout = null,
         originalniRezultatiPretrageNazivom = [],
-        aktivniFilteriPretrageNazivom = {}; // Objekt npr. { pakiranje: '500g', brand: 'Kraš' }
+        aktivniFilteriPretrageNazivom = {};
 
         function pustiZvuk(e){const t=audioElements[e];t&&(t.currentTime=0,t.play().catch(e=>console.error("Greška pri reprodukciji zvuka:",e)))}
         function generirajUUID(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var t=16*Math.random()|0;return("x"==e?t:3&t|8).toString(16)})}
@@ -556,12 +556,7 @@
 
                 if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && originalniRezultatiPretrageNazivom.length === 0) {
                      rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
-                } else if (originalniRezultatiPretrageNazivom.length === 0 && inputPretragaNaziv.value.length >= MIN_SEARCH_QUERY_LENGTH) {
-                    // Ako je pretraga izvršena, ali nema rezultata, izvrsiPretraguPoNazivu će to hendlati
-                } else if (originalniRezultatiPretrageNazivom.length > 0) {
-                    // Ako već postoje rezultati (npr. vraćamo se na ekran), ne diraj ih osim ako nije nova pretraga
                 }
-
                 if (isScannerRunning) stopSkener(true);
             }
 
@@ -575,12 +570,10 @@
             } else if ("ekran-skeniranja"===e) {
                 btnPokreniZaustaviSkener.classList.add('hidden');
                 btnPokreniZaustaviSkener.classList.remove('animacija-tekst-zuto');
-
                 infoSkeniranogProizvodaContainer.classList.add("hidden");
                 listaSummaryContainer.classList.toggle("hidden", pronadjiProizvodMode || trenutnaListaKupovine.length === 0);
                 btnNazadSaSkeniranja.textContent = pronadjiProizvodMode ? "NA POČETAK" : "ZAVRŠI I SPREMI";
                 btnPokaziPretraguNazivom.classList.toggle("hidden", !pronadjiProizvodMode);
-
 
                 if (pronadjiProizvodMode) {
                     statusTextSkenerElem.textContent = "PRONAĐI PROIZVOD: SKENIRAJTE ILI UPIŠITE NAZIV";
@@ -614,7 +607,6 @@
                 renderirajPovijestKupovine();
             }
         }
-
 
         function mapirajKodLancaUNaziv(e){if(!e)return"Nepoznato";const t={konzum:"Konzum",lidl:"Lidl",spar:"Spar",plodine:"Plodine",kaufland:"Kaufland",tommy:"Tommy",studenac:"Studenac",eurospin:"Eurospin",dm:"dm",ktc:"KTC",metro:"Metro",trgocentar:"Trgocentar",zabac:"Žabac",vrutak:"Vrutak",ribola:"Ribola",ntl:"NTL"};return t[e.toLowerCase()]||e.charAt(0).toUpperCase()+e.slice(1)}
 
@@ -999,49 +991,97 @@
         }
 
         // --- FUNKCIJE ZA FILTRIRANJE NA EKRANU PRETRAGE NAZIVOM ---
+
+        function normalizirajPakiranje(kolicinaInput, jedinicaInput) {
+            let kolicina = parseFloat(String(kolicinaInput || "").replace(',', '.'));
+            let jedinica = String(jedinicaInput || "").toLowerCase().trim();
+
+            let kljucZaFilter = `${kolicinaInput || '?'} ${jedinicaInput || '?'}`; // Default ako ne prepozna
+            let prikazZaFilterGumb = kljucZaFilter;
+            let sortVrijednost = Infinity; // Za sortiranje, neprepoznati idu na kraj
+            let tipJedinice = 'ostalo';
+
+            if (isNaN(kolicina) || kolicina <= 0) {
+                return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
+            }
+
+            if (jedinica === 'kg' || jedinica === 'kilogram' || jedinica === 'k') {
+                const grami = Math.round(kolicina * 1000);
+                kljucZaFilter = `${grami}g`;
+                prikazZaFilterGumb = kolicina % 1 === 0 ? `${Math.round(kolicina)} kg` : `${kolicina} kg`;
+                if (kolicina < 1) prikazZaFilterGumb = `${grami} g`;
+                sortVrijednost = grami;
+                tipJedinice = 'masa';
+            } else if (jedinica === 'g' || jedinica === 'gr' || jedinica === 'gram') {
+                const grami = Math.round(kolicina);
+                kljucZaFilter = `${grami}g`;
+                prikazZaFilterGumb = grami < 1000 ? `${grami} g` : `${(grami/1000).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})} kg`;
+                sortVrijednost = grami;
+                tipJedinice = 'masa';
+            } else if (jedinica === 'l' || jedinica === 'lit' || jedinica === 'litra') {
+                const ml = Math.round(kolicina * 1000);
+                kljucZaFilter = `${ml}ml`;
+                prikazZaFilterGumb = kolicina % 1 === 0 ? `${Math.round(kolicina)} L` : `${kolicina} L`;
+                if (kolicina < 1) prikazZaFilterGumb = `${ml} ml`;
+                sortVrijednost = ml;
+                tipJedinice = 'volumen';
+            } else if (jedinica === 'ml' || jedinica === 'mililitar') {
+                 const ml = Math.round(kolicina);
+                kljucZaFilter = `${ml}ml`;
+                prikazZaFilterGumb = ml < 1000 ? `${ml} ml` : `${(ml/1000).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})} L`;
+                sortVrijednost = ml;
+                tipJedinice = 'volumen';
+            } else if (jedinica === 'kom' || jedinica === 'komad' || jedinica === 'ko' || jedinica === '') { // Prazna jedinica često znači komad
+                const kom = Math.round(kolicina);
+                kljucZaFilter = `${kom}kom`;
+                prikazZaFilterGumb = `${kom} kom`;
+                sortVrijednost = kom * 1000000; // Da komadi budu veći od g/ml za sortiranje
+                tipJedinice = 'komad';
+            }
+            return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
+        }
+
+
         function izvuciOpcijeFiltera(proizvodi) {
-            const opcije = {
-                pakiranje: new Set(),
-                brand: new Set()
+            const opcijeMap = {
+                pakiranjeKljuc: new Map(), // Koristimo Mapu da pohranimo ključ, prikaz i sort vrijednost
+                brand: new Map()
             };
 
             proizvodi.forEach(stavka => {
-                if (stavka.pakiranje) opcije.pakiranje.add(stavka.pakiranje);
-                if (stavka.brand) opcije.brand.add(stavka.brand);
+                if (stavka.pakiranjeKljuc && !opcijeMap.pakiranjeKljuc.has(stavka.pakiranjeKljuc)) {
+                    opcijeMap.pakiranjeKljuc.set(stavka.pakiranjeKljuc, {
+                        prikaz: stavka.pakiranjePrikaz,
+                        sort: stavka.pakiranjeSortVrijednost
+                    });
+                }
+                if (stavka.brand && !opcijeMap.brand.has(stavka.brand)) {
+                     opcijeMap.brand.set(stavka.brand, {prikaz: stavka.brand, sort: stavka.brand});
+                }
             });
 
-            const sortirajPakiranja = (arr) => arr.sort((a, b) => {
-                const numA = parseFloat(a);
-                const numB = parseFloat(b);
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    if (numA !== numB) return numA - numB;
-                    const unitA = a.replace(/[0-9.,]/g, '').trim().toLowerCase();
-                    const unitB = b.replace(/[0-9.,]/g, '').trim().toLowerCase();
-                    if (unitA.includes('g') && (unitB.includes('kg')||unitB.includes('k'))) return -1;
-                    if ((unitA.includes('kg')||unitA.includes('k')) && unitB.includes('g')) return 1;
-                    if (unitA.includes('ml') && unitB.includes('l')) return -1;
-                    if (unitA.includes('l') && unitB.includes('ml')) return 1;
-                    return unitA.localeCompare(unitB);
-                }
-                return String(a).localeCompare(String(b));
-            });
+            const formatirajOpcije = (map, sortFn) => {
+                return Array.from(map.entries()).map(([kljuc, data]) => ({
+                    kljuc: kljuc,
+                    prikaz: data.prikaz,
+                    sort: data.sort
+                })).sort(sortFn);
+            };
 
             return {
-                pakiranje: sortirajPakiranja(Array.from(opcije.pakiranje)),
-                brand: Array.from(opcije.brand).sort((a,b) => String(a).localeCompare(String(b)))
+                pakiranje: formatirajOpcije(opcijeMap.pakiranjeKljuc, (a, b) => a.sort - b.sort),
+                brand: formatirajOpcije(opcijeMap.brand, (a,b) => String(a.prikaz).localeCompare(String(b.prikaz)))
             };
         }
 
+
         function prikaziFiltere(opcije) {
             filteriContainer.innerHTML = '';
-            if (!opcije || (opcije.pakiranje.length === 0 && opcije.brand.length === 0)) {
-                filteriContainer.style.display = 'none'; // Sakrij kontejner ako nema filtera
-                return;
-            }
-            filteriContainer.style.display = 'block'; // Pokaži kontejner ako ima filtera
+            let imaLiFiltera = false;
 
             const createFilterGroup = (tip, labela, vrijednosti) => {
-                if (vrijednosti.length === 0) return;
+                if (!vrijednosti || vrijednosti.length === 0) return;
+                imaLiFiltera = true;
 
                 const grupaDiv = document.createElement('div');
                 grupaDiv.className = 'filter-grupa';
@@ -1054,13 +1094,13 @@
                 const wrapperDiv = document.createElement('div');
                 wrapperDiv.className = 'filter-opcije-wrapper';
 
-                vrijednosti.forEach(val => {
+                vrijednosti.forEach(valObj => {
                     const btn = document.createElement('button');
                     btn.className = 'filter-opcija';
-                    btn.textContent = val;
+                    btn.textContent = valObj.prikaz;
                     btn.dataset.filterType = tip;
-                    btn.dataset.filterValue = val;
-                    if (aktivniFilteriPretrageNazivom[tip] === val) {
+                    btn.dataset.filterValue = valObj.kljuc; // Koristimo ključ za value
+                    if (aktivniFilteriPretrageNazivom[tip] === valObj.kljuc) {
                         btn.classList.add('aktivan');
                     }
                     wrapperDiv.appendChild(btn);
@@ -1070,27 +1110,37 @@
             };
 
             if (opcije.pakiranje && opcije.pakiranje.length > 0) {
-                createFilterGroup('pakiranje', 'Pakiranje', opcije.pakiranje);
+                createFilterGroup('pakiranjeKljuc', 'Pakiranje', opcije.pakiranje);
             }
             if (opcije.brand && opcije.brand.length > 0) {
                  createFilterGroup('brand', 'Brand', opcije.brand);
             }
+
+            filteriContainer.style.display = imaLiFiltera ? 'block' : 'none';
         }
 
 
         function primijeniFiltereNaRezultate() {
-            if (originalniRezultatiPretrageNazivom.length === 0) {
-                iscrtajRezultatePretrageNazivom([]);
+            if (originalniRezultatiPretrageNazivom.length === 0 && inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH) {
+                 rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
+                return;
+            }
+             if (originalniRezultatiPretrageNazivom.length === 0) {
+                iscrtajRezultatePretrageNazivom([]); // Pokazat će poruku "nema rezultata"
                 return;
             }
 
+
             let filtriraniRezultati = originalniRezultatiPretrageNazivom.filter(stavka => {
                 for (const tipFiltera in aktivniFilteriPretrageNazivom) {
-                    if (aktivniFilteriPretrageNazivom[tipFiltera] && stavka[tipFiltera] !== aktivniFilteriPretrageNazivom[tipFiltera]) {
-                        return false; // Ako bilo koji aktivni filter ne odgovara, izbaci stavku
+                    const aktivnaVrijednostFiltera = aktivniFilteriPretrageNazivom[tipFiltera];
+                    if (aktivnaVrijednostFiltera) { // Ako postoji aktivni filter za ovaj tip
+                        if (stavka[tipFiltera] !== aktivnaVrijednostFiltera) {
+                            return false;
+                        }
                     }
                 }
-                return true; // Svi aktivni filteri odgovaraju
+                return true;
             });
             iscrtajRezultatePretrageNazivom(filtriraniRezultati);
         }
@@ -1125,7 +1175,6 @@
 
 
         async function izvrsiPretraguPoNazivu(query) {
-            // Resetiraj filtere i originalne rezultate za svaku novu pretragu
             filteriContainer.innerHTML = '';
             filteriContainer.style.display = 'none';
             originalniRezultatiPretrageNazivom = [];
@@ -1139,7 +1188,7 @@
             rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">TRAŽIM PROIZVODE...</p>`;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/v1/products/?q=${encodeURIComponent(query)}&limit=150`, { // Povećan limit
+                const response = await fetch(`${API_BASE_URL}/v1/products/?q=${encodeURIComponent(query)}&limit=200`, { // Povećan limit
                     headers: { Authorization: `Bearer ${API_KEY}` }
                 });
                 if (!response.ok) {
@@ -1156,6 +1205,7 @@
                                 const cijena = parseFloat(chain.price || chain.min_price || chain.avg_price);
                                 const kolicina = product.quantity || chain.quantity;
                                 const jedinica = product.unit || chain.unit;
+                                const normPak = normalizirajPakiranje(kolicina, jedinica);
 
                                 if (cijena > 0) {
                                     sveStavkeZaPrikaz.push({
@@ -1163,10 +1213,12 @@
                                         ean: product.ean,
                                         nazivLanca: mapirajKodLancaUNaziv(chain.chain).toUpperCase(),
                                         nazivProizvoda: `${(product.name || "Nepoznato").toUpperCase()} ${product.brand ? '('+product.brand.toUpperCase()+')' : ''}`,
-                                        pakiranje: `${kolicina || ''}${jedinica ? ' ' + jedinica : ''}`.trim(), // Formatirano pakiranje za filter, npr. "500 g" ili "1 L" ili "6 kom"
-                                        pakiranjeDetalji: `PAKIRANJE: ${kolicina || '?'} ${jedinica || '?'}`,
+                                        pakiranjeKljuc: normPak.kljucZaFilter,
+                                        pakiranjePrikaz: normPak.prikazZaFilterGumb,
+                                        pakiranjeSortVrijednost: normPak.sortVrijednost,
+                                        pakiranjeDetalji: `PAKIRANJE: ${normPak.prikazZaFilterGumb}`,
                                         cijena: cijena,
-                                        cijenaPoJM: izracunajCijenuPoJM(cijena, kolicina, jedinica),
+                                        cijenaPoJM: izracunajCijenuPoJM(cijena, kolicina, jedinica), // Ovdje original za JM
                                         brand: product.brand ? product.brand.toUpperCase() : null
                                     });
                                 }
@@ -1222,13 +1274,12 @@
         });
 
         btnPronadjiProizvod.addEventListener("click", () => {
-             // Resetiraj vrijednost inputa i očisti rezultate/filtere prije prikaza ekrana
             inputPretragaNaziv.value = '';
             originalniRezultatiPretrageNazivom = [];
             aktivniFilteriPretrageNazivom = {};
             filteriContainer.innerHTML = '';
             filteriContainer.style.display = 'none';
-            rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
+            // Poruka se sada postavlja u prikaziEkran ili iscrtajRezultatePretrageNazivom
             prikaziEkran("ekran-pretraga-nazivom");
         });
 
@@ -1252,17 +1303,13 @@
             aktivniFilteriPretrageNazivom = {};
             filteriContainer.innerHTML = '';
             filteriContainer.style.display = 'none';
-            rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
+             // Poruka se sada postavlja u prikaziEkran ili iscrtajRezultatePretrageNazivom
             prikaziEkran("ekran-pretraga-nazivom");
         });
 
         btnPretragaNazivomNazad.addEventListener("click", () => {
-            // Vraća na ekran s kojeg je došao, ili na početni ako nema boljeg konteksta
-            if (pronadjiProizvodMode && !ekranSkeniranja.classList.contains('hidden') && document.body.classList.contains('fullscreen')) {
-                 prikaziEkran("ekran-skeniranja");
-            } else {
-                 prikaziEkran("pocetni-ekran");
-            }
+             // Promijenjen gumb u "NAZAD"
+            prikaziEkran("pocetni-ekran"); // Uvijek vrati na početni s ovog gumba
         });
 
 
@@ -1272,20 +1319,18 @@
 
         filteriContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('filter-opcija')) {
+                pustiZvuk("klik"); // Pusti zvuk klika za filter
                 const button = e.target;
                 const filterType = button.dataset.filterType;
                 const filterValue = button.dataset.filterValue;
 
-                // Ako je isti gumb već aktivan, deaktiviraj ga (i filter)
                 if (button.classList.contains('aktivan')) {
                     delete aktivniFilteriPretrageNazivom[filterType];
                     button.classList.remove('aktivan');
                 } else {
-                    // Deaktiviraj druge gumbe istog tipa filtera
                     filteriContainer.querySelectorAll(`.filter-opcija[data-filter-type="${filterType}"]`).forEach(btn => {
                         btn.classList.remove('aktivan');
                     });
-                    // Aktiviraj ovaj gumb i postavi filter
                     aktivniFilteriPretrageNazivom[filterType] = filterValue;
                     button.classList.add('aktivan');
                 }
