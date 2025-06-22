@@ -8,7 +8,7 @@
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-color: #f4f4f4; box-sizing: border-box; }
         header { background-color: #333; color: white; padding: 1em; text-align: center; width: 100%; }
-        footer { background-color: #333; color: white; padding: 1em; text-align: center; width: 100%; text-transform: uppercase; /* Velika slova za cijeli footer */ }
+        footer { background-color: #333; color: white; padding: 1em; text-align: center; width: 100%; text-transform: uppercase; }
         footer p { margin: 0.3em 0; font-size: 0.85em; color: #ccc; }
         footer p:first-child { margin-top: 0; }
         footer p:last-child { margin-bottom: 0; }
@@ -35,7 +35,7 @@
             height: calc(100vh - 150px); 
         }
 
-        h1, h2, h3 { color: #333; text-transform: uppercase; } /* H2 i H3 naslovi također uppercase */
+        h1, h2, h3 { color: #333; text-transform: uppercase; }
         
         button { 
             display: block; 
@@ -53,7 +53,7 @@
             text-transform: uppercase; 
         }
         button:active { transform: scale(0.98); }
-        button:hover:not(:disabled) { background-color: #0056b3; } /* Hover samo ako nije disabled */
+        button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc !important; cursor: not-allowed !important; color: #666 !important; }
         
         .btn-zeleni { 
@@ -78,7 +78,6 @@
             font-size: 0.9em; 
             width: auto; 
             margin-bottom: 0;
-            /* text-transform: none; Ako želite da NE budu uppercase, inače će naslijediti od button */
         }
         select { width:100%; padding:10px; margin-bottom:10px; font-size: 16px; box-sizing: border-box; }
         input[type="text"], input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
@@ -91,7 +90,7 @@
         #reader > div:first-child { width: 100% !important; height: 100% !important; }
         #switch-camera-btn { position: absolute; top: 40px; right: 10px; z-index: 20; padding: 6px 8px; background-color: rgba(0, 0, 0, 0.4); color: white; border: none; border-radius: 50%; font-size: 1.5em; line-height: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: none; width: auto; margin-bottom: 0; }
         #camera-selection-overlay { position: absolute; top: 50px; right: 10px; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 21; padding: 5px 0; display: none; max-height: 150px; overflow-y: auto; min-width: 180px; width: auto; }
-        #camera-list { list-style: none; padding: 0; margin: 0; } #camera-list li { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: #333; text-transform: none; /* Da nazivi kamera ne budu uppercase */ } #camera-list li:hover { background-color: #f0f0f0; } #camera-list li.selected-camera { font-weight: bold; background-color: #e0e0e0; }
+        #camera-list { list-style: none; padding: 0; margin: 0; } #camera-list li { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: #333; text-transform: none; } #camera-list li:hover { background-color: #f0f0f0; } #camera-list li.selected-camera { font-weight: bold; background-color: #e0e0e0; }
         .messages-skener { text-align: center; margin-top: 0; margin-bottom: 5px; min-height: 1.2em; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; }
         .messages-skener .status { color: #333; margin:0; padding: 2px 0; font-weight: bold; }
         .messages-skener .error { color: #dc3545; font-weight: bold; margin:0; padding: 2px 0; }
@@ -329,7 +328,7 @@
                 <div class="header-gornji-red">
                     <button id="btn-pretraga-nazivom-nazad" class="small-action-button">NAZAD NA SKENER</button>
                     <h2 style="margin:0; flex-grow:1; text-align:center;">PRETRAGA NAZIVOM</h2> 
-                    <span style="width: auto; min-width: 100px; visibility: hidden;">Placeholder</span> <!-- Za poravnanje -->
+                    <span style="width: auto; min-width: 100px; visibility: hidden;">Placeholder</span>
                 </div>
                 <input type="text" id="input-pretraga-naziv" placeholder="UPIŠI POJAM ZA PRETRAGU (MIN. 3 ZNAKA)">
                 <p class="sticky-header-subtext">PODACI O CIJENAMA PREUZETI IZ CIJENE.API</p>
@@ -407,7 +406,7 @@
         btnAkcijeNaPocetnu = document.getElementById("btn-akcije-na-pocetnu"), 
         btnPokaziPretraguNazivom = document.getElementById("btn-pokazi-pretragu-nazivom"), 
         btnNazadSaSkeniranja=document.getElementById("btn-nazad-sa-skeniranja"),infoSkeniranogProizvodaContainer=document.getElementById("info-skeniranog-proizvoda-container"),skeniranNazivEl=document.getElementById("skeniran-naziv"),skeniranaCijenaEl=document.getElementById("skenirana-cijena"),skeniranaCijenaPoJediniciEl=document.getElementById("skenirana-cijena-po-jedinici"),skeniranaKolicinaInput=document.getElementById("skenirana-kolicina"),skeniranItemUkupnoEl=document.getElementById("skeniran-item-ukupno"),btnDodajSkeniranoNaListu=document.getElementById("btn-dodaj-skenirano-na-listu"),btnUsporediCijene=document.getElementById("btn-usporedi-cijene"),
-        btnPosaljiPrijedlogPocetna = document.getElementById("btn-posalji-prijedlog-pocetna"), // Novi gumb
+        btnPosaljiPrijedlogPocetna = document.getElementById("btn-posalji-prijedlog-pocetna"),
         btnPodijeliAplikacijuPocetna=document.getElementById("btn-podijeli-aplikaciju-pocetna"),
         btnPodijeliAplikacijuSkener = document.getElementById("btn-podijeli-aplikaciju-skener"),
         marqueeContainer=document.getElementById("marquee-container"),marqueeText=document.getElementById("marquee-text"),marqueeContainerSkener=document.getElementById("marquee-container-skener"),marqueeTextSkener=document.getElementById("marquee-text-skener"),shareOverlayMessageEl=document.getElementById("share-overlay-message"),readerDiv=document.getElementById("reader"),switchCameraButton=document.getElementById("switch-camera-btn"),cameraSelectionOverlay=document.getElementById("camera-selection-overlay"),cameraListUl=document.getElementById("camera-list"),scanFeedbackOverlay=document.getElementById("scan-feedback-overlay"),statusTextSkenerElem=document.getElementById("statusTextSkener"),errorTextSkenerElem=document.getElementById("errorTextSkener"),btnPokreniZaustaviSkener=document.getElementById("btn-pokreni-zaustavi-skener"),listaSummaryContainer=document.getElementById("lista-summary-container"),ukupnoCijenaSkeniranjeSumEl=document.getElementById("ukupno-cijena-skeniranje-sum"),btnPogledajListu=document.getElementById("btn-pogledaj-listu"),btnListaNaSkener=document.getElementById("btn-lista-na-skener"),btnListaNaPocetak=document.getElementById("btn-lista-na-pocetak"),ukupnoCijenaListaPrikazEl=document.getElementById("ukupno-cijena-lista-prikaz"),listaKupovineStavkeContainer=document.getElementById("lista-kupovine-stavke-container"),praznaListaPorukaEl=document.getElementById("prazna-lista-poruka"),btnPovijestNaPocetak=document.getElementById("btn-povijest-na-pocetak"),povijestKupovineContainer=document.getElementById("povijest-kupovine-container"),praznaPovijestPorukaEl=document.getElementById("prazna-povijest-poruka"),btnOcistiPovijest=document.getElementById("btn-ocisti-povijest"),btnSpecifikacijaNaPovijest=document.getElementById("btn-specifikacija-na-povijest"),specifikacijaNaslovEl=document.getElementById("specifikacija-naslov"),specifikacijaUkupnoEl=document.getElementById("specifikacija-ukupno"),specifikacijaStavkeContainer=document.getElementById("specifikacija-stavke-container"),btnUsporediKosaricu=document.getElementById("btn-usporedi-kosaricu"),btnUsporedbaNaSkener=document.getElementById("btn-usporedba-na-skener"),usporedbaArtiklNazivEl=document.getElementById("usporedba-artikl-naziv"),usporedbaArtiklCijenaTrenutnaEl=document.getElementById("usporedba-artikl-cijena-trenutna"),usporedbaCijenaContainer=document.getElementById("usporedba-cijena-container"),usporedbaNemaPodatakaPorukaEl=document.getElementById("usporedba-nema-podataka-poruka"),
@@ -561,7 +560,14 @@
             if (skeniranItemUkupnoEl) skeniranItemUkupnoEl.textContent=`UKUPNO: ${(zadnjiSkeniraniProizvodInfo.cijenaKomad*e).toFixed(2)} EUR`;
         }
         
-        function azurirajGumbNastavi(){zadnjeOdabranaTrgovinaKod?(btnNastaviZadnjaTrgovina.textContent=`NASTAVI S ${mapirajKodLancaUNaziv(zadnjeOdabranaTrgovinaNaziv).toUpperCase()}`,btnNastaviZadnjaTrgovina.classList.remove("hidden")):btnNastaviZadnjaTrgovina.classList.add("hidden")}
+        function azurirajGumbNastavi(){
+            if (zadnjeOdabranaTrgovinaKod) {
+                btnNastaviZadnjaTrgovina.textContent = `NASTAVI S ${mapirajKodLancaUNaziv(zadnjeOdabranaTrgovinaNaziv)}`.toUpperCase();
+                btnNastaviZadnjaTrgovina.classList.remove("hidden");
+            } else {
+                btnNastaviZadnjaTrgovina.classList.add("hidden");
+            }
+        }
         
         function postaviOdabranuTrgovinu(e,t){
             const a=trenutnoOdabranaTrgovina?trenutnoOdabranaTrgovina.code:null;
@@ -958,11 +964,18 @@
         async function dohvatiMarqueeText(){const e="Dobrodošli u Dućan Skener! Usporedite cijene i uštedite. *** ";marqueeText.textContent=e,marqueeTextSkener&&(marqueeTextSkener.textContent=e)}
         
         // Event Listeners
-        document.addEventListener("click",e=>{if(e.target.tagName==="BUTTON" && !e.target.disabled) pustiZvuk("klik")},!0); // Zvuk samo ako gumb nije disabled
+        document.addEventListener("click",e=>{if(e.target.tagName==="BUTTON" && !e.target.disabled) pustiZvuk("klik")},!0);
         btnIzaberiTrgovinu.addEventListener("click",()=>{prikaziEkran("ekran-odabir-trgovine"),dohvatiITipkajTrgovine()});
         btnNazadNaPocetnuSaOdabira.addEventListener("click",()=>prikaziEkran("pocetni-ekran"));
         btnPotvrdiTrgovinu.addEventListener("click",()=>{const e=selectTrgovina.value;e&&(postaviOdabranuTrgovinu(e,e),prikaziEkran("glavni-ekran-akcija"))});
-        btnNastaviZadnjaTrgovina.addEventListener("click",()=>{zadnjeOdabranaTrgovinaKod&&(postaviOdabranuTrgovina(zadnjeOdabranaTrgovinaKod,zadnjeOdabranaTrgovinaNaziv),prikaziEkran("glavni-ekran-akcija"))});
+        
+        btnNastaviZadnjaTrgovina.addEventListener("click",()=>{
+            if(zadnjeOdabranaTrgovinaKod) { // Provjera postoji li zadnja trgovina
+                pustiZvuk("klik"); // Zvuk ide ovdje
+                postaviOdabranuTrgovinu(zadnjeOdabranaTrgovinaKod, zadnjeOdabranaTrgovinaNaziv);
+                prikaziEkran("glavni-ekran-akcija");
+            }
+        });
         
         btnPronadjiProizvod.addEventListener("click", () => {
             pronadjiProizvodMode = true;
@@ -1074,25 +1087,13 @@
         btnPodijeliAplikacijuPocetna.addEventListener("click",shareAction);
         if (btnPodijeliAplikacijuSkener) btnPodijeliAplikacijuSkener.addEventListener("click", shareAction);
 
-
         listaKupovineStavkeContainer.addEventListener("click",e=>{e.target.classList.contains("btn-brisi-stavku")&&obrisiStavkuSaListe(e.target.dataset.ean)});
         povijestKupovineContainer.addEventListener("click",e=>{const t=e.target.closest(".povijest-stavka");t&&prikaziSpecifikacijuKupovine(t.dataset.kupovinaId)});
         selectTrgovina.addEventListener("change",()=>{const e=""!==selectTrgovina.value;btnPotvrdiTrgovinu.disabled=!e,btnPotvrdiTrgovinu.classList.toggle("btn-zeleni",e)});
         btnOcistiPovijest.addEventListener("click",()=>{if(0===povijestKupovina.length)return void alert("POVIJEST JE VEĆ PRAZNA.");confirm("JESTE LI SIGURNI DA ŽELITE TRAJNO OBRISATI CIJELU POVIJEST KUPOVINE?")&&(povijestKupovina=[],localStorage.removeItem(LS_KEYS.POVIJEST_KUPOVINA),renderirajPovijestKupovine(),alert("POVIJEST KUPOVINE JE OBRISANA."))});
         btnUsporediKosaricu.addEventListener("click",prikaziUsporedbuKosarice);
         
-        // Listener za gumb "Pošalji prijedlog (USKORO)" - trenutno ne radi ništa jer je disabled
-        // Kada budete spremni, uklonite 'disabled' atribut iz HTML-a i dodajte:
-        // if(btnPosaljiPrijedlogPocetna) {
-        //    btnPosaljiPrijedlogPocetna.addEventListener("click", () => {
-        //        // Logika za otvaranje forme/modala za unos prijedloga
-        //        alert("Funkcionalnost slanja prijedloga je u pripremi!");
-        //    });
-        // }
-
-
         document.addEventListener("DOMContentLoaded",async()=>{
-            // Godina se više ne postavlja dinamički
             korisnickiID||(korisnickiID=generirajUUID(),localStorage.setItem(LS_KEYS.KORISNICKI_ID,korisnickiID));
             azurirajGumbNastavi();
             prikaziEkran("pocetni-ekran");
