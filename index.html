@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -14,6 +13,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
+            align-items: center; /* Centriraj main horizontalno */
             min-height: 100vh;
             background-color: #f4f4f4;
             box-sizing: border-box;
@@ -23,56 +23,60 @@
             color: white;
             padding: 1em;
             text-align: center;
-            width: 100%;
-            flex-shrink: 0;
+            width: 100%; /* Header zauzima punu širinu */
             box-sizing: border-box;
+            flex-shrink: 0;
         }
         footer {
             background-color: #333;
             color: white;
             padding: 1em;
             text-align: center;
-            width: 100%;
+            width: 100%; /* Footer zauzima punu širinu */
             text-transform: uppercase;
-            flex-shrink: 0;
             box-sizing: border-box;
+            flex-shrink: 0;
         }
         footer p { margin: 0.3em 0; font-size: 0.85em; color: #ccc; }
         footer p:first-child { margin-top: 0; }
         footer p:last-child { margin-bottom: 0; }
 
         main {
-            width: 100%; /* Za fullscreen da se protegne */
-            max-width: 600px; /* Za normalan prikaz */
-            margin-left: auto;
-            margin-right: auto;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative; /* Za fullscreen child elemente */
+            /* Vraćamo stilove za 'main' kakvi su bili u tvojoj originalnoj verziji */
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            margin-bottom: 10px;
+            width: 95%;
+            max-width: 600px;
+            display: flex; /* Osigurava da sekcije unutar mogu koristiti flex svojstva */
+            flex-direction: column; /* Sekcije se slažu vertikalno */
+            flex-grow: 1; /* Da main pokuša zauzeti raspoloživi prostor ako je sadržaj manji */
         }
         main > section {
              width: 100%;
              box-sizing: border-box;
-             background-color: white;
-             border-radius: 8px;
-             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-             padding: 10px;
-             margin-top: 10px;
-             margin-bottom: 10px;
-             display: flex;
-             flex-direction: column;
+             /* Sekcije nemaju svoju pozadinu/sjene, to radi main */
         }
         main > section.hidden { display: none !important; }
 
+
+        /* Specifično za ekran pretrage da se ponaša drugačije od ostalih sekcija */
+        /* Ako ekran pretrage treba biti full-width unutar main okvira, bez margina od main-a */
         #ekran-pretraga-nazivom {
-            height: 100%; /* Zauzima punu visinu main-a (koji je flex-grow) */
-            padding: 0;
-            margin: 0; /* Uklanja defaultne margine od main > section */
-            border-radius: 0;
-            box-shadow: none;
-            background-color: transparent; /* Njegovi dijelovi imaju pozadinu */
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Zauzima punu visinu main elementa ako je main flex kontejner */
+            /* Ako želimo da #ekran-pretraga-nazivom nema padding koji main > section ima */
+            padding: 0; /* Override paddinga od main > section */
+            background-color: transparent; /* Da se vidi pozadina main-a, a njegovi dijelovi imaju svoju */
+            box-shadow: none; /* Ukloni duplu sjenu */
+            border-radius: 0; /* Ukloni dupli radius */
+            margin:0; /* Da se rastegne do rubova main-a */
         }
+
 
         h1, h2, h3 { color: #333; text-transform: uppercase; }
 
@@ -109,60 +113,37 @@
         input[type="text"], input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .hidden { display: none !important; }
 
-
-        /* === EKRAN SKENIRANJA STILOVI - ISPRAVLJENO === */
-        body.fullscreen {
-            background-color: #000 !important; /* Crna pozadina za fullscreen */
-            padding: 0 !important;
-            overflow: hidden; /* Da se ne pojave scrollbarovi od body */
-        }
-        body.fullscreen header, body.fullscreen footer { display: none !important; }
-
-        body.fullscreen main {
-            max-width: 100%;
-            height: 100vh; /* Koristi 100vh za potpunu visinu viewporta */
-            margin: 0;
-            padding: 0;
-        }
-
-        body.fullscreen main > #ekran-skeniranja {
-            height: 100%;
-            width: 100%;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            background-color: #f0f0f0; /* Svjetlija pozadina za dijelove ispod kamere */
-            display: flex;
-            flex-direction: column;
-            position:relative; /* Za marquee */
+        /* === EKRAN SKENIRANJA STILOVI - VRAĆENO NA NE-FULLSCREEN === */
+        #ekran-skeniranja {
+            /* Nema više specifičnih fullscreen stilova, ponaša se kao ostale sekcije */
+            position: relative; /* Za marquee */
         }
 
         #marquee-container-skener {
             position: absolute;
-            top: 0;
+            top: 0; /* Na vrh #ekran-skeniranja */
             left: 0;
             width: 100%;
             z-index: 25;
             background-color: rgba(0,0,0,0.7);
             padding: 6px 0;
-            flex-shrink: 0;
             box-sizing: border-box;
         }
         #marquee-container-skener .marquee-text { font-size: 1.1em; color: #ffc107; }
 
 
         #reader-container {
-            position: relative;
+            position: relative; /* Kontekst za viewfinder i switch button */
             width: 100%;
-            min-height: 200px;
+            max-width: 500px; /* Ograniči širinu readera unutar sekcije */
+            height: 30vh; /* Vraćena originalna visina */
+            min-height: 250px;
             background-color: #000;
+            margin-bottom: 5px;
             overflow: hidden;
-            flex-grow: 1; /* Zauzima glavni prostor */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* margin-top ostavljen za marquee ako se prikazuje iznad containera, inače se reader preklapa */
+            margin-left: auto; /* Centriraj reader ako je sekcija šira */
+            margin-right: auto;
+            /* margin-top: 35px; Ako marquee ide iznad, inače ga reader preklapa */
         }
         #reader { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; }
         #reader video, #reader > div > video, #reader > div:first-child > video { width: 100% !important; height: 100% !important; object-fit: cover !important; border:none !important; }
@@ -173,20 +154,20 @@
         #camera-selection-overlay { position: absolute; top: 50px; right: 10px; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 31; padding: 5px 0; display: none; max-height: 150px; overflow-y: auto; min-width: 180px; width: auto; }
         #camera-list { list-style: none; padding: 0; margin: 0; } #camera-list li { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: #333; text-transform: none; } #camera-list li:hover { background-color: #f0f0f0; } #camera-list li.selected-camera { font-weight: bold; background-color: #e0e0e0; }
 
-        .messages-skener { text-align: center; padding: 8px 5px; min-height: 1.2em; width: 100%; background-color: #333; /* Tamnija pozadina za poruke */ color:white; flex-shrink:0; box-sizing: border-box; }
-        .messages-skener .status { color: #fff; margin:0; padding: 2px 0; font-weight: bold; }
-        .messages-skener .error { color: #ffc107; font-weight: bold; margin:0; padding: 2px 0; }
+        .messages-skener { text-align: center; margin-top: 0; /* Vraćeno s tvoje originalne verzije */ margin-bottom: 5px; min-height: 1.2em; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .messages-skener .status { color: #333; margin:0; padding: 2px 0; font-weight: bold; }
+        .messages-skener .error { color: #dc3545; font-weight: bold; margin:0; padding: 2px 0; }
 
         #sadrzaj-ispod-skenera {
-            padding: 10px;
+            padding: 5px 10px; /* Vraćeno s tvoje originalne verzije */
             width: 100%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0; /* Svjetlija pozadina */
-            flex-shrink: 0;
+            /* Nema pozadine, nasljeđuje od #ekran-skeniranja (koji je dio main-a) */
         }
+        /* Ostatak CSS-a ostaje isti */
 
         #info-skeniranog-proizvoda-container { border: 1px solid #ccc; padding: 12px; margin-bottom: 8px; background-color: #fff; width: 100%; max-width: 500px; color: #333; font-size: 1.1em; }
         #info-skeniranog-proizvoda-container p, #info-skeniranog-proizvoda-container label { color: #333; }
@@ -430,12 +411,29 @@
             const sveSekcije=[pocetniEkran,ekranOdabirTrgovine,glavniEkranAkcija,ekranSkeniranja,ekranListeKupovine,ekranPovijestKupovine,ekranSpecifikacijaKupovine,ekranUsporedbeCijena,ekranUsporedbaKosarice, ekranPronadjiProizvodRezultati, ekranPretragaNazivom ];
             sveSekcije.forEach(el=>{if(el) el.classList.toggle("hidden",el.id!==e)});
 
-            document.body.classList.remove("fullscreen");
-            if (document.querySelector('header')) document.querySelector('header').style.display = 'block';
-            if (document.querySelector('footer')) document.querySelector('footer').style.display = 'block';
-            if (marqueeContainer) marqueeContainer.classList.add("hidden");
-            if (marqueeContainerSkener && e !== 'ekran-skeniranja') { // Sakrij marquee skenera ako ekran skeniranja nije aktivan
-                marqueeContainerSkener.classList.add("hidden");
+            // Ukloni fullscreen klasu s bodyja ako nije ekran skeniranja
+            if (e !== "ekran-skeniranja") {
+                document.body.classList.remove("fullscreen");
+                 if (document.querySelector('header')) document.querySelector('header').style.display = 'block';
+                 if (document.querySelector('footer')) document.querySelector('footer').style.display = 'block';
+                 if (marqueeContainerSkener) marqueeContainerSkener.classList.add("hidden"); // Sakrij marquee skenera
+            } else { // Ako JEST ekran skeniranja
+                document.body.classList.add("fullscreen");
+                if (document.querySelector('header')) document.querySelector('header').style.display = 'none';
+                if (document.querySelector('footer')) document.querySelector('footer').style.display = 'none';
+                 if (marqueeContainerSkener) { // Pokaži marquee za skener
+                    if (!marqueeTextSkener.textContent || marqueeTextSkener.textContent === "Učitavanje novosti...") {
+                        dohvatiMarqueeText();
+                    }
+                    marqueeContainerSkener.classList.remove("hidden");
+                }
+            }
+
+            if (marqueeContainer && e === "pocetni-ekran") { // Pokaži glavni marquee samo na početnom
+                marqueeContainer.classList.remove("hidden");
+                dohvatiMarqueeText();
+            } else if (marqueeContainer) {
+                marqueeContainer.classList.add("hidden");
             }
 
 
@@ -447,41 +445,18 @@
                 btnPokreniZaustaviSkener.classList.add('hidden');
             }
 
-
-            if (e === "ekran-skeniranja") {
-                document.body.classList.add("fullscreen");
-                if (marqueeContainerSkener) {
-                    if (!marqueeTextSkener.textContent || marqueeTextSkener.textContent === "Učitavanje novosti...") {
-                        dohvatiMarqueeText();
-                    }
-                    marqueeContainerSkener.classList.remove("hidden");
-                }
-                // Sakrij donji dio ako je pronadjiProizvodMode
-                document.getElementById('sadrzaj-ispod-skenera').classList.toggle('hidden', pronadjiProizvodMode);
-            } else if (e === "ekran-pretraga-nazivom") {
-                if (document.querySelector('header')) document.querySelector('header').style.display = 'none';
-                if (document.querySelector('footer')) document.querySelector('footer').style.display = 'none';
-                if (marqueeContainer) marqueeContainer.classList.add("hidden");
-
-                // Postavi inicijalnu poruku samo ako nema aktivne pretrage ili rezultata
-                if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && originalniRezultatiPretrageNazivom.length === 0) {
-                     rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
-                }
-                if (isScannerRunning) stopSkener(true);
-            }
-
-
+            // Logika specifična za ekrane
             if ("pocetni-ekran"===e) {
-                dohvatiMarqueeText();
-                if (marqueeContainer) marqueeContainer.classList.remove("hidden");
+                // pronadjiProizvodMode = false; // Resetiraj ako je potrebno
             } else if ("glavni-ekran-akcija" === e) {
                 btnSkenirajProizvod.classList.add('animacija-tekst-zuto');
-            } else if ("ekran-skeniranja"===e) { // Već obrađeno gore
+            } else if ("ekran-skeniranja"===e) {
                 btnPokreniZaustaviSkener.classList.add('hidden');
                 btnPokreniZaustaviSkener.classList.remove('animacija-tekst-zuto');
                 infoSkeniranogProizvodaContainer.classList.add("hidden");
                 btnNazadSaSkeniranja.textContent = pronadjiProizvodMode ? "NATRAG NA OPCIJE" : "ZAVRŠI I SPREMI";
                 btnPokaziPretraguNazivom.classList.toggle("hidden", !pronadjiProizvodMode);
+                document.getElementById('sadrzaj-ispod-skenera').classList.toggle('hidden', pronadjiProizvodMode);
 
                 if (pronadjiProizvodMode) {
                     if(statusTextSkenerElem) statusTextSkenerElem.textContent = "PRONAĐI PROIZVOD: SKENIRAJTE BARKOD";
@@ -493,7 +468,19 @@
                 }
                  if(errorTextSkenerElem) errorTextSkenerElem.textContent = "";
                 initializeAndStartScanner();
-            } else if (isScannerRunning && !["ekran-skeniranja", "ekran-pretraga-nazivom"].includes(e)) {
+            } else if (e === "ekran-pretraga-nazivom") {
+                // Ovdje je važno da se sakriju header i footer ako NISU dio fullscreen moda
+                // To je već pokriveno gore, ali za svaki slučaj ako #ekran-pretraga-nazivom treba posebnu logiku
+                // (trenutno je full-width unutar main-a)
+                if (document.querySelector('header')) document.querySelector('header').style.display = 'none';
+                if (document.querySelector('footer')) document.querySelector('footer').style.display = 'none';
+                if (marqueeContainer) marqueeContainer.classList.add("hidden");
+
+                if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH && originalniRezultatiPretrageNazivom.length === 0) {
+                     rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
+                }
+                if (isScannerRunning) stopSkener(true);
+            } else if (isScannerRunning && !["ekran-skeniranja"].includes(e)) { // Ako napuštamo skener, a nije pretraga nazivom
                  stopSkener(true);
             }
 
@@ -503,6 +490,7 @@
                 renderirajPovijestKupovine();
             }
         }
+
 
         function mapirajKodLancaUNaziv(e){if(!e)return"Nepoznato";const t={konzum:"Konzum",lidl:"Lidl",spar:"Spar",plodine:"Plodine",kaufland:"Kaufland",tommy:"Tommy",studenac:"Studenac",eurospin:"Eurospin",dm:"dm",ktc:"KTC",metro:"Metro",trgocentar:"Trgocentar",zabac:"Žabac",vrutak:"Vrutak",ribola:"Ribola",ntl:"NTL"};return t[e.toLowerCase()]||e.charAt(0).toUpperCase()+e.slice(1)}
 
@@ -515,9 +503,9 @@
 
             if (isNaN(cijenaFloat) || isNaN(kolicina) || kolicina <= 0) return "N/A";
 
-            const jediniceKomada = ['kom', 'komad', 'ko', '', 'rola', 'pak', 'tableta', 'kapsula'];
+            const jediniceKomada = ['kom', 'komad', 'ko', '', 'rola', 'pak', 'tableta', 'kapsula', 'tbl', 'cap'];
             if (jediniceKomada.includes(jedinica)) {
-                if (kolicina === 1 && (jedinica === "" || jedinica === "kom" || jedinica === "ko" || !jedinicaOriginal )) { // Ako je samo broj bez jedinice, smatraj komadom
+                if (kolicina === 1 && (jedinica === "" || jedinica === "kom" || jedinica === "ko" || !jedinicaOriginal )) {
                      return `${cijenaFloat.toFixed(2)} EUR/KOM`;
                 }
                 if (kolicina > 0) return `${(cijenaFloat / kolicina).toFixed(2)} EUR/KOM`;
@@ -633,7 +621,7 @@
             if (statusTextSkenerElem) {
                 if (pronadjiProizvodMode) {
                     statusTextSkenerElem.textContent = "PRONAĐI PROIZVOD: SKENIRAJTE BARKOD";
-                } else if (trenutnoOdabranaTrgovina && (isScannerRunning || (!isScannerRunning && !btnPokreniZaustaviSkener.classList.contains('hidden'))) ) { // Ako skener radi ili je gumb za ponovno pokretanje vidljiv
+                } else if (trenutnoOdabranaTrgovina && (isScannerRunning || (!isScannerRunning && !btnPokreniZaustaviSkener.classList.contains('hidden'))) ) {
                     statusTextSkenerElem.textContent = `${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name).toUpperCase()} SKENIRAJTE BARKOD`;
                 } else if (trenutnoOdabranaTrgovina && ekranSkeniranja && !ekranSkeniranja.classList.contains("hidden")) {
                     statusTextSkenerElem.textContent = `${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name).toUpperCase()} SKENIRAJTE BARKOD`;
@@ -682,8 +670,8 @@
             if (isScannerRunning && html5QrCode?.getState() === 2) return;
             if (isScannerRunning) await stopSkener(true);
 
-            if (statusTextSkenerElem) statusTextSkenerElem.textContent = "INICIJALIZACIJA..."; // Uvijek postavi na inicijalizaciju prije starta
-            if (errorTextSkenerElem) errorTextSkenerElem.textContent = ""; // Očisti prethodne greške
+            if (statusTextSkenerElem) statusTextSkenerElem.textContent = "INICIJALIZACIJA...";
+            if (errorTextSkenerElem) errorTextSkenerElem.textContent = "";
             readerDiv.innerHTML = "";
             switchCameraButton.style.display = "none";
             cameraSelectionOverlay.style.display = "none";
@@ -713,7 +701,7 @@
                 await html5QrCode.start(cameraIdToUse, qrConfig, onScanSuccess, onScanFailure);
                 isScannerRunning = true;
                 localStorage.setItem(LS_KEYS.CAMERA_ID, cameraIdToUse);
-                clearSkenerMessages(); // Postavi ispravnu poruku nakon starta
+                clearSkenerMessages();
                 if (availableCameras.length > 1) switchCameraButton.style.display = "block";
             } catch (err) {
                 isScannerRunning = false;
@@ -725,7 +713,6 @@
                 if (html5QrCode && html5QrCode.getState() === 2) {
                     try { await html5QrCode.stop(); } catch (stopErr) { console.error("Greška zaustavljanja kamere:", stopErr); }
                 }
-                // Ovdje ne zovemo clearSkenerMessages da ne prebrišemo poruku o grešci
                  if (statusTextSkenerElem) {
                     if (pronadjiProizvodMode) statusTextSkenerElem.textContent = "PRONAĐI PROIZVOD: GREŠKA KAMERE.";
                     else if (trenutnoOdabranaTrgovina) statusTextSkenerElem.textContent = `${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name).toUpperCase()} - GREŠKA KAMERE`;
@@ -794,8 +781,6 @@
             const e=izracunajUkupnuCijenuListe();
             if (ukupnoCijenaSkeniranjeSumEl) ukupnoCijenaSkeniranjeSumEl.textContent=e.toFixed(2);
             if (listaSummaryContainer) listaSummaryContainer.classList.toggle("hidden",0===trenutnaListaKupovine.length);
-            const sadrzajIspod = document.getElementById('sadrzaj-ispod-skenera');
-            if (sadrzajIspod) sadrzajIspod.classList.toggle('hidden', pronadjiProizvodMode); // Ovo je već u prikaziEkran
         }
         function renderirajListuKupovine(){ukupnoCijenaListaPrikazEl.textContent=izracunajUkupnuCijenuListe().toFixed(2),listaKupovineStavkeContainer.innerHTML="",praznaListaPorukaEl.classList.toggle("hidden",trenutnaListaKupovine.length>0),trenutnaListaKupovine.forEach(e=>{const t=document.createElement("div");t.className="stavka-liste",t.innerHTML=`<div class="stavka-liste-info"><div class="stavka-naziv">${e.naziv.toUpperCase()}</div><div class="stavka-detalji">${e.kolicina} X ${e.cijenaKomad.toFixed(2)} EUR</div></div><div class="stavka-ukupno">${(e.cijenaKomad*e.kolicina).toFixed(2)} EUR</div><button class="btn-brisi-stavku" data-ean="${e.ean}">X</button>`,listaKupovineStavkeContainer.appendChild(t)})}
         function spremiTrenutnuKupovinu(){if(0===trenutnaListaKupovine.length||!trenutnoOdabranaTrgovina)return;const e={id:generirajUUID(),datum:(new Date).toISOString(),trgovinaKod:trenutnoOdabranaTrgovina.code,trgovinaNaziv:mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name),stavke:JSON.parse(JSON.stringify(trenutnaListaKupovine)),ukupanIznos:izracunajUkupnuCijenuListe()};povijestKupovina.unshift(e),povijestKupovina.length>MAX_POVIJEST_KUPVINA&&povijestKupovina.pop(),localStorage.setItem(LS_KEYS.POVIJEST_KUPOVINA,JSON.stringify(povijestKupovina))}
@@ -891,7 +876,7 @@
             const jediniceVolumenaMl = ['ml', 'mililitar'];
             const jediniceKomada = ['kom', 'komad', 'ko', '', 'rola', 'pak', 'tableta', 'kapsula', 'tbl', 'cap'];
 
-            if (kolicina === 0 && !jediniceKomada.includes(jedinica)) return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
+            if (kolicina === 0 && !jediniceKomada.includes(jedinica) && jedinica !=='') return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
 
 
             if (jediniceMaseKg.includes(jedinica)) {
@@ -899,7 +884,7 @@
                 if (grami <= 0 && kolicina > 0) return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
                 kljucZaFilter = `${grami}g`;
                 prikazZaFilterGumb = (kolicina >= 1 && kolicina % 1 === 0) ? `${Math.round(kolicina)} kg` : (kolicina < 1 && grami > 0 ? `${grami} g` : `${kolicina.toLocaleString(undefined, {minimumFractionDigits: (kolicina % 1 === 0 ? 0 : 1), maximumFractionDigits: 3})} kg`);
-                if (grami === 0 && kolicina === 0) prikazZaFilterGumb = `0 kg`;
+                if (grami === 0 && kolicina === 0) prikazZaFilterGumb = `0 kg`; // npr. za unos 0 kg
                 sortVrijednost = grami; tipJedinice = 'masa';
             } else if (jediniceMaseG.includes(jedinica)) {
                 const grami = Math.round(kolicina);
@@ -925,8 +910,8 @@
             } else if (jediniceKomada.includes(jedinica)) {
                 const kom = Math.round(kolicina);
                 if (kom <= 0 && kolicina !==0 ) return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
-                if (kom === 0 && kolicina === 0 && jedinica !== '') return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
-
+                // Za "0 kom" nećemo kreirati filter opciju ako je eksplicitno 0 kom
+                if (kom === 0) return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
 
                 let specificnaJedinicaKomada = 'kom';
                 prikazZaFilterGumb = `${kom} kom`;
@@ -951,11 +936,12 @@
 
             if (kljucZaFilter === null) return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
 
-            const MAX_MASA_G = 100000, MAX_VOLUMEN_ML = 100000, MAX_KOMADA = 2000; // 100kg, 100L, 2000kom
-            if ((tipJedinice === 'masa' && sortVrijednost > MAX_MASA_G) ||
-                (tipJedinice === 'volumen' && sortVrijednost > MAX_VOLUMEN_ML) ||
-                (tipJedinice === 'komad' && sortVrijednost > MAX_KOMADA) ||
-                (sortVrijednost <= 0 && tipJedinice !== 'neispravno' && !(kolicina === 0 && (jedinica === 'g' || jedinica === 'ml' || jedinica === 'kg' || jedinica === 'l') ))) {
+            const MAX_MASA_G = 100000, MAX_VOLUMEN_ML = 100000, MAX_KOMADA = 2000;
+             if ( (tipJedinice === 'masa' && sortVrijednost > MAX_MASA_G) ||
+                 (tipJedinice === 'volumen' && sortVrijednost > MAX_VOLUMEN_ML) ||
+                 (tipJedinice === 'komad' && sortVrijednost > MAX_KOMADA) ||
+                 (sortVrijednost < 0.001 && tipJedinice !== 'neispravno' && !(kolicina === 0 && (jediniceMaseG.includes(jedinica) || jediniceVolumenaMl.includes(jedinica) || jediniceMaseKg.includes(jedinica) || jediniceVolumenaL.includes(jedinica)) ))
+                ) { // Izbjegavaj ekstremno male vrijednosti osim ako su stvarno 0 za masu/volumen
                  return { kljucZaFilter: null, prikazZaFilterGumb: null, sortVrijednost: Infinity, tipJedinice: 'neispravno' };
             }
             return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
@@ -965,19 +951,20 @@
         function izvuciOpcijeFiltera(proizvodi, aktivniFilteri = {}) {
             const opcijeMap = { pakiranjeKljuc: new Map(), brand: new Map() };
 
-            // Prvo filtriraj proizvode na temelju svih aktivnih filtera *osim* onog za koji trenutno generiramo opcije
-            const getRelevantProductsFor = (filterTypeToGenerate) => {
-                return originalniRezultatiPretrageNazivom.filter(p => {
-                    for (const aktivniTip in aktivniFilteri) {
-                        if (aktivniTip === filterTypeToGenerate) continue; // Preskoči filter za koji generiramo opcije
-                        if (p[aktivniTip] !== aktivniFilteri[aktivniTip]) return false;
-                    }
-                    return true;
-                });
-            };
+            // Filtriraj proizvode na temelju SVIH aktivnih filtera da dobiješ trenutno relevantne proizvode
+            const relevantniProizvodi = originalniRezultatiPretrageNazivom.filter(p => {
+                for (const aktivniTip in aktivniFilteri) {
+                    if (p[aktivniTip] !== aktivniFilteri[aktivniTip]) return false;
+                }
+                return true;
+            });
 
-            // Generiraj opcije za PAKIRANJE
-            const proizvodiZaPakFilter = getRelevantProductsFor('pakiranjeKljuc');
+            // Generiraj opcije za PAKIRANJE iz relevantnih proizvoda
+            // (ali ako je pakiranje već aktivni filter, prikaži sve opcije pakiranja iz proizvoda koji odgovaraju ostalim aktivnim filterima)
+            let proizvodiZaPakFilter = originalniRezultatiPretrageNazivom;
+            if (aktivniFilteri.brand) {
+                proizvodiZaPakFilter = proizvodiZaPakFilter.filter(p => p.brand === aktivniFilteri.brand);
+            }
             proizvodiZaPakFilter.forEach(stavka => {
                 if (stavka.pakiranjeKljuc && stavka.pakiranjePrikaz && !opcijeMap.pakiranjeKljuc.has(stavka.pakiranjeKljuc)) {
                     opcijeMap.pakiranjeKljuc.set(stavka.pakiranjeKljuc, {
@@ -987,9 +974,13 @@
                 }
             });
 
-            // Generiraj opcije za BRAND
-            const proizvodiZaBrandFilter = getRelevantProductsFor('brand');
-            proizvodiZaBrandFilter.forEach(stavka => {
+            // Generiraj opcije za BRAND iz relevantnih proizvoda
+            // (ali ako je brand već aktivni filter, prikaži sve opcije branda iz proizvoda koji odgovaraju ostalim aktivnim filterima)
+            let proizvodiZaBrandFilter = originalniRezultatiPretrageNazivom;
+            if (aktivniFilteri.pakiranjeKljuc) {
+                proizvodiZaBrandFilter = proizvodiZaBrandFilter.filter(p => p.pakiranjeKljuc === aktivniFilteri.pakiranjeKljuc);
+            }
+             proizvodiZaBrandFilter.forEach(stavka => {
                 if (stavka.brand && !opcijeMap.brand.has(stavka.brand)) {
                     opcijeMap.brand.set(stavka.brand, { kljuc: stavka.brand, prikaz: stavka.brand, sort: stavka.brand });
                 }
@@ -1057,14 +1048,13 @@
 
 
         function primijeniFiltereNaRezultate() {
-            // Ako nema originalnih rezultata (npr. pretraga nije još dala rezultate), nemoj ništa raditi
             if (originalniRezultatiPretrageNazivom.length === 0 && inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH) {
                  rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
-                 prikaziFiltere(izvuciOpcijeFiltera([], aktivniFilteriPretrageNazivom)); // Očisti filtere ili prikaži prazne
+                 prikaziFiltere(izvuciOpcijeFiltera([], aktivniFilteriPretrageNazivom));
                 return;
             }
              if (originalniRezultatiPretrageNazivom.length === 0) {
-                iscrtajRezultatePretrageNazivom([]); // Pokazat će poruku "nema rezultata"
+                iscrtajRezultatePretrageNazivom([]);
                 prikaziFiltere(izvuciOpcijeFiltera([], aktivniFilteriPretrageNazivom));
                 return;
             }
@@ -1080,7 +1070,6 @@
             });
             iscrtajRezultatePretrageNazivom(filtriraniRezultati);
 
-            // Kaskadno ažuriranje opcija filtera
             const noveOpcijeZaGumbe = izvuciOpcijeFiltera(originalniRezultatiPretrageNazivom, aktivniFilteriPretrageNazivom);
             prikaziFiltere(noveOpcijeZaGumbe);
         }
@@ -1119,7 +1108,7 @@
 
 
         async function izvrsiPretraguPoNazivu(query) {
-            aktivniFilteriPretrageNazivom = {}; // Resetiraj aktivne filtere za svaku *novu* pretragu (novi query)
+            aktivniFilteriPretrageNazivom = {};
 
             if (query.length < MIN_SEARCH_QUERY_LENGTH) {
                 filteriContainer.innerHTML = '';
@@ -1266,7 +1255,7 @@
                 } else {
                     aktivniFilteriPretrageNazivom[filterType] = filterValue;
                 }
-                primijeniFiltereNaRezultate(); // Ovo će iscrtati rezultate i onda pozvati prikaziFiltere za kaskadno
+                primijeniFiltereNaRezultate();
             }
         });
 
