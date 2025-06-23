@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -149,7 +148,26 @@
         #reader video, #reader > div > video, #reader > div:first-child > video { width: 100% !important; height: 100% !important; object-fit: cover !important; border:none !important; }
         #reader > div:first-child { width: 100% !important; height: 100% !important; border:none !important; }
 
-        #viewfinder-overlay { position: absolute; top: 50%; left: 50%; width: 70%; max-width: 260px; padding-top: 50%; max-height: 200px; transform: translate(-50%, -50%); border: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4); background-image: linear-gradient(to right, white 2px, transparent 2px), linear-gradient(to bottom, white 2px, transparent 2px), linear-gradient(to left, white 2px, transparent 2px), linear-gradient(to bottom, white 2px, transparent 2px), linear-gradient(to right, white 2px, transparent 2px), linear-gradient(to top, white 2px, transparent 2px), linear-gradient(to left, white 2px, transparent 2px), linear-gradient(to top, white 2px, transparent 2px); background-repeat: no-repeat; background-size: 25px 25px; background-position: top left, top left, top right, top right, bottom left, bottom left, bottom right, bottom right; border-radius: 8px; z-index: 10; pointer-events: none; }
+        #viewfinder-overlay {
+            display: none; /* <<< IZMJENA OVDJE: Sakriven naš custom viewfinder */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            max-width: 260px;
+            padding-top: 50%;
+            max-height: 200px;
+            transform: translate(-50%, -50%);
+            border: none;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+            background-image: linear-gradient(to right, white 2px, transparent 2px), linear-gradient(to bottom, white 2px, transparent 2px), linear-gradient(to left, white 2px, transparent 2px), linear-gradient(to bottom, white 2px, transparent 2px), linear-gradient(to right, white 2px, transparent 2px), linear-gradient(to top, white 2px, transparent 2px), linear-gradient(to left, white 2px, transparent 2px), linear-gradient(to top, white 2px, transparent 2px);
+            background-repeat: no-repeat;
+            background-size: 25px 25px;
+            background-position: top left, top left, top right, top right, bottom left, bottom left, bottom right, bottom right;
+            border-radius: 8px;
+            z-index: 10;
+            pointer-events: none;
+        }
         #switch-camera-btn { position: absolute; top: 10px; right: 10px; z-index: 30; padding: 8px 10px; background-color: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; font-size: 1.5em; line-height: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: none; width: auto; margin-bottom: 0; }
         #camera-selection-overlay { position: absolute; top: 50px; right: 10px; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 31; padding: 5px 0; display: none; max-height: 150px; overflow-y: auto; min-width: 180px; width: auto; }
         #camera-list { list-style: none; padding: 0; margin: 0; } #camera-list li { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: #333; text-transform: none; } #camera-list li:hover { background-color: #f0f0f0; } #camera-list li.selected-camera { font-weight: bold; background-color: #e0e0e0; }
@@ -320,19 +338,19 @@
         </section>
 
         <section id="ekran-povijest-kupovine" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-povijest-na-pocetak" class="small-action-button">NA POČETAK</button><h2 style="margin:0; flex-grow:1; text-align:center;">POVIJEST KUPOVINE</h2><span>&nbsp;</span></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-povijest-na-pocetak" class="small-action-button">NA POČETAK</button><h2 style="margin:0; flex-grow:1; text-align:center;">POVIJEST KUPOVINE</h2><span> </span></div></div>
             <div class="scrollable-content" id="povijest-kupovine-container"><p id="prazna-povijest-poruka" style="text-align:center; color:#6c757d; margin-top:20px;">NEMA SPREMLJENIH KUPOVINA.</p></div>
             <div style="padding: 0 10px 10px 10px;"><button id="btn-ocisti-povijest" style="background-color:#dc3545;" class="hidden">OČISTI POVIJEST</button></div>
         </section>
 
         <section id="ekran-specifikacija-kupovine" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-specifikacija-na-povijest" class="small-action-button">NAZAD NA POVIJEST</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">KUPOVINA</h2><span>&nbsp;</span></div><div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-specifikacija-na-povijest" class="small-action-button">NAZAD NA POVIJEST</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="specifikacija-naslov">KUPOVINA</h2><span> </span></div><div class="header-donji-red" id="specifikacija-ukupno">UKUPNO: 0.00 EUR</div></div>
             <div class="scrollable-content" id="specifikacija-stavke-container"></div>
             <div style="padding: 0 10px 10px 10px;"><button id="btn-usporedi-kosaricu" class="btn-zut">USPOREDI CIJELU KOŠARICU</button></div>
         </section>
 
         <section id="ekran-usporedbe-cijena" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-na-skener" class="small-action-button">NAZAD NA SKENER</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="usporedba-artikl-naziv">USPOREDBA</h2><span>&nbsp;</span></div><div style="text-align:center; font-size:0.9em; color:#6c757d;" id="usporedba-artikl-cijena-trenutna"></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-na-skener" class="small-action-button">NAZAD NA SKENER</button><h2 style="margin:0; flex-grow:1; text-align:center;" id="usporedba-artikl-naziv">USPOREDBA</h2><span> </span></div><div style="text-align:center; font-size:0.9em; color:#6c757d;" id="usporedba-artikl-cijena-trenutna"></div></div>
             <div class="scrollable-content" id="usporedba-cijena-container"><p id="usporedba-nema-podataka-poruka" style="text-align:center; color:#6c757d; margin-top:20px;">NEMA PODATAKA ZA USPOREDBU.</p></div>
         </section>
 
@@ -350,7 +368,7 @@
         </section>
 
         <section id="ekran-usporedba-kosarice" class="hidden">
-            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-kosarice-nazad" class="small-action-button">NAZAD NA KUPOVINU</button><h2 style="margin:0; flex-grow:1; text-align:center;">USPOREDBA KOŠARICE</h2><span>&nbsp;</span></div><div id="usporedba-kosarice-original"></div></div>
+            <div class="sticky-header"><div class="header-gornji-red"><button id="btn-usporedba-kosarice-nazad" class="small-action-button">NAZAD NA KUPOVINU</button><h2 style="margin:0; flex-grow:1; text-align:center;">USPOREDBA KOŠARICE</h2><span> </span></div><div id="usporedba-kosarice-original"></div></div>
             <div class="scrollable-content" id="usporedba-kosarice-container"></div>
         </section>
     </main>
