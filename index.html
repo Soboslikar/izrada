@@ -950,43 +950,61 @@
             return { kljucZaFilter, prikazZaFilterGumb, sortVrijednost, tipJedinice };
         }
 
+        // --- START: NADOGRAĐENE FUNKCIJE ZA FILTRIRANJE ---
 
-        function izvuciOpcijeFiltera(proizvodi, aktivniFilteri = {}) {
-            const opcijeMap = { pakiranjeKljuc: new Map(), brand: new Map(), category: new Map() }; 
+        function izvuciOpcijeFiltera(proizvodiZaOpcije, aktivniFilteri = {}) {
+            const opcijeMap = { pakiranjeKljuc: new Map(), brand: new Map(), category: new Map() };
 
-            // Uzmi SVE originalne rezultate za generiranje opcija, ali označi aktivne
-            // Ovo osigurava da se uvijek vide sve moguće opcije, a ne samo one koje odgovaraju TRENUTNO filtriranim rezultatima.
-            // Logika za međusobnu ovisnost filtera (npr. ako odaberem kategoriju, brandovi se sužavaju) će se riješiti u `primijeniFiltereNaRezultate`
+            // Setovi za praćenje koje su opcije dostupne u *trenutno prikazanom* (filtriranom) popisu.
+            const dostupniBrendovi = new Set();
+            const dostupnaPakiranja = new Set();
+            const dostupneKategorije = new Set();
 
+            // 1. Popuni setove opcijama dostupnim u trenutno filtriranim rezultatima.
+            proizvodiZaOpcije.forEach(stavka => {
+                if (stavka.brand) dostupniBrendovi.add(stavka.brand);
+                if (stavka.pakiranjeKljuc) dostupnaPakiranja.add(stavka.pakiranjeKljuc);
+                if (stavka.category) dostupneKategorije.add(stavka.category);
+            });
+
+            // 2. Prođi kroz SVE originalne rezultate kako bi se izgradio kompletan popis gumba.
+            //    Zatim odlučujemo hoćemo li prikazati svaki gumb na temelju gore popunjenih setova.
             originalniRezultatiPretrageNazivom.forEach(stavka => {
-                // Kategorija
+
+                // --- KATEGORIJA ---
+                // Stvori gumb ako već ne postoji...
                 if (stavka.category && !opcijeMap.category.has(stavka.category)) {
-                     opcijeMap.category.set(stavka.category, { // Koristi već normaliziranu kategoriju
-                        kljuc: stavka.category, prikaz: stavka.category, // Prikaz je već TOUPPERCASE
-                        sort: stavka.category 
-                    });
+                    // ...i ako je relevantan za trenutni prikaz.
+                    // Relevantan je ako:
+                    //   a) Nijedan filter nije aktivan.
+                    //   b) Kategorija se nalazi u setu trenutno dostupnih kategorija.
+                    //   c) To je sama aktivna kategorija (kako ne bi nestala kad se klikne).
+                    if (Object.keys(aktivniFilteri).length === 0 || dostupneKategorije.has(stavka.category) || aktivniFilteri.category === stavka.category) {
+                         opcijeMap.category.set(stavka.category, { kljuc: stavka.category, prikaz: stavka.category, sort: stavka.category });
+                    }
                 }
-                // Pakiranje
-                if (stavka.pakiranjeKljuc && stavka.pakiranjePrikaz && !opcijeMap.pakiranjeKljuc.has(stavka.pakiranjeKljuc)) {
-                    opcijeMap.pakiranjeKljuc.set(stavka.pakiranjeKljuc, {
-                        kljuc: stavka.pakiranjeKljuc, prikaz: stavka.pakiranjePrikaz,
-                        sort: stavka.pakiranjeSortVrijednost, tip: stavka.pakiranjeTipJedinice
-                    });
-                }
-                // Brand
+                
+                // --- BRAND ---
+                // Ista logika za brand.
                 if (stavka.brand && !opcijeMap.brand.has(stavka.brand)) {
-                    opcijeMap.brand.set(stavka.brand, { 
-                        kljuc: stavka.brand, prikaz: stavka.brand, // Brand je već TOUPPERCASE
-                        sort: stavka.brand 
-                    });
+                    if (Object.keys(aktivniFilteri).length === 0 || dostupniBrendovi.has(stavka.brand) || aktivniFilteri.brand === stavka.brand) {
+                        opcijeMap.brand.set(stavka.brand, { kljuc: stavka.brand, prikaz: stavka.brand, sort: stavka.brand });
+                    }
+                }
+
+                // --- PAKIRANJE ---
+                // Ista logika za pakiranje.
+                if (stavka.pakiranjeKljuc && stavka.pakiranjePrikaz && !opcijeMap.pakiranjeKljuc.has(stavka.pakiranjeKljuc)) {
+                    if (Object.keys(aktivniFilteri).length === 0 || dostupnaPakiranja.has(stavka.pakiranjeKljuc) || aktivniFilteri.pakiranjeKljuc === stavka.pakiranjeKljuc) {
+                        opcijeMap.pakiranjeKljuc.set(stavka.pakiranjeKljuc, {
+                            kljuc: stavka.pakiranjeKljuc, prikaz: stavka.pakiranjePrikaz,
+                            sort: stavka.pakiranjeSortVrijednost, tip: stavka.pakiranjeTipJedinice
+                        });
+                    }
                 }
             });
             
-            // Sada filtriraj opcije na temelju AKTIVNIH filtera, ako je to željeno ponašanje
-            // (npr. ako je odabrana kategorija, prikaži samo brandove iz te kategorije)
-            // Za sada ostavljamo da se SVE opcije prikazuju, a filtriranje rezultata rješava koje su STVARNO primjenjive.
-            // Ako želimo da se i GUMBI filtera sužavaju, ovdje treba dodati logiku.
-
+            // 3. Formatiraj i sortiraj opcije kao i prije.
             const formatirajOpcije = (map, sortFn) => {
                 return Array.from(map.values())
                         .filter(val => val.kljuc != null && val.prikaz != null && (val.tip ? val.tip !== 'neispravno' : true))
@@ -1005,7 +1023,6 @@
                 })
             };
         }
-
 
         function prikaziFiltere(opcije) {
             filteriContainer.innerHTML = '';
@@ -1038,9 +1055,9 @@
                 validneVrijednosti.forEach(valObj => {
                     const btn = document.createElement('button');
                     btn.className = 'filter-opcija';
-                    btn.textContent = valObj.prikaz; // Prikaz je već normaliziran (toUpperCase)
+                    btn.textContent = valObj.prikaz; 
                     btn.dataset.filterType = filterInfo.tipAtributa;
-                    btn.dataset.filterValue = valObj.kljuc; // Kljuc je normaliziran (toUpperCase)
+                    btn.dataset.filterValue = valObj.kljuc; 
                     if (aktivniFilteriPretrageNazivom[filterInfo.tipAtributa] === valObj.kljuc) {
                         btn.classList.add('aktivan');
                     }
@@ -1053,37 +1070,40 @@
             filteriContainer.style.display = imaLiFiltera ? 'block' : 'none';
         }
 
-
         function primijeniFiltereNaRezultate() {
-            if (originalniRezultatiPretrageNazivom.length === 0 && inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH) {
-                 rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
-                 prikaziFiltere(izvuciOpcijeFiltera([], aktivniFilteriPretrageNazivom));
-                return;
-            }
-             if (originalniRezultatiPretrageNazivom.length === 0) {
-                iscrtajRezultatePretrageNazivom([]);
-                prikaziFiltere(izvuciOpcijeFiltera([], aktivniFilteriPretrageNazivom));
+            // Ako nema originalnih rezultata (npr. početno učitavanje ili loša pretraga), očisti sve.
+            if (originalniRezultatiPretrageNazivom.length === 0) {
+                if (inputPretragaNaziv.value.length < MIN_SEARCH_QUERY_LENGTH) {
+                    rezultatiPretrageNazivomContainer.innerHTML = `<p style="text-align:center; color:#6c757d; margin-top:20px;">UPIŠITE POJAM ZA PRETRAGU (MIN. ${MIN_SEARCH_QUERY_LENGTH} ZNAKA).</p>`;
+                }
+                // Čak i ako nema rezultata, pozivamo ovo da osiguramo da se gumbi filtera očiste.
+                prikaziFiltere(izvuciOpcijeFiltera([], {}));
                 return;
             }
 
+            // Filtriraj rezultate na temelju trenutno aktivnih filtera.
             let filtriraniRezultati = originalniRezultatiPretrageNazivom.filter(stavka => {
                 for (const tipFiltera in aktivniFilteriPretrageNazivom) {
                     const aktivnaVrijednostFiltera = aktivniFilteriPretrageNazivom[tipFiltera];
                     if (aktivnaVrijednostFiltera) {
-                        // Za 'category' i 'brand', vrijednost u stavci je već normalizirana (uppercase)
                         if (stavka[tipFiltera] !== aktivnaVrijednostFiltera) return false;
                     }
                 }
                 return true;
             });
+
+            // 1. Iscrtaj filtrirani popis proizvoda.
             iscrtajRezultatePretrageNazivom(filtriraniRezultati);
 
-            // Opcije filtera se generiraju iz SVIH originalnih rezultata,
-            // kako bi korisnik uvijek vidio sve dostupne opcije, neovisno o trenutnom filtriranom prikazu.
-            // Aktivni filteri se koriste samo za označavanje gumba kao 'aktivan'.
-            const noveOpcijeZaGumbe = izvuciOpcijeFiltera(originalniRezultatiPretrageNazivom, aktivniFilteriPretrageNazivom);
+            // 2. OVO JE KLJUČNA PROMJENA: Generiraj nove gumbe filtera na temelju *već filtriranih* rezultata.
+            //    Ovo će dinamički suziti dostupne opcije.
+            const noveOpcijeZaGumbe = izvuciOpcijeFiltera(filtriraniRezultati, aktivniFilteriPretrageNazivom);
+            
+            // 3. Prikaži nove, pametnije gumbe filtera.
             prikaziFiltere(noveOpcijeZaGumbe);
         }
+
+        // --- END: NADOGRAĐENE FUNKCIJE ZA FILTRIRANJE ---
 
 
         function iscrtajRezultatePretrageNazivom(proizvodiZaPrikaz) {
@@ -1108,7 +1128,7 @@
                     <div class="pretraga-nazivom-stavka-info">
                         <div class="pretraga-nazivom-ducan">${stavka.nazivLanca}</div>
                         <div class="pretraga-nazivom-naziv-proizvoda">${stavka.nazivProizvoda}</div>
-                        ${stavka.category ? `<div class="pretraga-nazivom-detalji">TIP: ${stavka.category}</div>` : ''} {/* category je već TOUPPERCASE */}
+                        ${stavka.category ? `<div class="pretraga-nazivom-detalji">TIP: ${stavka.category}</div>` : ''}
                         <div class="pretraga-nazivom-detalji">${stavka.pakiranjeDetalji}</div>
                         <div class="pretraga-nazivom-detalji">${stavka.cijenaPoJM}</div>
                     </div>
@@ -1142,7 +1162,6 @@
                     throw new Error(errorData.detail || `API GREŠKA ${response.status}`);
                 }
                 const data = await response.json();
-                // console.log("Sirovi API odgovor (data):", JSON.parse(JSON.stringify(data))); 
 
                 originalniRezultatiPretrageNazivom = [];
                 const sveKategorije = new Set(); 
