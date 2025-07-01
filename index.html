@@ -694,11 +694,9 @@
                     // *** IZMJENA: Smanji brojač i logiraj uspješno skeniranje ***
                     smanjiBrojac();
                     logirajAkciju('SKENIRANJE_USPJEH', {
-                        trgovina: trenutnoOdabranaTrgovina.name,
-                        ean: e,
-                        naziv: nazivProizvoda,
-                        cijena: cijena.toFixed(2)
-                    });
+    // *** IZMJENA: U Details sada dodajemo i naziv trgovine ***
+    Details: `${mapirajKodLancaUNaziv(trenutnoOdabranaTrgovina.name).toUpperCase()}: ${nazivProizvoda} - ${cijena.toFixed(2)} EUR`
+});
 
                 } else {
                      throw new Error(`PROIZVOD NEMA PODATAKA ZA ${mapirajKodLancaUNaziv(t).toUpperCase()}`);
