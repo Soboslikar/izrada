@@ -61,7 +61,6 @@
         }
         main > section.hidden { display: none !important; }
 
-        /* --- IZMJENA: Struktura ekrana za pretragu --- */
         #ekran-pretraga-nazivom {
             display: flex;
             flex-direction: column;
@@ -76,22 +75,14 @@
              flex-grow: 1;
              overflow-y: auto;
         }
-        #pretraga-nazivom-footer-actions {
-            padding: 10px;
-            border-top: 1px solid #dee2e6;
-            background-color: #f8f9fa;
-            flex-shrink: 0;
-        }
-         #pretraga-nazivom-footer-actions button {
-            margin-bottom: 0;
-         }
         
         #pocetni-ekran {
             position: relative;
         }
+        /* --- IZMJENA: Pozicija kvačice --- */
         #unlock-checkmark {
             position: absolute;
-            top: 10px;
+            top: 5px;
             left: 10px;
             font-size: 24px;
             color: #28a745;
@@ -286,9 +277,11 @@
         @keyframes pulseHorizontalShrinkReturn { 0%   { transform: scaleX(1); } 45%  { transform: scaleX(0.75); } 55%  { transform: scaleX(0.75); } 100% { transform: scaleX(1); } }
         #ekran-skeniranja #btn-pokreni-zaustavi-skener,
         #ekran-skeniranja #btn-nazad-sa-skeniranja,
-        #ekran-skeniranja #btn-pokazi-pretragu-nazivom { padding: 10px 15px; }
+        #ekran-skeniranja #btn-pokazi-pretragu-nazivom,
+        #ekran-skeniranja #btn-nazad-sa-pretrage-skenera { padding: 10px 15px; }
         #ekran-skeniranja #btn-nazad-sa-skeniranja,
-        #ekran-skeniranja #btn-pokazi-pretragu-nazivom { font-size: 0.9em; }
+        #ekran-skeniranja #btn-pokazi-pretragu-nazivom,
+        #ekran-skeniranja #btn-nazad-sa-pretrage-skenera { font-size: 0.9em; }
         #ekran-skeniranja #btn-pokreni-zaustavi-skener { font-size: 1.1em; font-weight: bold; }
         #sadrzaj-ispod-skenera .button-group button,
         #sadrzaj-ispod-skenera #lista-summary-container button { padding: 8px 12px; font-size: 0.9em; }
@@ -329,7 +322,8 @@
             <button id="btn-povijest-sa-akcija" class="btn-sivi">POVIJEST KUPOVINE</button>
             <button id="btn-akcije-na-pocetnu" class="btn-sivi">NA POČETAK</button>
         </section>
-
+        
+        <!-- --- IZMJENA: Dodan novi gumb za nazad na ovom ekranu --- -->
         <section id="ekran-skeniranja" class="hidden">
             <div id="marquee-container-skener" class="marquee-container hidden"><span id="marquee-text-skener" class="marquee-text">Učitavanje novosti...</span></div>
             <div id="reader-container">
@@ -345,7 +339,13 @@
             </div>
             <div class="messages-skener"><p id="statusTextSkener" class="status"></p><p id="errorTextSkener" class="error"></p></div>
             <button id="btn-pokreni-zaustavi-skener" class="btn-zeleni hidden">PONOVO POKRENI SKENER</button>
-            <button id="btn-pokazi-pretragu-nazivom" class="btn-sivi hidden" style="margin-top: 5px;">UPIŠI NAZIV ZA PRETRAGU</button>
+            
+            <!-- --- IZMJENA: Gumb je sada žut (btn-zut klasa) --- -->
+            <button id="btn-pokazi-pretragu-nazivom" class="btn-zut hidden" style="margin-top: 5px;">UPIŠI NAZIV ZA PRETRAGU</button>
+            
+            <!-- --- NOVI GUMB --- -->
+            <button id="btn-nazad-sa-pretrage-skenera" class="btn-sivi hidden" style="margin-top: 5px;">NAZAD</button>
+
             <div id="sadrzaj-ispod-skenera" class="hidden">
                 <div id="info-skeniranog-proizvoda-container" class="hidden">
                     <p><strong>NAZIV:</strong> <span id="skeniran-naziv"></span></p>
@@ -369,11 +369,13 @@
             </div>
         </section>
         
-        <!-- --- IZMJENA: Restrukturiran ekran za pretragu --- -->
+        <!-- --- IZMJENA: Vraćen gumb za nazad u header, uklonjen iz footera --- -->
         <section id="ekran-pretraga-nazivom" class="hidden">
             <div class="sticky-header">
                 <div class="header-gornji-red">
+                    <button id="btn-pretraga-nazivom-nazad-gore" class="small-action-button">NAZAD</button>
                     <h2 style="margin:0; flex-grow:1; text-align:center;">PRETRAGA NAZIVOM</h2>
+                    <span style="width: 70px; visibility: hidden;"></span> <!-- Placeholder za centriranje -->
                 </div>
                 <input type="text" id="input-pretraga-naziv" placeholder="UPIŠI POJAM ZA PRETRAGU (MIN. 3 ZNAKA)">
                 <div id="filteri-container">
@@ -381,9 +383,6 @@
                 <p class="sticky-header-subtext">PODACI O CIJENAMA PREUZETI IZ CIJENE.API</p>
             </div>
             <div class="scrollable-content" id="rezultati-pretrage-nazivom-container">
-            </div>
-            <div id="pretraga-nazivom-footer-actions">
-                <button id="btn-pretraga-nazivom-nazad" class="btn-sivi">NAZAD</button>
             </div>
         </section>
 
@@ -486,6 +485,8 @@
         btnSkenirajProizvod=document.getElementById("btn-skeniraj-proizvod"),btnPromijeniTrgovinu=document.getElementById("btn-promijeni-trgovinu"),btnPovijestSaAkcija=document.getElementById("btn-povijest-sa-akcija"),
         btnAkcijeNaPocetnu = document.getElementById("btn-akcije-na-pocetnu"),
         btnPokaziPretraguNazivom = document.getElementById("btn-pokazi-pretragu-nazivom"),
+        // --- NOVI GUMB ---
+        btnNazadSaPretrageSkenera = document.getElementById("btn-nazad-sa-pretrage-skenera"),
         btnNazadSaSkeniranja=document.getElementById("btn-nazad-sa-skeniranja"),infoSkeniranogProizvodaContainer=document.getElementById("info-skeniranog-proizvoda-container"),skeniranNazivEl=document.getElementById("skeniran-naziv"),skeniranaCijenaEl=document.getElementById("skenirana-cijena"),skeniranaCijenaPoJediniciEl=document.getElementById("skenirana-cijena-po-jedinici"),skeniranaKolicinaInput=document.getElementById("skenirana-kolicina"),skeniranItemUkupnoEl=document.getElementById("skeniran-item-ukupno"),btnDodajSkeniranoNaListu=document.getElementById("btn-dodaj-skenirano-na-listu"),btnUsporediCijene=document.getElementById("btn-usporedi-cijene"),
         btnPosaljiPrijedlogPocetna = document.getElementById("btn-posalji-prijedlog-pocetna"),
         btnPodijeliAplikacijuPocetna=document.getElementById("btn-podijeli-aplikaciju-pocetna"),
@@ -499,7 +500,8 @@
         pronadjiRezultatiArtiklNazivEl = document.getElementById("pronadji-rezultati-artikl-naziv"),
         pronadjiRezultatiListaContainer = document.getElementById("pronadji-rezultati-lista-container"),
         pronadjiRezultatiNemaPodatakaPorukaEl = document.getElementById("pronadji-rezultati-nema-podataka-poruka"),
-        btnPretragaNazivomNazad = document.getElementById("btn-pretraga-nazivom-nazad"),
+        // --- IZMJENA: Novi gumb gore ---
+        btnPretragaNazivomNazadGore = document.getElementById("btn-pretraga-nazivom-nazad-gore"),
         inputPretragaNaziv = document.getElementById("input-pretraga-naziv"),
         filteriContainer = document.getElementById("filteri-container"),
         rezultatiPretrageNazivomContainer = document.getElementById("rezultati-pretrage-nazivom-container"),
@@ -622,11 +624,15 @@
                 btnPokreniZaustaviSkener.classList.add('hidden');
                 btnPokreniZaustaviSkener.classList.remove('animacija-tekst-zuto');
                 infoSkeniranogProizvodaContainer.classList.toggle("hidden", !zadnjiSkeniraniProizvodInfo);
-                btnNazadSaSkeniranja.textContent = pronadjiProizvodMode ? "NATRAG NA OPCIJE" : "ZAVRŠI I SPREMI";
-                btnPokaziPretraguNazivom.classList.toggle("hidden", !pronadjiProizvodMode);
-                document.getElementById('sadrzaj-ispod-skenera').classList.toggle('hidden', pronadjiProizvodMode);
+                
+                // --- IZMJENA: Logika za prikaz gumbiju na ekranu skeniranja ---
+                const jeModPretrage = pronadjiProizvodMode;
+                btnNazadSaSkeniranja.classList.toggle('hidden', jeModPretrage);
+                document.getElementById('sadrzaj-ispod-skenera').classList.toggle('hidden', jeModPretrage);
+                btnPokaziPretraguNazivom.classList.toggle("hidden", !jeModPretrage);
+                btnNazadSaPretrageSkenera.classList.toggle("hidden", !jeModPretrage);
 
-                if (pronadjiProizvodMode) {
+                if (jeModPretrage) {
                     if(statusTextSkenerElem) statusTextSkenerElem.textContent = "PRONAĐI PROIZVOD: SKENIRAJTE BARKOD";
                     if(listaSummaryContainer) listaSummaryContainer.classList.add("hidden");
                 } else {
@@ -1305,11 +1311,9 @@
             });
         }
 
-
         function provjeriTajneKodove(query) {
             const originalniPlaceholder = "UPIŠI POJAM ZA PRETRAGU (MIN. 3 ZNAKA)";
             
-            // --- IZMJENA: Kod je sada "##--##" ---
             if (query === "##--##") {
                 console.log("[DUĆAN SKENER] Aktivan tajni kod za otključavanje: ##--##");
                 localStorage.setItem(LS_KEYS.TRAJNO_OTKLJUCANO, 'true');
@@ -1327,7 +1331,7 @@
                     inputPretragaNaziv.style.borderColor = '';
                     inputPretragaNaziv.style.textAlign = '';
                 }, 2000);
-                return true; // Kod je pronađen
+                return true;
             }
 
             if (query === "##00##") {
@@ -1348,11 +1352,10 @@
                     inputPretragaNaziv.style.borderColor = '';
                     inputPretragaNaziv.style.textAlign = '';
                 }, 2000);
-                return true; // Kod je pronađen
+                return true;
             }
-            return false; // Nema tajnog koda
+            return false;
         }
-
 
         async function izvrsiPretraguPoNazivu(query) {
             aktivniFilteriPretrageNazivom = {};
@@ -1447,7 +1450,6 @@
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(debounceTimeout);
-                // Provjera tajnih kodova se događa odmah, bez odgode
                 if (provjeriTajneKodove(args[0])) {
                     return;
                 }
@@ -1532,15 +1534,15 @@
             }
         });
         
-        // --- IZMJENA: Logika za gumb "NAZAD" s ekrana pretrage ---
-        btnPretragaNazivomNazad.addEventListener("click", () => {
-            if (pronadjiProizvodMode) {
-                prikaziEkran("ekran-skeniranja");
-            } else {
-                // Ovaj slučaj se ne bi trebao događati u normalnom tijeku,
-                // ali kao sigurnosna mjera vraća na početak.
-                prikaziEkran("pocetni-ekran");
-            }
+        // --- IZMJENA: Event listener za NOVI gumb "Nazad" na ekranu skenera ---
+        btnNazadSaPretrageSkenera.addEventListener("click", () => {
+             pronadjiProizvodMode = false;
+             prikaziEkran("pocetni-ekran");
+        });
+        
+        // --- IZMJENA: Event listener za VRAĆENI gumb "Nazad" u headeru ekrana pretrage ---
+        btnPretragaNazivomNazadGore.addEventListener("click", () => {
+            prikaziEkran("ekran-skeniranja");
         });
 
         inputPretragaNaziv.addEventListener("input", () => {
