@@ -61,6 +61,7 @@
         }
         main > section.hidden { display: none !important; }
 
+        /* --- IZMJENA: Struktura ekrana za pretragu --- */
         #ekran-pretraga-nazivom {
             display: flex;
             flex-direction: column;
@@ -71,11 +72,23 @@
             border-radius: 0; 
             margin:0; 
         }
+        #ekran-pretraga-nazivom .scrollable-content {
+             flex-grow: 1;
+             overflow-y: auto;
+        }
+        #pretraga-nazivom-footer-actions {
+            padding: 10px;
+            border-top: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            flex-shrink: 0;
+        }
+         #pretraga-nazivom-footer-actions button {
+            margin-bottom: 0;
+         }
         
         #pocetni-ekran {
             position: relative;
         }
-
         #unlock-checkmark {
             position: absolute;
             top: 10px;
@@ -86,7 +99,7 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             z-index: 5;
         }
-
+        
         h1, h2, h3 { color: #333; text-transform: uppercase; }
 
         button {
@@ -233,7 +246,7 @@
         .header-gornji-red { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .header-gornji-red button { width: auto; margin: 0; padding: 6px 10px; font-size: 0.9em; }
         .header-donji-red { text-align: center; font-weight: bold; font-size: 1.2em; color: #333; text-transform: uppercase; }
-        .scrollable-content { flex-grow: 1; overflow-y: auto; padding: 10px; width:100%; box-sizing:border-box; background-color: white; }
+        .scrollable-content { padding: 10px; width:100%; box-sizing:border-box; background-color: white; }
         #ekran-pretraga-nazivom .sticky-header .header-gornji-red { margin-bottom: 10px; align-items: center; }
         #ekran-pretraga-nazivom .sticky-header .header-gornji-red h2 { margin:0; flex-grow:1; text-align:center; font-size: 1.1em; }
         #input-pretraga-naziv { width: 100%; padding: 10px; font-size: 1em; margin-top: 0; margin-bottom: 8px; box-sizing: border-box; }
@@ -355,13 +368,12 @@
                 <button id="btn-podijeli-aplikaciju-skener" class="gumb-za-dijeljenje animacija-pulsiranje-horizontalno" style="margin-top: 3px; margin-bottom: 8px;">PODIJELI DUĆAN SKENER</button>
             </div>
         </section>
-
+        
+        <!-- --- IZMJENA: Restrukturiran ekran za pretragu --- -->
         <section id="ekran-pretraga-nazivom" class="hidden">
             <div class="sticky-header">
                 <div class="header-gornji-red">
-                    <button id="btn-pretraga-nazivom-nazad" class="small-action-button">NAZAD</button>
                     <h2 style="margin:0; flex-grow:1; text-align:center;">PRETRAGA NAZIVOM</h2>
-                    <span style="width: auto; min-width: 100px; visibility: hidden;">Placeholder</span>
                 </div>
                 <input type="text" id="input-pretraga-naziv" placeholder="UPIŠI POJAM ZA PRETRAGU (MIN. 3 ZNAKA)">
                 <div id="filteri-container">
@@ -369,6 +381,9 @@
                 <p class="sticky-header-subtext">PODACI O CIJENAMA PREUZETI IZ CIJENE.API</p>
             </div>
             <div class="scrollable-content" id="rezultati-pretrage-nazivom-container">
+            </div>
+            <div id="pretraga-nazivom-footer-actions">
+                <button id="btn-pretraga-nazivom-nazad" class="btn-sivi">NAZAD</button>
             </div>
         </section>
 
@@ -1291,11 +1306,12 @@
         }
 
 
-        async function izvrsiPretraguPoNazivu(query) {
+        function provjeriTajneKodove(query) {
             const originalniPlaceholder = "UPIŠI POJAM ZA PRETRAGU (MIN. 3 ZNAKA)";
             
-            if (query === "##==##") {
-                console.log("[DUĆAN SKENER] Aktivan tajni kod za otključavanje: ##==##");
+            // --- IZMJENA: Kod je sada "##--##" ---
+            if (query === "##--##") {
+                console.log("[DUĆAN SKENER] Aktivan tajni kod za otključavanje: ##--##");
                 localStorage.setItem(LS_KEYS.TRAJNO_OTKLJUCANO, 'true');
                 logirajAkciju('TAJNI_KOD_OTKLJUCAJ', { kod: query });
                 azurirajPrikazKvacice();
@@ -1311,7 +1327,7 @@
                     inputPretragaNaziv.style.borderColor = '';
                     inputPretragaNaziv.style.textAlign = '';
                 }, 2000);
-                return;
+                return true; // Kod je pronađen
             }
 
             if (query === "##00##") {
@@ -1332,9 +1348,13 @@
                     inputPretragaNaziv.style.borderColor = '';
                     inputPretragaNaziv.style.textAlign = '';
                 }, 2000);
-                return;
+                return true; // Kod je pronađen
             }
-            
+            return false; // Nema tajnog koda
+        }
+
+
+        async function izvrsiPretraguPoNazivu(query) {
             aktivniFilteriPretrageNazivom = {};
 
             if (query.length < MIN_SEARCH_QUERY_LENGTH) {
@@ -1427,6 +1447,10 @@
         function debounce(func, delay) {
             return function(...args) {
                 clearTimeout(debounceTimeout);
+                // Provjera tajnih kodova se događa odmah, bez odgode
+                if (provjeriTajneKodove(args[0])) {
+                    return;
+                }
                 debounceTimeout = setTimeout(() => func.apply(this, args), delay);
             };
         }
@@ -1507,11 +1531,14 @@
                 prikaziEkran("ekran-pretraga-nazivom");
             }
         });
-
+        
+        // --- IZMJENA: Logika za gumb "NAZAD" s ekrana pretrage ---
         btnPretragaNazivomNazad.addEventListener("click", () => {
             if (pronadjiProizvodMode) {
                 prikaziEkran("ekran-skeniranja");
             } else {
+                // Ovaj slučaj se ne bi trebao događati u normalnom tijeku,
+                // ali kao sigurnosna mjera vraća na početak.
                 prikaziEkran("pocetni-ekran");
             }
         });
@@ -1520,13 +1547,15 @@
             debouncedSearch(inputPretragaNaziv.value.trim());
         });
 
-        // NOVI EVENT LISTENER za ENTER
         inputPretragaNaziv.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                console.log("[DUĆAN SKENER] Enter pritisnut, pokrećem pretragu.");
-                clearTimeout(debounceTimeout); // Poništi debounce ako postoji
-                izvrsiPretraguPoNazivu(inputPretragaNaziv.value.trim());
+                console.log("[DUĆAN SKENER] Enter pritisnut, pokrećem provjeru/pretragu.");
+                clearTimeout(debounceTimeout);
+                const query = inputPretragaNaziv.value.trim();
+                if (!provjeriTajneKodove(query)) {
+                    izvrsiPretraguPoNazivu(query);
+                }
             }
         });
 
