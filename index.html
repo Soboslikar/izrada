@@ -81,20 +81,23 @@
         }
         
         /* === PROMJENA OVDJE === */
-        #pocetni-ekran h2 {
-            position: relative;
+        /* Ciljamo specifično H2 na početnom ekranu */
+        #pocetni-ekran > h2 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        
-        h2 > #unlock-checkmark {
-            position: absolute;
-            left: -32px;
-            top: -3px;
-            font-size: 1.2em;
+
+        /* Stil za samu kvačicu */
+        #unlock-checkmark {
+            font-size: 1.1em; /* Veličina relativna naslovu */
             color: #28a745;
             font-weight: bold;
+            margin-right: 8px; /* Razmak između kvačice i teksta */
+            text-shadow: none; /* Uklanjamo sjenu koja je bila prije */
         }
         /* === KRAJ PROMJENE === */
-
+        
         h1, h2, h3 { color: #333; text-transform: uppercase; }
 
         button {
@@ -303,7 +306,7 @@
             <!-- === PROMJENA OVDJE === -->
             <h2><span id="unlock-checkmark" class="hidden">✔</span>DOBRODOŠLI!</h2>
             <!-- === KRAJ PROMJENE === -->
-
+            
             <button id="btn-izaberi-trgovinu">IZABERI TRGOVINU</button>
             <button id="btn-nastavi-zadnja-trgovina" class="hidden">NASTAVI S [NAZIV ZADNJE TRGOVINE]</button>
             <button id="btn-pronadji-proizvod" class="btn-zut">PRONAĐI PROIZVOD</button>
