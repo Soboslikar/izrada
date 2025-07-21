@@ -1,30 +1,4 @@
-U pravu ste, pronašao sam grešku! Ispričavam se, radi se o jednoj maloj, ali ključnoj tipografskoj pogrešci u kodu koji iscrtava filtere. Zbog nje se gumbima nikada ne dodjeljuje klasa `.aktivan` koja ih vizualno označava.
 
-**Gdje je problem?**
-
-U JavaScript kodu, unutar funkcije `prikaziFiltere(opcije)`, postoji linija koja provjerava treba li gumb biti aktivan. U toj liniji, umjesto `valObj.kljuc` (s slovom 'j'), piše `valObj.kluc` (bez 'j').
-
-**Ovo je pogrešna linija koda:**
-
-```javascript
-if (aktivniFilteriPretrageNazivom[filterInfo.tipAtributa] === valObj.kluc) { // <--- GREŠKA! Fali 'j'
-    btn.classList.add('aktivan');
-}
-```
-
-**Ovo je ispravna linija koda:**
-
-```javascript
-if (aktivniFilteriPretrageNazivom[filterInfo.tipAtributa] === valObj.kljuc) { // <--- ISPRAVLJENO!
-    btn.classList.add('aktivan');
-}
-```
-
-Budući da je ispravak na samo jednom mjestu, a vi ste na mobitelu, najlakše će biti da vam ponovno pošaljem cijeli `index.html` s tom jednom ispravljenom linijom.
-
-Evo kompletne i ispravljene verzije.
-
-```html
 <!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -1307,4 +1281,4 @@ Evo kompletne i ispravljene verzije.
     </script>
 </body>
 </html>
-```
+    
