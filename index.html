@@ -541,6 +541,9 @@
         originalniRezultatiPretrageNazivom = [],
         aktivniFilteriPretrageNazivom = {};
 
+        // ==========================================================
+        // === IZMJENA JE U OVOJ FUNKCIJI ===
+        // ==========================================================
         async function logirajAkciju(dogadaj, detalji = {}) {
             console.log(`[DUĆAN SKENER] Logiranje akcije: ${dogadaj}`, detalji);
             try {
@@ -551,6 +554,7 @@
                     timestamp: new Date().toISOString(),
                     userAgent: navigator.userAgent,
                     brojacStanje: localStorage.getItem(LS_KEYS.BROJAC_STANJE),
+                    brojacZaustavljen: localStorage.getItem(LS_KEYS.TRAJNO_OTKLJUCANO) === 'true' ? 1 : 0,
                     ...detalji
                 };
                 await fetch(GOOGLE_APPS_SCRIPT_URL, {
@@ -563,6 +567,9 @@
                 console.error("Greška pri logiranju:", error);
             }
         }
+        // ==========================================================
+        // === KRAJ IZMJENE ===
+        // ==========================================================
 
         function smanjiBrojac() {
             if (localStorage.getItem(LS_KEYS.TRAJNO_OTKLJUCANO) === 'true') return;
