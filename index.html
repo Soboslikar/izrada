@@ -17,7 +17,11 @@
     body { font-family: sans-serif; margin: 0; padding: 0.5em; background: #f4f4f4; overflow-x: hidden; min-height: 100vh; }
     body.scanner-view #history-page, body.scanner-view #ads-page { display: none; }
     body.history-view { background-color: white; }
-    body.ads-view { background-color: #00008B; }
+    /* Pozadina stranice s oglasima će se dinamički postaviti putem JavaScripta */
+    body.ads-view { 
+        /* Ovdje se može staviti neka rezervna (fallback) boja */
+        background-color: #f0f2f5; 
+    }
 
     body.history-view #history-page, body.ads-view #ads-page {
         display: flex;
@@ -332,7 +336,7 @@
     let isCounterDecrementActive = true;
     let currentUserID = null;
     let firstUseTimestamp = null;
-    let adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f9f9f9", adsList: [] };
+    let adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f0f2f5", adsList: [] };
     let adsFooterText = ""; 
     // NOVE VARIJABLE za fullscreen modal
     let fullscreenState = {
@@ -375,7 +379,7 @@
         if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('URL_TVOJE_WEB_APLIKACIJE') || APPS_SCRIPT_URL.includes('AKfycbwCM5SreGB0O-YjGW_xzyxtYeV9fhn0jyN5vFEYjfBBd5IA5E96SF2Jh2bGMMcnA')) {
             console.warn("Dohvaćanje iz Sheeta onemogućeno.");
             tekstPoruka = "";
-            adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f9f9f9", adsList: [] };
+            adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f0f2f5", adsList: [] };
             adsFooterText = "";
             initializeCounters();
             updateRunningText();
@@ -392,7 +396,7 @@
             brojac2 = newPrag;
             saveBrojac2();
             tekstPoruka = data.trceciTekst || "";
-            adsConfiguration = data.adsConfig || { enabled: false, buttonText: "", defaultBgColor: "#f9f9f9", adsList: [] };
+            adsConfiguration = data.adsConfig || { enabled: false, buttonText: "", defaultBgColor: "#f0f2f5", adsList: [] };
             adsFooterText = data.adsFooterText || "";
             initializeCounters();
             updateRunningText();
@@ -401,7 +405,7 @@
         } catch (error) {
             console.error("Greška pri dohvaćanju podataka iz Sheeta:", error);
             tekstPoruka = "";
-            adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f9f9f9", adsList: [] };
+            adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f0f2f5", adsList: [] };
             adsFooterText = "";
             initializeCounters();
             updateRunningText();
@@ -441,26 +445,32 @@
     function cancelManualEntry() { if (!manualEntryModalOverlay) return; playSound('click-sound'); hideManualEntryModal(); sendLogData({ Event: 'manual_entry_cancelled' }); }
     function switchToScannerView() { console.log("switchToScannerView: Pokrenuto."); if (document.body.classList.contains('scanner-view') && !isScannerActive) { console.log("switchToScannerView: Skener nije aktivan, inicijaliziram..."); initializeScanner(); } document.body.classList.remove('history-view', 'ads-view'); document.body.classList.add('scanner-view'); updateDisplay(); requestAnimationFrame(initializeScanner); if (!visibilityListenerAttached) { attachVisibilityListener(); } }
     function switchToHistoryView() { console.log("switchToHistoryView: Pokrenuto."); if (document.body.classList.contains('history-view')) return; if (removeConfirm || removeNameConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } stopScanner().finally(() => { document.body.classList.remove('scanner-view', 'ads-view'); document.body.classList.add('history-view'); currentlyViewedDate = new Date(); currentlyViewedDate.setHours(0, 0, 0, 0); previousHistoryViewState = 'day-view'; renderHistoryView(currentlyViewedDate); }); }
-    function switchToAdsView() { console.log("switchToAdsView: Pokrenuto."); playSound('click-sound'); sendLogData({ Event: 'ads_page_opened' }); stopScanner().finally(() => { document.body.classList.remove('scanner-view', 'history-view'); document.body.classList.add('ads-view'); renderAdsPage(); }); }
     
     // === NADOGRAĐENE FUNKCIJE ZA OGLASE I GALERIJU ===
+
+    function switchToAdsView() {
+        console.log("switchToAdsView: Pokrenuto.");
+        playSound('click-sound');
+        sendLogData({ Event: 'ads_page_opened' });
+        stopScanner().finally(() => {
+            document.body.classList.remove('scanner-view', 'history-view');
+            document.body.classList.add('ads-view');
+            // Postavlja boju pozadine cijele stranice na temelju podatka iz H13
+            document.body.style.backgroundColor = adsConfiguration.defaultBgColor || '#f0f2f5';
+            renderAdsPage();
+        });
+    }
 
     function generateSmartLink(contactInfo) {
         if (!contactInfo || typeof contactInfo !== 'string') return '';
         contactInfo = contactInfo.trim();
-        
-        // Provjera za e-mail
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) {
             return `<a href="mailto:${contactInfo}">${contactInfo}</a>`;
         }
-
-        // Provjera za broj telefona (uklanja razmake i crtice za tel: link)
         const phoneDigits = contactInfo.replace(/[\s-]/g, '');
         if (/^(\+)?\d+$/.test(phoneDigits)) {
             return `<a href="tel:${phoneDigits}">${contactInfo}</a>`;
         }
-        
-        // Ako nije ni jedno ni drugo, vrati kao običan tekst
         return `<span>${contactInfo}</span>`;
     }
 
@@ -469,7 +479,7 @@
         let adsHtml = '';
         if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) {
             adsConfiguration.adsList.forEach((ad, adIndex) => {
-                const bgColor = ad.bgColor || adsConfiguration.defaultBgColor || '#f9f9f9';
+                const bgColor = ad.bgColor || '#f9f9f9'; // Koristi boju kartice ili default sivu
                 const hasMedia = ad.media && ad.media.length > 0;
                 let mediaHtml = '';
                 if (hasMedia) {
@@ -520,16 +530,12 @@
     
     function handleAdsPageClick(event) {
         const target = event.target;
-        
-        // Klik na navigaciju galerije
         if (target.matches('.ad-gallery-nav')) {
             playSound('click-sound');
             const adIndex = parseInt(target.dataset.adIndex, 10);
             const direction = parseInt(target.dataset.direction, 10);
             changeGalleryMedia(adIndex, direction);
         }
-
-        // Klik na sliku/video za otvaranje fullscreena
         if (target.matches('.ad-gallery-item')) {
             const adIndex = parseInt(target.dataset.adIndex, 10);
             const mediaIndex = parseInt(target.dataset.mediaIndex, 10);
@@ -540,51 +546,31 @@
     function changeGalleryMedia(adIndex, direction) {
         const gallery = document.getElementById(`gallery-ad-${adIndex}`);
         if (!gallery) return;
-        
         const items = gallery.querySelectorAll('.ad-gallery-item');
         if (items.length <= 1) return;
-        
-        let currentIndex = -1;
-        items.forEach((item, index) => {
-            if (item.classList.contains('active')) {
-                currentIndex = index;
-            }
-        });
-        
+        let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
         if (currentIndex === -1) return;
-        
         items[currentIndex].classList.remove('active');
-        // Pauziraj video ako postoji
         if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause();
-        
         let newIndex = (currentIndex + direction + items.length) % items.length;
-        
         items[newIndex].classList.add('active');
-        
         const counter = gallery.querySelector('.ad-gallery-counter');
-        if (counter) {
-            counter.textContent = `${newIndex + 1} / ${items.length}`;
-        }
+        if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`;
     }
     
     function openFullscreen(adIndex, mediaIndex) {
         const ad = adsConfiguration.adsList[adIndex];
         if (!ad || !ad.media || ad.media.length === 0) return;
-        
         fullscreenState = { isOpen: true, adIndex, mediaIndex };
-        
         updateFullscreenContent();
-        
         document.body.classList.add('fullscreen-modal-open');
         fullscreenModal.style.display = 'flex';
         sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` });
     }
     
     function closeFullscreen() {
-        // Pauziraj video ako postoji
         const video = fullscreenContent.querySelector('video');
         if (video) video.pause();
-        
         fullscreenModal.style.display = 'none';
         document.body.classList.remove('fullscreen-modal-open');
         fullscreenState.isOpen = false;
@@ -592,16 +578,10 @@
     
     function changeFullscreenMedia(direction) {
         if (!fullscreenState.isOpen) return;
-        
         const ad = adsConfiguration.adsList[fullscreenState.adIndex];
-        if (!ad) return;
-        
+        if (!ad || ad.media.length <= 1) return;
         const mediaCount = ad.media.length;
-        if (mediaCount <= 1) return;
-        
-        const newIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount;
-        fullscreenState.mediaIndex = newIndex;
-        
+        fullscreenState.mediaIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount;
         updateFullscreenContent();
     }
     
@@ -609,7 +589,6 @@
         const { adIndex, mediaIndex } = fullscreenState;
         const ad = adsConfiguration.adsList[adIndex];
         const mediaItem = ad.media[mediaIndex];
-        
         let contentHtml = '';
         if (mediaItem.type === 'image') {
             contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`;
@@ -617,15 +596,11 @@
             contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`;
         }
         fullscreenContent.innerHTML = contentHtml;
-        
         const hasMultipleMedia = ad.media.length > 1;
         fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none';
         fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none';
         fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none';
-        
-        if (hasMultipleMedia) {
-            fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`;
-        }
+        if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`;
     }
 
     // === KRAJ NOVIH FUNKCIJA ===
