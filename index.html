@@ -122,8 +122,9 @@
     /* === NOVI STILOVI: OGLASI, GALERIJA I FULLSCREEN === */
     .ad-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .ad-title { font-size: 1.2em; font-weight: bold; text-align: center; margin-bottom: 10px; }
-    .ad-gallery-container { position: relative; margin-bottom: 15px; user-select: none; background-color: #e0e0e0; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+    .ad-gallery-container { position: relative; margin-bottom: 15px; user-select: none; background-color: #e0e0e0; min-height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .ad-gallery-item { display: none; width: 100%; height: auto; max-height: 60vh; object-fit: contain; cursor: pointer; }
+    .ad-gallery-item.is-iframe { height: 300px; } /* Visina za YouTube video */
     .ad-gallery-item.active { display: block; }
     .ad-gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(0, 0, 0, 0.5); color: white; border: none; font-size: 1.8em; font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; z-index: 2; line-height: 1; }
     .ad-gallery-nav.prev { left: 5px; }
@@ -138,8 +139,9 @@
     #ads-footer-promo { text-align: center; margin-top: 20px; padding: 15px; font-size: 1.1em; font-weight: bold; color: #333; background-color: #f0f0f0; border-radius: 5px; }
 
     #fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); z-index: 200; display: none; justify-content: center; align-items: center; flex-direction: column; }
-    #fullscreen-content { max-width: 98%; max-height: 90%; }
+    #fullscreen-content { max-width: 98%; max-height: 90%; width: 100%; }
     #fullscreen-content img, #fullscreen-content video { width: 100%; height: 100%; object-fit: contain; }
+    #fullscreen-content iframe { width: 100%; height: 80vh; border: none; }
     #fullscreen-close { position: absolute; top: 15px; right: 20px; font-size: 2.5em; color: white; font-weight: bold; cursor: pointer; z-index: 202; line-height: 1; }
     .fullscreen-nav { position: fixed; top: 50%; transform: translateY(-50%); background-color: rgba(0, 0, 0, 0.4); color: white; border: none; font-size: 3em; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 5px; z-index: 201; line-height: 1; }
     .fullscreen-nav.prev { left: 10px; }
@@ -418,7 +420,6 @@
     
     function updateDisplay() {
         if (totalDiv) {
-            // ISPRAVAK: Provjera i ispravak prikaza "-0.00"
             let formattedTotal = ukupno.toFixed(2);
             if (formattedTotal === '-0.00') {
                 formattedTotal = '0.00';
@@ -441,7 +442,6 @@
 
     function updateAdsButtonVisibility() {
         if (!adsButton || !totalDiv) return;
-        // ISPRAVAK: Promjena uvjeta iz 'ukupno === 0' u 'ukupno <= 0'
         const shouldShowAds = adsConfiguration.enabled && adsConfiguration.adsList && adsConfiguration.adsList.length > 0 && ukupno <= 0 && povijest.length === 0;
         if (shouldShowAds) {
             adsButton.innerText = adsConfiguration.buttonText || "POGLEDAJ PONUDE";
@@ -528,13 +528,72 @@
     // === FUNKCIJE ZA OGLASE I GALERIJU ===
 
     function generateSmartLink(contactInfo) { if (!contactInfo || typeof contactInfo !== 'string') return ''; contactInfo = contactInfo.trim(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) { return `<a href="mailto:${contactInfo}">${contactInfo}</a>`; } const phoneDigits = contactInfo.replace(/[\s-]/g, ''); if (/^(\+)?\d+$/.test(phoneDigits)) { return `<a href="tel:${phoneDigits}">${contactInfo}</a>`; } return `<span>${contactInfo}</span>`; }
-    function renderAdsPage() { if (!adsContentDiv) return; let adsHtml = ''; if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) { adsConfiguration.adsList.forEach((ad, adIndex) => { const bgColor = ad.bgColor || '#f9f9f9'; const hasMedia = ad.media && ad.media.length > 0; let mediaHtml = ''; if (hasMedia) { ad.media.forEach((item, mediaIndex) => { const activeClass = mediaIndex === 0 ? 'active' : ''; if (item.type === 'image') { mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`; } else if (item.type === 'video') { mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`; } }); } const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : ''; const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : ''; const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : ''; adsHtml += `<div class="ad-card" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}</div>`; }); } else { adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>'; } if (adsFooterText && adsFooterText.trim() !== "") { adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`; } adsContentDiv.innerHTML = adsHtml; }
-    function handleAdsPageClick(event) { const target = event.target; if (target.matches('.ad-gallery-nav')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); const direction = parseInt(target.dataset.direction, 10); changeGalleryMedia(adIndex, direction); } if (target.matches('.ad-gallery-item')) { const adIndex = parseInt(target.dataset.adIndex, 10); const mediaIndex = parseInt(target.dataset.mediaIndex, 10); openFullscreen(adIndex, mediaIndex); } }
-    function changeGalleryMedia(adIndex, direction) { const gallery = document.getElementById(`gallery-ad-${adIndex}`); if (!gallery) return; const items = gallery.querySelectorAll('.ad-gallery-item'); if (items.length <= 1) return; let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active')); if (currentIndex === -1) return; items[currentIndex].classList.remove('active'); if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause(); let newIndex = (currentIndex + direction + items.length) % items.length; items[newIndex].classList.add('active'); const counter = gallery.querySelector('.ad-gallery-counter'); if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`; }
+    
+    function renderAdsPage() {
+        if (!adsContentDiv) return;
+        let adsHtml = '';
+        if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) {
+            adsConfiguration.adsList.forEach((ad, adIndex) => {
+                const bgColor = ad.bgColor || '#f9f9f9';
+                const hasMedia = ad.media && ad.media.length > 0;
+                let mediaHtml = '';
+                if (hasMedia) {
+                    ad.media.forEach((item, mediaIndex) => {
+                        const activeClass = mediaIndex === 0 ? 'active' : '';
+                        if (item.type === 'image') {
+                            mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`;
+                        } else if (item.type === 'video') {
+                            // AŽURIRANO: Provjera za YouTube link
+                            if (item.src.includes('youtube.com/embed')) {
+                                mediaHtml += `<iframe src="${item.src}" class="ad-gallery-item is-iframe ${activeClass}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></iframe>`;
+                            } else {
+                                mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`;
+                            }
+                        }
+                    });
+                }
+                const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : '';
+                const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : '';
+                const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : '';
+                adsHtml += `<div class="ad-card" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}</div>`;
+            });
+        } else {
+            adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>';
+        }
+        if (adsFooterText && adsFooterText.trim() !== "") {
+            adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`;
+        }
+        adsContentDiv.innerHTML = adsHtml;
+    }
+
+    function handleAdsPageClick(event) { const target = event.target; if (target.matches('.ad-gallery-nav')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); const direction = parseInt(target.dataset.direction, 10); changeGalleryMedia(adIndex, direction); } if (target.matches('.ad-gallery-item') && !target.matches('iframe')) { const adIndex = parseInt(target.dataset.adIndex, 10); const mediaIndex = parseInt(target.dataset.mediaIndex, 10); openFullscreen(adIndex, mediaIndex); } }
+    function changeGalleryMedia(adIndex, direction) { const gallery = document.getElementById(`gallery-ad-${adIndex}`); if (!gallery) return; const items = gallery.querySelectorAll('.ad-gallery-item'); if (items.length <= 1) return; let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active')); if (currentIndex === -1) return; items[currentIndex].classList.remove('active'); if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause(); if (items[currentIndex].tagName === 'IFRAME') { items[currentIndex].src = items[currentIndex].src; } let newIndex = (currentIndex + direction + items.length) % items.length; items[newIndex].classList.add('active'); const counter = gallery.querySelector('.ad-gallery-counter'); if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`; }
     function openFullscreen(adIndex, mediaIndex) { const ad = adsConfiguration.adsList[adIndex]; if (!ad || !ad.media || ad.media.length === 0) return; fullscreenState = { isOpen: true, adIndex, mediaIndex }; updateFullscreenContent(); document.body.classList.add('fullscreen-modal-open'); fullscreenModal.style.display = 'flex'; sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` }); }
-    function closeFullscreen() { const video = fullscreenContent.querySelector('video'); if (video) video.pause(); fullscreenModal.style.display = 'none'; document.body.classList.remove('fullscreen-modal-open'); fullscreenState.isOpen = false; }
+    function closeFullscreen() { const video = fullscreenContent.querySelector('video'); if (video) video.pause(); const iframe = fullscreenContent.querySelector('iframe'); if (iframe) iframe.src = iframe.src; fullscreenModal.style.display = 'none'; document.body.classList.remove('fullscreen-modal-open'); fullscreenState.isOpen = false; }
     function changeFullscreenMedia(direction) { if (!fullscreenState.isOpen) return; const ad = adsConfiguration.adsList[fullscreenState.adIndex]; if (!ad || ad.media.length <= 1) return; const mediaCount = ad.media.length; fullscreenState.mediaIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount; updateFullscreenContent(); }
-    function updateFullscreenContent() { const { adIndex, mediaIndex } = fullscreenState; const ad = adsConfiguration.adsList[adIndex]; const mediaItem = ad.media[mediaIndex]; let contentHtml = ''; if (mediaItem.type === 'image') { contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`; } else if (mediaItem.type === 'video') { contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`; } fullscreenContent.innerHTML = contentHtml; const hasMultipleMedia = ad.media.length > 1; fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none'; if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`; }
+    
+    function updateFullscreenContent() {
+        const { adIndex, mediaIndex } = fullscreenState;
+        const ad = adsConfiguration.adsList[adIndex];
+        const mediaItem = ad.media[mediaIndex];
+        let contentHtml = '';
+        if (mediaItem.type === 'image') {
+            contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`;
+        } else if (mediaItem.type === 'video') {
+            // AŽURIRANO: Provjera za YouTube link
+            if (mediaItem.src.includes('youtube.com/embed')) {
+                contentHtml = `<iframe src="${mediaItem.src}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else {
+                contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`;
+            }
+        }
+        fullscreenContent.innerHTML = contentHtml;
+        const hasMultipleMedia = ad.media.length > 1;
+        fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none';
+        fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none';
+        fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none';
+        if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`;
+    }
 
     // === OSTALE FUNKCIJE (POVIJEST, PRETRAGA, ITD.) ===
 
