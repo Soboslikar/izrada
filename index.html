@@ -415,8 +415,44 @@
     }
     function initializeCounters() { console.log("Inicijalizacija brojača..."); if (brojac === null) { console.log("Brojač 1 nije inicijaliziran, postavljanje na brojač 2."); brojac = brojac2; saveBrojac(); } else { console.log("Brojač 1 učitan s vrijednošću:", brojac); } checkSharePrompt(); updateRunningTextVisibility(); }
     function checkOcistiButtonVisibility() { if (!ocistiButton) return; ocistiButton.style.display = (povijest.length > 0 || currentSessionName) ? 'block' : 'none'; if ((povijest.length === 0 && !currentSessionName) && ocistiConfirm) { resetOcistiMode(); } }
-    function updateDisplay() { if (totalDiv) totalDiv.innerText = `UKUPNO: ${ukupno.toFixed(2)} €`; const count = povijest.length; if (invoiceCountDiv) invoiceCountDiv.innerText = `${count} ${count === 1 ? 'RAČUN' : 'RAČUNA'}`; if (document.body.classList.contains('scanner-view')) { updateSmallHistoryList(); checkRemoveButtonVisibility(); handleInfoDeleteMessageVisibility(); checkOcistiButtonVisibility(); updateNameDisplay(); updateAdsButtonVisibility(); } };
-    function updateAdsButtonVisibility() { if (!adsButton || !totalDiv) return; const shouldShowAds = adsConfiguration.enabled && adsConfiguration.adsList && adsConfiguration.adsList.length > 0 && ukupno === 0 && povijest.length === 0; if (shouldShowAds) { adsButton.innerText = adsConfiguration.buttonText || "POGLEDAJ PONUDE"; adsButton.style.display = 'block'; totalDiv.style.display = 'none'; } else { adsButton.style.display = 'none'; totalDiv.style.display = 'block'; } }
+    
+    function updateDisplay() {
+        if (totalDiv) {
+            // ISPRAVAK: Provjera i ispravak prikaza "-0.00"
+            let formattedTotal = ukupno.toFixed(2);
+            if (formattedTotal === '-0.00') {
+                formattedTotal = '0.00';
+            }
+            totalDiv.innerText = `UKUPNO: ${formattedTotal} €`;
+        }
+        const count = povijest.length;
+        if (invoiceCountDiv) {
+            invoiceCountDiv.innerText = `${count} ${count === 1 ? 'RAČUN' : 'RAČUNA'}`;
+        }
+        if (document.body.classList.contains('scanner-view')) {
+            updateSmallHistoryList();
+            checkRemoveButtonVisibility();
+            handleInfoDeleteMessageVisibility();
+            checkOcistiButtonVisibility();
+            updateNameDisplay();
+            updateAdsButtonVisibility();
+        }
+    };
+
+    function updateAdsButtonVisibility() {
+        if (!adsButton || !totalDiv) return;
+        // ISPRAVAK: Promjena uvjeta iz 'ukupno === 0' u 'ukupno <= 0'
+        const shouldShowAds = adsConfiguration.enabled && adsConfiguration.adsList && adsConfiguration.adsList.length > 0 && ukupno <= 0 && povijest.length === 0;
+        if (shouldShowAds) {
+            adsButton.innerText = adsConfiguration.buttonText || "POGLEDAJ PONUDE";
+            adsButton.style.display = 'block';
+            totalDiv.style.display = 'none';
+        } else {
+            adsButton.style.display = 'none';
+            totalDiv.style.display = 'block';
+        }
+    }
+
     function updateSmallHistoryList() { if (!historyList || !historyDiv) return; if (povijest.length > 0) { historyDiv.style.display = 'block'; historyList.innerHTML = ''; const recentHistory = povijest; recentHistory.forEach((item, index) => { const globalIndex = povijest.length - recentHistory.length + index; const listItem = document.createElement('li'); listItem.innerText = `${globalIndex + 1}. ${item.time} - ${item.amount.toFixed(2)} €`; historyList.appendChild(listItem); }); historyDiv.scrollTop = historyDiv.scrollHeight; } else { historyDiv.style.display = 'none'; } }
     function checkRemoveButtonVisibility() { if (!removeButton) return; removeButton.style.display = (povijest.length > 0 || currentSessionName) ? 'block' : 'none'; if (povijest.length === 0 && !currentSessionName && (removeConfirm || removeNameConfirm)) resetRemoveMode(); }
     function handleInfoDeleteMessageVisibility() { const isScannerView = document.body.classList.contains('scanner-view'); if (!deleteWarningDiv || !isScannerView) { if(deleteWarningDiv) deleteWarningDiv.style.display = 'none'; return; } let shouldDisplay = false, textToShow = '', modeClass = ''; if (removeConfirm && povijest.length > 0) { const lastItem = povijest[povijest.length - 1]; textToShow = `OBRIŠI ${lastItem.time} = ${lastItem.amount.toFixed(2)} €?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (removeNameConfirm && currentSessionName) { textToShow = `OBRIŠI NAZIV "${currentSessionName}"?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length > 0 && deleteWarningDiv.dataset.lastScanText) { textToShow = deleteWarningDiv.dataset.lastScanText; modeClass = 'info-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length === 0 && currentSessionName && deleteWarningDiv.dataset.lastNameText) { textToShow = deleteWarningDiv.dataset.lastNameText; modeClass = 'info-mode'; shouldDisplay = true; } if (shouldDisplay) { deleteWarningDiv.innerText = textToShow; deleteWarningDiv.className = `delete-warning ${modeClass}`; deleteWarningDiv.style.display = 'block'; } else { deleteWarningDiv.style.display = 'none'; } }
@@ -448,9 +484,7 @@
 
     function switchToScannerView() {
         console.log("switchToScannerView: Pokrenuto.");
-        // ISPRAVAK: Resetiraj boju pozadine na default
         document.body.style.backgroundColor = ''; 
-
         if (document.body.classList.contains('scanner-view') && !isScannerActive) {
             console.log("switchToScannerView: Skener nije aktivan, inicijaliziram...");
             initializeScanner();
@@ -469,7 +503,7 @@
         if (ocistiConfirm) resetOcistiMode(); 
         if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } 
         stopScanner().finally(() => { 
-            document.body.style.backgroundColor = ''; // Resetiraj boju i ovdje za svaki slučaj
+            document.body.style.backgroundColor = ''; 
             document.body.classList.remove('scanner-view', 'ads-view'); 
             document.body.classList.add('history-view'); 
             currentlyViewedDate = new Date(); 
@@ -486,7 +520,6 @@
         stopScanner().finally(() => {
             document.body.classList.remove('scanner-view', 'history-view');
             document.body.classList.add('ads-view');
-            // Postavlja boju pozadine cijele stranice na temelju podatka iz H13
             document.body.style.backgroundColor = adsConfiguration.defaultBgColor || '#f0f2f5';
             renderAdsPage();
         });
@@ -494,147 +527,14 @@
 
     // === FUNKCIJE ZA OGLASE I GALERIJU ===
 
-    function generateSmartLink(contactInfo) {
-        if (!contactInfo || typeof contactInfo !== 'string') return '';
-        contactInfo = contactInfo.trim();
-        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) {
-            return `<a href="mailto:${contactInfo}">${contactInfo}</a>`;
-        }
-        const phoneDigits = contactInfo.replace(/[\s-]/g, '');
-        if (/^(\+)?\d+$/.test(phoneDigits)) {
-            return `<a href="tel:${phoneDigits}">${contactInfo}</a>`;
-        }
-        return `<span>${contactInfo}</span>`;
-    }
-
-    function renderAdsPage() {
-        if (!adsContentDiv) return;
-        let adsHtml = '';
-        if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) {
-            adsConfiguration.adsList.forEach((ad, adIndex) => {
-                const bgColor = ad.bgColor || '#f9f9f9'; // Koristi boju kartice ili default sivu
-                const hasMedia = ad.media && ad.media.length > 0;
-                let mediaHtml = '';
-                if (hasMedia) {
-                    ad.media.forEach((item, mediaIndex) => {
-                        const activeClass = mediaIndex === 0 ? 'active' : '';
-                        if (item.type === 'image') {
-                            mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`;
-                        } else if (item.type === 'video') {
-                            mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`;
-                        }
-                    });
-                }
-                
-                const galleryControls = ad.media.length > 1 ? `
-                    <button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button>
-                    <button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button>
-                    <div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>
-                ` : '';
-
-                const contactHtml = ad.kontakt ? `
-                    <div class="ad-contact-container">
-                        <strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}
-                    </div>` : '';
-                
-                const webLinkHtml = ad.web ? `
-                    <div class="ad-web-link-container">
-                       <a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a>
-                    </div>` : '';
-
-                adsHtml += `
-                    <div class="ad-card" style="background-color: ${bgColor};">
-                        ${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}
-                        ${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}
-                        ${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}
-                        ${contactHtml}
-                        ${webLinkHtml}
-                    </div>
-                `;
-            });
-        } else {
-            adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>';
-        }
-        if (adsFooterText && adsFooterText.trim() !== "") {
-            adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`;
-        }
-        adsContentDiv.innerHTML = adsHtml;
-    }
-    
-    function handleAdsPageClick(event) {
-        const target = event.target;
-        if (target.matches('.ad-gallery-nav')) {
-            playSound('click-sound');
-            const adIndex = parseInt(target.dataset.adIndex, 10);
-            const direction = parseInt(target.dataset.direction, 10);
-            changeGalleryMedia(adIndex, direction);
-        }
-        if (target.matches('.ad-gallery-item')) {
-            const adIndex = parseInt(target.dataset.adIndex, 10);
-            const mediaIndex = parseInt(target.dataset.mediaIndex, 10);
-            openFullscreen(adIndex, mediaIndex);
-        }
-    }
-
-    function changeGalleryMedia(adIndex, direction) {
-        const gallery = document.getElementById(`gallery-ad-${adIndex}`);
-        if (!gallery) return;
-        const items = gallery.querySelectorAll('.ad-gallery-item');
-        if (items.length <= 1) return;
-        let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
-        if (currentIndex === -1) return;
-        items[currentIndex].classList.remove('active');
-        if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause();
-        let newIndex = (currentIndex + direction + items.length) % items.length;
-        items[newIndex].classList.add('active');
-        const counter = gallery.querySelector('.ad-gallery-counter');
-        if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`;
-    }
-    
-    function openFullscreen(adIndex, mediaIndex) {
-        const ad = adsConfiguration.adsList[adIndex];
-        if (!ad || !ad.media || ad.media.length === 0) return;
-        fullscreenState = { isOpen: true, adIndex, mediaIndex };
-        updateFullscreenContent();
-        document.body.classList.add('fullscreen-modal-open');
-        fullscreenModal.style.display = 'flex';
-        sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` });
-    }
-    
-    function closeFullscreen() {
-        const video = fullscreenContent.querySelector('video');
-        if (video) video.pause();
-        fullscreenModal.style.display = 'none';
-        document.body.classList.remove('fullscreen-modal-open');
-        fullscreenState.isOpen = false;
-    }
-    
-    function changeFullscreenMedia(direction) {
-        if (!fullscreenState.isOpen) return;
-        const ad = adsConfiguration.adsList[fullscreenState.adIndex];
-        if (!ad || ad.media.length <= 1) return;
-        const mediaCount = ad.media.length;
-        fullscreenState.mediaIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount;
-        updateFullscreenContent();
-    }
-    
-    function updateFullscreenContent() {
-        const { adIndex, mediaIndex } = fullscreenState;
-        const ad = adsConfiguration.adsList[adIndex];
-        const mediaItem = ad.media[mediaIndex];
-        let contentHtml = '';
-        if (mediaItem.type === 'image') {
-            contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`;
-        } else if (mediaItem.type === 'video') {
-            contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`;
-        }
-        fullscreenContent.innerHTML = contentHtml;
-        const hasMultipleMedia = ad.media.length > 1;
-        fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none';
-        fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none';
-        fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none';
-        if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`;
-    }
+    function generateSmartLink(contactInfo) { if (!contactInfo || typeof contactInfo !== 'string') return ''; contactInfo = contactInfo.trim(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) { return `<a href="mailto:${contactInfo}">${contactInfo}</a>`; } const phoneDigits = contactInfo.replace(/[\s-]/g, ''); if (/^(\+)?\d+$/.test(phoneDigits)) { return `<a href="tel:${phoneDigits}">${contactInfo}</a>`; } return `<span>${contactInfo}</span>`; }
+    function renderAdsPage() { if (!adsContentDiv) return; let adsHtml = ''; if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) { adsConfiguration.adsList.forEach((ad, adIndex) => { const bgColor = ad.bgColor || '#f9f9f9'; const hasMedia = ad.media && ad.media.length > 0; let mediaHtml = ''; if (hasMedia) { ad.media.forEach((item, mediaIndex) => { const activeClass = mediaIndex === 0 ? 'active' : ''; if (item.type === 'image') { mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`; } else if (item.type === 'video') { mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`; } }); } const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : ''; const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : ''; const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : ''; adsHtml += `<div class="ad-card" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}</div>`; }); } else { adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>'; } if (adsFooterText && adsFooterText.trim() !== "") { adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`; } adsContentDiv.innerHTML = adsHtml; }
+    function handleAdsPageClick(event) { const target = event.target; if (target.matches('.ad-gallery-nav')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); const direction = parseInt(target.dataset.direction, 10); changeGalleryMedia(adIndex, direction); } if (target.matches('.ad-gallery-item')) { const adIndex = parseInt(target.dataset.adIndex, 10); const mediaIndex = parseInt(target.dataset.mediaIndex, 10); openFullscreen(adIndex, mediaIndex); } }
+    function changeGalleryMedia(adIndex, direction) { const gallery = document.getElementById(`gallery-ad-${adIndex}`); if (!gallery) return; const items = gallery.querySelectorAll('.ad-gallery-item'); if (items.length <= 1) return; let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active')); if (currentIndex === -1) return; items[currentIndex].classList.remove('active'); if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause(); let newIndex = (currentIndex + direction + items.length) % items.length; items[newIndex].classList.add('active'); const counter = gallery.querySelector('.ad-gallery-counter'); if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`; }
+    function openFullscreen(adIndex, mediaIndex) { const ad = adsConfiguration.adsList[adIndex]; if (!ad || !ad.media || ad.media.length === 0) return; fullscreenState = { isOpen: true, adIndex, mediaIndex }; updateFullscreenContent(); document.body.classList.add('fullscreen-modal-open'); fullscreenModal.style.display = 'flex'; sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` }); }
+    function closeFullscreen() { const video = fullscreenContent.querySelector('video'); if (video) video.pause(); fullscreenModal.style.display = 'none'; document.body.classList.remove('fullscreen-modal-open'); fullscreenState.isOpen = false; }
+    function changeFullscreenMedia(direction) { if (!fullscreenState.isOpen) return; const ad = adsConfiguration.adsList[fullscreenState.adIndex]; if (!ad || ad.media.length <= 1) return; const mediaCount = ad.media.length; fullscreenState.mediaIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount; updateFullscreenContent(); }
+    function updateFullscreenContent() { const { adIndex, mediaIndex } = fullscreenState; const ad = adsConfiguration.adsList[adIndex]; const mediaItem = ad.media[mediaIndex]; let contentHtml = ''; if (mediaItem.type === 'image') { contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`; } else if (mediaItem.type === 'video') { contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`; } fullscreenContent.innerHTML = contentHtml; const hasMultipleMedia = ad.media.length > 1; fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none'; if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`; }
 
     // === OSTALE FUNKCIJE (POVIJEST, PRETRAGA, ITD.) ===
 
