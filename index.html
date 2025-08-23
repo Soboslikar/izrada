@@ -138,6 +138,25 @@
     .ad-web-link:hover { background-color: #0056b3; }
     #ads-footer-promo { text-align: center; margin-top: 20px; padding: 15px; font-size: 1.1em; font-weight: bold; color: #333; background-color: #f0f0f0; border-radius: 5px; }
 
+    /* NOVI STIL ZA GUMB "PODIJELI" */
+    .ad-share-btn {
+        display: inline-block;
+        background-color: #28a745; /* Zelena boja */
+        color: white;
+        padding: 10px 20px;
+        margin-top: 15px; /* Malo razmaka od gornjeg elementa */
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .ad-share-btn:hover {
+        background-color: #218838; /* Tamnija zelena na hover */
+    }
+
     #fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); z-index: 200; display: none; justify-content: center; align-items: center; flex-direction: column; }
     #fullscreen-content { max-width: 98%; max-height: 90%; width: 100%; }
     #fullscreen-content img, #fullscreen-content video { width: 100%; height: 100%; object-fit: contain; }
@@ -543,7 +562,6 @@
                         if (item.type === 'image') {
                             mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`;
                         } else if (item.type === 'video') {
-                            // AŽURIRANO: Provjera za YouTube link
                             if (item.src.includes('youtube.com/embed')) {
                                 mediaHtml += `<iframe src="${item.src}" class="ad-gallery-item is-iframe ${activeClass}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></iframe>`;
                             } else {
@@ -555,7 +573,19 @@
                 const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : '';
                 const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : '';
                 const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : '';
-                adsHtml += `<div class="ad-card" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}</div>`;
+                
+                // NOVI DIO: Gumb za dijeljenje
+                const shareButtonHtml = `<div style="text-align: center;"><button class="ad-share-btn" data-ad-index="${adIndex}">PODIJELI</button></div>`;
+
+                // AŽURIRANO: Dodajemo id="ad-card-${adIndex}" i shareButtonHtml
+                adsHtml += `<div class="ad-card" id="ad-card-${adIndex}" style="background-color: ${bgColor};">
+                                ${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}
+                                ${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}
+                                ${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}
+                                ${contactHtml}
+                                ${webLinkHtml}
+                                ${shareButtonHtml}
+                            </div>`;
             });
         } else {
             adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>';
@@ -566,7 +596,102 @@
         adsContentDiv.innerHTML = adsHtml;
     }
 
-    function handleAdsPageClick(event) { const target = event.target; if (target.matches('.ad-gallery-nav')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); const direction = parseInt(target.dataset.direction, 10); changeGalleryMedia(adIndex, direction); } if (target.matches('.ad-gallery-item') && !target.matches('iframe')) { const adIndex = parseInt(target.dataset.adIndex, 10); const mediaIndex = parseInt(target.dataset.mediaIndex, 10); openFullscreen(adIndex, mediaIndex); } }
+    function handleAdsPageClick(event) {
+        const target = event.target;
+        if (target.matches('.ad-gallery-nav')) {
+            playSound('click-sound');
+            const adIndex = parseInt(target.dataset.adIndex, 10);
+            const direction = parseInt(target.dataset.direction, 10);
+            changeGalleryMedia(adIndex, direction);
+        }
+        if (target.matches('.ad-gallery-item') && !target.matches('iframe')) {
+            const adIndex = parseInt(target.dataset.adIndex, 10);
+            const mediaIndex = parseInt(target.dataset.mediaIndex, 10);
+            openFullscreen(adIndex, mediaIndex);
+        }
+        // NOVI BLOK: Prepoznavanje klika na gumb za dijeljenje
+        if (target.matches('.ad-share-btn')) {
+            playSound('click-sound');
+            const adIndex = parseInt(target.dataset.adIndex, 10);
+            handleAdShare(adIndex);
+        }
+    }
+
+    async function handleAdShare(adIndex) {
+        const ad = adsConfiguration.adsList[adIndex];
+        if (!ad) {
+            console.error("Oglas za dijeljenje nije pronađen, index:", adIndex);
+            return;
+        }
+
+        // Kreiramo jedinstveni URL s hashom
+        const baseUrl = window.location.href.split('#')[0];
+        const shareUrl = `${baseUrl}#ad=${adIndex}`;
+
+        const shareData = {
+            title: ad.nazivFirme || 'Pogledaj ponudu!',
+            text: ad.tekst ? ad.tekst.substring(0, 100) + '...' : 'Zanimljiva ponuda iz QR Računatora',
+            url: shareUrl
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                console.log('Oglas uspješno podijeljen');
+                sendLogData({ Event: 'ad_shared_success', Details: `Ad: ${ad.nazivFirme}` });
+            } catch (err) {
+                console.log('Dijeljenje otkazano ili neuspješno', err);
+                sendLogData({ Event: 'ad_shared_failed', Details: `Ad: ${ad.nazivFirme}, Error: ${err.name}` });
+            }
+        } else {
+            // Fallback za desktop preglednike - kopiranje u međuspremnik (clipboard)
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                alert('Link za oglas je kopiran!\n' + shareUrl);
+                sendLogData({ Event: 'ad_link_copied', Details: `Ad: ${ad.nazivFirme}` });
+            } catch (err) {
+                alert('Nije moguće kopirati link. Možete ga ručno kopirati:\n' + shareUrl);
+                console.error('Greška pri kopiranju linka: ', err);
+            }
+        }
+    }
+
+    function checkUrlForAd() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#ad=')) {
+            const adIndexStr = hash.substring(4); // Dobijemo broj nakon '#ad='
+            const adIndex = parseInt(adIndexStr, 10);
+
+            if (!isNaN(adIndex)) {
+                console.log(`Pronađen link za oglas, index: ${adIndex}`);
+                
+                // Čekamo da se dohvate podaci o oglasima
+                const checkDataInterval = setInterval(() => {
+                    if (adsConfiguration.adsList && adsConfiguration.adsList.length > adIndex) {
+                        clearInterval(checkDataInterval);
+                        
+                        // Prebaci na stranicu s oglasima
+                        switchToAdsView();
+
+                        // Nakon što se oglasi renderiraju, skrolaj do pravog
+                        setTimeout(() => {
+                            const adElement = document.getElementById(`ad-card-${adIndex}`);
+                            if (adElement) {
+                                adElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                // Opcionalno: vizualno istakni oglas
+                                adElement.style.transition = 'box-shadow 0.5s ease-in-out';
+                                adElement.style.boxShadow = '0 0 15px 5px rgba(40, 167, 69, 0.7)';
+                                setTimeout(() => {
+                                    adElement.style.boxShadow = '';
+                                }, 2500); // Ukloni sjenu nakon 2.5 sekunde
+                            }
+                        }, 300); 
+                    }
+                }, 100); 
+            }
+        }
+    }
+
     function changeGalleryMedia(adIndex, direction) { const gallery = document.getElementById(`gallery-ad-${adIndex}`); if (!gallery) return; const items = gallery.querySelectorAll('.ad-gallery-item'); if (items.length <= 1) return; let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active')); if (currentIndex === -1) return; items[currentIndex].classList.remove('active'); if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause(); if (items[currentIndex].tagName === 'IFRAME') { items[currentIndex].src = items[currentIndex].src; } let newIndex = (currentIndex + direction + items.length) % items.length; items[newIndex].classList.add('active'); const counter = gallery.querySelector('.ad-gallery-counter'); if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`; }
     function openFullscreen(adIndex, mediaIndex) { const ad = adsConfiguration.adsList[adIndex]; if (!ad || !ad.media || ad.media.length === 0) return; fullscreenState = { isOpen: true, adIndex, mediaIndex }; updateFullscreenContent(); document.body.classList.add('fullscreen-modal-open'); fullscreenModal.style.display = 'flex'; sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` }); }
     function closeFullscreen() { const video = fullscreenContent.querySelector('video'); if (video) video.pause(); const iframe = fullscreenContent.querySelector('iframe'); if (iframe) iframe.src = iframe.src; fullscreenModal.style.display = 'none'; document.body.classList.remove('fullscreen-modal-open'); fullscreenState.isOpen = false; }
@@ -580,7 +705,6 @@
         if (mediaItem.type === 'image') {
             contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`;
         } else if (mediaItem.type === 'video') {
-            // AŽURIRANO: Provjera za YouTube link
             if (mediaItem.src.includes('youtube.com/embed')) {
                 contentHtml = `<iframe src="${mediaItem.src}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else {
@@ -713,11 +837,13 @@
             if (document.body.classList.contains('history-view')) {
                 renderHistoryView(currentlyViewedDate);
             }
+            checkUrlForAd(); // Provjeri URL nakon što su podaci dohvaćeni
         }).catch(error => {
             console.error("Greška tijekom pozadinskog dohvaćanja podataka:", error);
             const appLoadedErrorEventData = { Event: 'app_loaded', Details: JSON.stringify({ status: 'error', fetchError: error.toString() }) };
             sendLogData(appLoadedErrorEventData);
             if (document.body.classList.contains('history-view')) { renderHistoryView(currentlyViewedDate); }
+            checkUrlForAd(); // Provjeri URL i u slučaju greške
         });
     });
 </script>
