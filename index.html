@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR RAČUNATOR</title>
+  <!-- PWA Manifest Link -->
+  <link rel="manifest" href="manifest.json">
   <meta name="google-site-verification" content="MiNsi-1k4TYmSbTNGPDs_lsgTyiVKmxEa4nkihpTB1s" />
   <meta property="og:title" content="QR RAČUNATOR" />
   <meta property="og:description" content="Web aplikacija za skeniranje QR kodova s Hrvatskih fiskalnih računa i automatsko zbrajanje iznosa. Uključuje povijest i pretragu."/>
@@ -13,15 +15,11 @@
   <meta property="og:url" content="https://soboslikar.github.io/QR-RACUNATOR/" />
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    /* CSS (Sve prethodno + NOVI STILOVI ZA GALERIJU I FULLSCREEN) */
+    /* CSS (Sve prethodno + NOVI STILOVI ZA PWA I MODAL) */
     body { font-family: sans-serif; margin: 0; padding: 0.5em; background: #f4f4f4; overflow-x: hidden; min-height: 100vh; }
     body.scanner-view #history-page, body.scanner-view #ads-page { display: none; }
     body.history-view { background-color: white; }
-    /* Pozadina stranice s oglasima će se dinamički postaviti putem JavaScripta */
-    body.ads-view { 
-        /* Ovdje se može staviti neka rezervna (fallback) boja */
-        background-color: #f0f2f5; 
-    }
+    body.ads-view { background-color: #f0f2f5; }
 
     body.history-view #history-page, body.ads-view #ads-page {
         display: flex;
@@ -53,8 +51,15 @@
     #total-container { position: fixed; top: 23.5em; left: 50%; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 0.2em 0.5em; border-radius: 5px; }
     #total { font-size: 1.6em !important; font-weight: bold; color: yellow; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
     
-    #ads-button {
-        background-color: #1e7e34;
+    #action-buttons-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    #ads-button, #install-pwa-btn {
+        width: 100%;
+        box-sizing: border-box;
         color: white;
         font-weight: bold;
         font-size: 1.2em;
@@ -68,7 +73,10 @@
         display: none;
         white-space: nowrap;
     }
-    #ads-button:active {
+    #ads-button { background-color: #1e7e34; }
+    #install-pwa-btn { background-color: #007bff; }
+
+    #ads-button:active, #install-pwa-btn:active {
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
         animation: none;
     }
@@ -109,6 +117,16 @@
     #share-button:active { box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); animation: none; }
     #history-page, #ads-page { display: none; }
 
+    #pwa-install-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 300; display: none; justify-content: center; align-items: center; }
+    #pwa-install-modal-content { background-color: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 90%; width: 320px; text-align: center; }
+    #pwa-install-modal-content h3 { margin-top: 0; color: #333; font-size: 1.3em; }
+    #pwa-install-modal-content p { color: #555; line-height: 1.5; margin-bottom: 25px; }
+    #pwa-install-modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+    #pwa-install-modal-buttons button { padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    #pwa-install-confirm-btn { background-color: #007bff; color: white; }
+    #pwa-install-later-btn { background-color: #6c757d; color: white; }
+    #pwa-install-never-btn { background: none; box-shadow: none; color: #888; text-decoration: underline; font-size: 0.9em; padding-top: 5px; }
+
     #history-sticky-header, #ads-sticky-header { position: sticky; top: 0; z-index: 10; padding: 0.5em 1em; border-bottom: 1px solid #ccc; flex-shrink: 0; }
     #history-sticky-header { background-color: white; }
     #ads-sticky-header { background-color: #f9f9f9; }
@@ -119,12 +137,11 @@
     #back-to-scanner-btn:active, #back-to-scanner-from-ads-btn:active { background-color: darkgreen; }
     #history-content, #ads-content { flex-grow: 1; overflow-y: auto; padding: 1em; position: relative; }
 
-    /* === NOVI STILOVI: OGLASI, GALERIJA I FULLSCREEN === */
     .ad-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .ad-title { font-size: 1.2em; font-weight: bold; text-align: center; margin-bottom: 10px; }
     .ad-gallery-container { position: relative; margin-bottom: 15px; user-select: none; background-color: #e0e0e0; min-height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .ad-gallery-item { display: none; width: 100%; height: auto; max-height: 60vh; object-fit: contain; cursor: pointer; }
-    .ad-gallery-item.is-iframe { height: 300px; } /* Visina za YouTube video */
+    .ad-gallery-item.is-iframe { height: 300px; }
     .ad-gallery-item.active { display: block; }
     .ad-gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(0, 0, 0, 0.5); color: white; border: none; font-size: 1.8em; font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; z-index: 2; line-height: 1; }
     .ad-gallery-nav.prev { left: 5px; }
@@ -137,25 +154,8 @@
     .ad-web-link { display: inline-block; background-color: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; transition: background-color 0.2s; }
     .ad-web-link:hover { background-color: #0056b3; }
     #ads-footer-promo { text-align: center; margin-top: 20px; padding: 15px; font-size: 1.1em; font-weight: bold; color: #333; background-color: #f0f0f0; border-radius: 5px; }
-
-    /* NOVI STIL ZA GUMB "PODIJELI" */
-    .ad-share-btn {
-        display: inline-block;
-        background-color: #28a745; /* Zelena boja */
-        color: white;
-        padding: 10px 20px;
-        margin-top: 15px; /* Malo razmaka od gornjeg elementa */
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: bold;
-        text-align: center;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .ad-share-btn:hover {
-        background-color: #218838; /* Tamnija zelena na hover */
-    }
+    .ad-share-btn { display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; margin-top: 15px; border-radius: 5px; text-decoration: none; font-weight: bold; text-align: center; cursor: pointer; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .ad-share-btn:hover { background-color: #218838; }
 
     #fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); z-index: 200; display: none; justify-content: center; align-items: center; flex-direction: column; }
     #fullscreen-content { max-width: 98%; max-height: 90%; width: 100%; }
@@ -166,8 +166,7 @@
     .fullscreen-nav.prev { left: 10px; }
     .fullscreen-nav.next { right: 10px; }
     #fullscreen-counter { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.6); color: white; padding: 5px 12px; font-size: 1em; border-radius: 15px; z-index: 201; }
-    /* === KRAJ NOVIH STILOVA === */
-
+    
     #scan-group-list, #all-days-list-rendered, #search-results ul, #search-results-all-days ul { list-style: none; padding: 0; margin: 0; }
      #scan-group-list li, #all-days-list-rendered li, #search-results li, #search-results-all-days li { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.2s ease; }
      #scan-group-list li:hover, #all-days-list-rendered li:hover, #search-results li:hover, #search-results-all-days li:hover { background-color: #efefef; }
@@ -242,7 +241,10 @@
 
   <div id="total-container">
       <div id="total">UKUPNO: 0.00 €</div>
-      <button id="ads-button" style="display: none;"></button>
+      <div id="action-buttons-wrapper">
+          <button id="install-pwa-btn">INSTALIRAJ APLIKACIJU</button>
+          <button id="ads-button"></button>
+      </div>
       <button id="ocisti-button" onclick="startOcistiConfirm()" style="display: none;">SPREMI<br>I OČISTI</button>
   </div>
 
@@ -302,7 +304,18 @@
       </div>
   </div>
 
-  <!-- NOVI ELEMENT: Fullscreen Modal za galeriju -->
+  <div id="pwa-install-modal-overlay">
+    <div id="pwa-install-modal-content">
+        <h3>Instalirati QR Računator?</h3>
+        <p>Na početni zaslon bit će dodana ikona za brzi pristup aplikaciji, bez potrebe za otvaranjem preglednika.</p>
+        <div id="pwa-install-modal-buttons">
+            <button id="pwa-install-confirm-btn">Da, instaliraj</button>
+            <button id="pwa-install-later-btn">Pitaj me kasnije</button>
+            <button id="pwa-install-never-btn">Ne, hvala</button>
+        </div>
+    </div>
+  </div>
+
   <div id="fullscreen-modal" style="display: none;">
       <span id="fullscreen-close">&times;</span>
       <button class="fullscreen-nav prev" id="fullscreen-prev-btn">&lt;</button>
@@ -334,6 +347,7 @@
     const COUNTER_KEY = 'qrCalculatorCounter';
     const COUNTER2_KEY = 'qrCalculatorCounter2';
     const COUNTER_ACTIVE_KEY = 'qrCalculatorCounterActive';
+    const PWA_PROMPT_REJECTED_KEY = 'qrCalculatorPwaRejected';
 
     let ukupno = 0;
     let povijest = [];
@@ -359,12 +373,8 @@
     let firstUseTimestamp = null;
     let adsConfiguration = { enabled: false, buttonText: "", defaultBgColor: "#f0f2f5", adsList: [] };
     let adsFooterText = ""; 
-    // NOVE VARIJABLE za fullscreen modal
-    let fullscreenState = {
-        isOpen: false,
-        adIndex: -1,
-        mediaIndex: -1
-    };
+    let fullscreenState = { isOpen: false, adIndex: -1, mediaIndex: -1 };
+    let deferredInstallPrompt = null;
 
     // DOM Elementi
     let totalDiv, totalContainer, ocistiButton, invoiceCountDiv, historyList, removeButton, duplicateWarning, loadedMsg, instructionDiv, deleteWarningDiv, shareButton, readerDiv, historyToggleButton, historyDiv, historyPageDiv, backToScannerButton, historyContentDiv, sessionNameContainer, addNameBtn, sessionNameInput, sessionNameDisplay, sessionNameText, historyStickyHeaderDiv, historyDynamicHeaderContentDiv, runningTextContainer, runningTextSpan, sharePromptOverlay, counterDeactivatedIndicator;
@@ -372,8 +382,8 @@
     let manualEntryBtn, manualEntryModalOverlay, manualAmountInput, manualTimeInput, manualAddBtn, manualCancelBtn, manualEntryErrorMsg;
     let importFileInput;
     let adsButton, adsPageDiv, adsContentDiv, backToScannerFromAdsButton;
-    // NOVI DOM Elementi za fullscreen modal
     let fullscreenModal, fullscreenContent, fullscreenCloseBtn, fullscreenPrevBtn, fullscreenNextBtn, fullscreenCounter;
+    let installPwaBtn, pwaInstallModalOverlay, pwaInstallConfirmBtn, pwaInstallLaterBtn, pwaInstallNeverBtn;
 
     let errorSoundCooldown = false;
     let ignoreErrorSoundUntil = 0;
@@ -404,7 +414,7 @@
             adsFooterText = "";
             initializeCounters();
             updateRunningText();
-            updateAdsButtonVisibility();
+            updateMainActionButtonsVisibility();
             return Promise.reject(new Error("URL za Sheet nije postavljen/ispravan"));
         }
         try {
@@ -421,7 +431,7 @@
             adsFooterText = data.adsFooterText || "";
             initializeCounters();
             updateRunningText();
-            updateAdsButtonVisibility();
+            updateMainActionButtonsVisibility();
             return Promise.resolve();
         } catch (error) {
             console.error("Greška pri dohvaćanju podataka iz Sheeta:", error);
@@ -430,12 +440,22 @@
             adsFooterText = "";
             initializeCounters();
             updateRunningText();
-            updateAdsButtonVisibility();
+            updateMainActionButtonsVisibility();
             return Promise.reject(error);
         }
     }
     function initializeCounters() { console.log("Inicijalizacija brojača..."); if (brojac === null) { console.log("Brojač 1 nije inicijaliziran, postavljanje na brojač 2."); brojac = brojac2; saveBrojac(); } else { console.log("Brojač 1 učitan s vrijednošću:", brojac); } checkSharePrompt(); updateRunningTextVisibility(); }
-    function checkOcistiButtonVisibility() { if (!ocistiButton) return; ocistiButton.style.display = (povijest.length > 0 || currentSessionName) ? 'block' : 'none'; if ((povijest.length === 0 && !currentSessionName) && ocistiConfirm) { resetOcistiMode(); } }
+  function checkOcistiButtonVisibility() {
+    if (!ocistiButton) return;
+
+    // Gumb se prikazuje SAMO ako ima računa u listi. Naziv sesije nije dovoljan.
+    ocistiButton.style.display = (povijest.length > 0) ? 'block' : 'none';
+
+    // Ako je lista postala prazna, a gumb je bio u modu za potvrdu, resetiraj ga.
+    if (povijest.length === 0 && ocistiConfirm) {
+        resetOcistiMode();
+    }
+}
     
     function updateDisplay() {
         if (totalDiv) {
@@ -455,23 +475,67 @@
             handleInfoDeleteMessageVisibility();
             checkOcistiButtonVisibility();
             updateNameDisplay();
-            updateAdsButtonVisibility();
+            updateMainActionButtonsVisibility();
         }
     };
 
-    function updateAdsButtonVisibility() {
-        if (!adsButton || !totalDiv) return;
-        const shouldShowAds = adsConfiguration.enabled && adsConfiguration.adsList && adsConfiguration.adsList.length > 0 && ukupno <= 0 && povijest.length === 0;
-        if (shouldShowAds) {
+    // =================================================================
+    // === ISPRAVLJENA FUNKCIJA ZA PRIKAZ GLAVNIH GUMBA ===
+    // =================================================================
+    function updateMainActionButtonsVisibility() {
+        if (!adsButton || !installPwaBtn || !totalDiv) {
+            // Ako ključni elementi ne postoje, prekini izvođenje
+            return;
+        }
+
+        // --- Korak 1: Definiramo uvjete za prikaz svakog gumba ---
+
+        // Uvjet za prikaz gumba za OGLASE (logika iz prve, ispravne verzije)
+        const showAdsButton = adsConfiguration.enabled &&
+                              adsConfiguration.adsList &&
+                              adsConfiguration.adsList.length > 0 &&
+                              ukupno <= 0 &&
+                              povijest.length === 0;
+
+        // Uvjet za prikaz gumba za INSTALACIJU
+        const canInstall = deferredInstallPrompt !== null;
+        const userRejectedInstall = localStorage.getItem(PWA_PROMPT_REJECTED_KEY) === 'true';
+        const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
+        const showInstallButton = canInstall &&
+                                  !userRejectedInstall &&
+                                  !isAppInstalled &&
+                                  ukupno <= 0 &&
+                                  povijest.length === 0;
+
+        // --- Korak 2: Prikazujemo ili skrivamo gumbe na temelju uvjeta ---
+
+        // Upravljanje gumbom za INSTALACIJU
+        if (showInstallButton) {
+            installPwaBtn.style.display = 'block';
+        } else {
+            installPwaBtn.style.display = 'none';
+        }
+
+        // Upravljanje gumbom za OGLASE
+        if (showAdsButton) {
             adsButton.innerText = adsConfiguration.buttonText || "POGLEDAJ PONUDE";
             adsButton.style.display = 'block';
-            totalDiv.style.display = 'none';
         } else {
             adsButton.style.display = 'none';
+        }
+
+        // --- Korak 3: Odlučujemo hoćemo li prikazati ukupan iznos ---
+
+        // Prikazujemo "UKUPNO" samo ako se NE prikazuje NIJEDAN od akcijskih gumba.
+        // To pokriva slučajeve kad je sesija aktivna (ukupno > 0) ili
+        // kad je sesija prazna, ali nema ni oglasa ni opcije za instalaciju.
+        if (!showAdsButton && !showInstallButton) {
             totalDiv.style.display = 'block';
+        } else {
+            totalDiv.style.display = 'none';
         }
     }
-
+    
     function updateSmallHistoryList() { if (!historyList || !historyDiv) return; if (povijest.length > 0) { historyDiv.style.display = 'block'; historyList.innerHTML = ''; const recentHistory = povijest; recentHistory.forEach((item, index) => { const globalIndex = povijest.length - recentHistory.length + index; const listItem = document.createElement('li'); listItem.innerText = `${globalIndex + 1}. ${item.time} - ${item.amount.toFixed(2)} €`; historyList.appendChild(listItem); }); historyDiv.scrollTop = historyDiv.scrollHeight; } else { historyDiv.style.display = 'none'; } }
     function checkRemoveButtonVisibility() { if (!removeButton) return; removeButton.style.display = (povijest.length > 0 || currentSessionName) ? 'block' : 'none'; if (povijest.length === 0 && !currentSessionName && (removeConfirm || removeNameConfirm)) resetRemoveMode(); }
     function handleInfoDeleteMessageVisibility() { const isScannerView = document.body.classList.contains('scanner-view'); if (!deleteWarningDiv || !isScannerView) { if(deleteWarningDiv) deleteWarningDiv.style.display = 'none'; return; } let shouldDisplay = false, textToShow = '', modeClass = ''; if (removeConfirm && povijest.length > 0) { const lastItem = povijest[povijest.length - 1]; textToShow = `OBRIŠI ${lastItem.time} = ${lastItem.amount.toFixed(2)} €?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (removeNameConfirm && currentSessionName) { textToShow = `OBRIŠI NAZIV "${currentSessionName}"?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length > 0 && deleteWarningDiv.dataset.lastScanText) { textToShow = deleteWarningDiv.dataset.lastScanText; modeClass = 'info-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length === 0 && currentSessionName && deleteWarningDiv.dataset.lastNameText) { textToShow = deleteWarningDiv.dataset.lastNameText; modeClass = 'info-mode'; shouldDisplay = true; } if (shouldDisplay) { deleteWarningDiv.innerText = textToShow; deleteWarningDiv.className = `delete-warning ${modeClass}`; deleteWarningDiv.style.display = 'block'; } else { deleteWarningDiv.style.display = 'none'; } }
@@ -484,7 +548,115 @@
     function startAddName() { if (!addNameBtn || !sessionNameInput || !sessionNameDisplay || !document.body.classList.contains('scanner-view')) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } playSound('click-sound'); addNameBtn.style.display = 'none'; sessionNameDisplay.style.display = 'none'; sessionNameInput.style.display = 'block'; sessionNameInput.value = currentSessionName || ''; sessionNameInput.focus(); sessionNameInput.select(); }
     function saveName() { if (!sessionNameInput || !addNameBtn || !sessionNameDisplay || !sessionNameText) return; if (sessionNameInput.style.display === 'none') { return; } const inputText = sessionNameInput.value.trim(); if (inputText === "##--##") { showTemporaryMessage(loadedMsg, "RJEŠENO"); isCounterDecrementActive = false; saveCounterActiveState(); updateDeactivatedIndicator(); sessionNameInput.value = ''; sessionNameInput.style.display = 'none'; updateNameDisplay(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_deactivate', Details: '##--##' }); return; } else if (inputText === "##00##") { showTemporaryMessage(loadedMsg, "RESETIRANO"); brojac = 0; brojac2 = 0; isCounterDecrementActive = true; saveBrojac(); saveBrojac2(); saveCounterActiveState(); localStorage.removeItem(CAMERA_ID_KEY); updateDeactivatedIndicator(); sessionNameInput.value = ''; sessionNameInput.style.display = 'none'; updateNameDisplay(); checkSharePrompt(); updateRunningTextVisibility(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_reset', Details: '##00##' }); return; } const newName = inputText; const oldName = currentSessionName; currentSessionName = newName || null; if (deleteWarningDiv) { if (currentSessionName) { deleteWarningDiv.dataset.lastNameText = `NAZIV: "${currentSessionName}"`; } else { delete deleteWarningDiv.dataset.lastNameText; } } if (oldName !== currentSessionName) { sendLogData({ Event: 'session_name_changed', Details: currentSessionName || 'removed' }); } sessionNameInput.style.display = 'none'; updateNameDisplay(); checkRemoveButtonVisibility(); handleInfoDeleteMessageVisibility(); }
     function updateNameDisplay() { if (!addNameBtn || !sessionNameDisplay || !sessionNameText) return; if (currentSessionName) { sessionNameText.textContent = currentSessionName; sessionNameDisplay.style.display = 'flex'; addNameBtn.style.display = 'none'; } else { sessionNameDisplay.style.display = 'none'; addNameBtn.style.display = 'block'; } }
-    function startRemoveFromList() { if (!removeButton || !document.body.classList.contains('scanner-view')) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (removeNameConfirm) { playSound('remove-sound'); const oldName = currentSessionName; currentSessionName = null; if (deleteWarningDiv) delete deleteWarningDiv.dataset.lastNameText; resetRemoveMode(); updateNameDisplay(); checkRemoveButtonVisibility(); sendLogData({ Event: 'session_name_removed_confirmed', Details: oldName || 'N/A' }); return; } if (removeConfirm) { if (povijest.length > 0) { const removed = povijest.pop(); ukupno -= removed.amount; playSound('remove-sound'); const removedDetails = { amount: removed.amount, time: removed.time, isManual: removed.qrCode.startsWith('MANUAL_') }; sendLogData({ Event: 'last_invoice_removed_confirmed', Details: JSON.stringify(removedDetails) }); if (povijest.length === 0 && currentSessionName) { removeButton.innerHTML = 'Obriši<br>Naziv?'; removeButton.classList.remove('red-btn'); removeButton.classList.add('yellow-btn'); removeConfirm = false; removeNameConfirm = true; if (deleteWarningDiv) { delete deleteWarningDiv.dataset.lastScanText; deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText; } handleInfoDeleteMessageVisibility(); } else { if (povijest.length > 0) { const lastItem = povijest[povijest.length - 1]; if (deleteWarningDiv) deleteWarningDiv.dataset.lastScanText = `ZADNJI RAČUN: ${lastItem.time} = ${lastItem.amount.toFixed(2)} €`; } else { if (deleteWarningDiv) delete deleteWarningDiv.dataset.lastScanText; } resetRemoveMode(); } } else { resetRemoveMode(); console.warn("Pokliknut Obriši gumb, ali nema računa ni naziva."); } updateDisplay(); return; } if (povijest.length > 0) { playSound('click-sound'); removeButton.innerText = 'Potvrdi'; removeButton.classList.remove('red-btn'); removeButton.classList.add('yellow-btn'); removeConfirm = true; removeNameConfirm = false; if (deleteWarningDiv) deleteWarningDiv.dataset.beforeConfirmText = deleteWarningDiv.dataset.lastScanText; handleInfoDeleteMessageVisibility(); sendLogData({ Event: 'last_invoice_remove_prompt' }); } else if (currentSessionName) { playSound('click-sound'); removeButton.innerHTML = 'Obriši<br>Naziv?'; removeButton.classList.remove('red-btn'); removeButton.classList.add('yellow-btn'); removeConfirm = false; removeNameConfirm = true; if (deleteWarningDiv) deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText; handleInfoDeleteMessageVisibility(); sendLogData({ Event: 'session_name_remove_prompt' }); } else { resetRemoveMode(); console.warn("Pokliknut Obriši gumb, ali nema računa ni naziva."); } }
+    
+    
+function startRemoveFromList() {
+    if (!removeButton || !document.body.classList.contains('scanner-view')) return;
+    if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') {
+        cancelManualEntry();
+    }
+    if (removeNameConfirm) {
+        playSound('remove-sound');
+        const oldName = currentSessionName;
+        currentSessionName = null;
+        if (deleteWarningDiv) delete deleteWarningDiv.dataset.lastNameText;
+        resetRemoveMode();
+        updateNameDisplay();
+        checkRemoveButtonVisibility();
+        sendLogData({
+            Event: 'session_name_removed_confirmed',
+            Details: oldName || 'N/A'
+        });
+        return;
+    }
+    if (removeConfirm) {
+        if (povijest.length > 0) {
+            const removed = povijest.pop();
+            ukupno -= removed.amount;
+
+            if (povijest.length === 0) {
+                ukupno = 0;
+                // Kada je lista prazna, obriši poruku o zadnjem računu
+                if (deleteWarningDiv) {
+                    delete deleteWarningDiv.dataset.lastScanText;
+                }
+            } else {
+                // Ažuriraj poruku da prikazuje NOVI zadnji račun
+                const lastItem = povijest[povijest.length - 1];
+                if (deleteWarningDiv) {
+                    deleteWarningDiv.dataset.lastScanText = `ZADNJI RAČUN: ${lastItem.time} = ${lastItem.amount.toFixed(2)} €`;
+                }
+            }
+
+            // *** KLJUČNI ISPRAVAK ***
+            // Obriši 'beforeConfirmText' kako ga resetRemoveMode ne bi vratio
+            if (deleteWarningDiv) {
+                delete deleteWarningDiv.dataset.beforeConfirmText;
+            }
+            // *** KRAJ ISPRAVKA ***
+
+            playSound('remove-sound');
+            const removedDetails = {
+                amount: removed.amount,
+                time: removed.time,
+                isManual: removed.qrCode.startsWith('MANUAL_')
+            };
+            sendLogData({
+                Event: 'last_invoice_removed_confirmed',
+                Details: JSON.stringify(removedDetails)
+            });
+            
+            resetRemoveMode(); // Sada je sigurno pozvati reset
+
+            if (povijest.length === 0 && currentSessionName) {
+                removeButton.innerHTML = 'Obriši<br>Naziv?';
+                removeButton.classList.remove('red-btn');
+                removeButton.classList.add('yellow-btn');
+                removeConfirm = false;
+                removeNameConfirm = true;
+                if (deleteWarningDiv) {
+                    delete deleteWarningDiv.dataset.lastScanText;
+                    deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText;
+                }
+                handleInfoDeleteMessageVisibility();
+            }
+        } else {
+            resetRemoveMode();
+            console.warn("Pokliknut Obriši gumb, ali nema računa ni naziva.");
+        }
+        updateDisplay();
+        return;
+    }
+    if (povijest.length > 0) {
+        playSound('click-sound');
+        removeButton.innerText = 'Potvrdi';
+        removeButton.classList.remove('red-btn');
+        removeButton.classList.add('yellow-btn');
+        removeConfirm = true;
+        removeNameConfirm = false;
+        if (deleteWarningDiv) deleteWarningDiv.dataset.beforeConfirmText = deleteWarningDiv.dataset.lastScanText;
+        handleInfoDeleteMessageVisibility();
+        sendLogData({
+            Event: 'last_invoice_remove_prompt'
+        });
+    } else if (currentSessionName) {
+        playSound('click-sound');
+        removeButton.innerHTML = 'Obriši<br>Naziv?';
+        removeButton.classList.remove('red-btn');
+        removeButton.classList.add('yellow-btn');
+        removeConfirm = false;
+        removeNameConfirm = true;
+        if (deleteWarningDiv) deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText;
+        handleInfoDeleteMessageVisibility();
+        sendLogData({
+            Event: 'session_name_remove_prompt'
+        });
+    } else {
+        resetRemoveMode();
+        console.warn("Pokliknut Obriši gumb, ali nema računa ni naziva.");
+    }
+}
+  
     function startOcistiConfirm() { if (!ocistiButton || !document.body.classList.contains('scanner-view')) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (!ocistiConfirm) { ocistiButton.innerHTML = ocistiConfirmText; ocistiButton.classList.add('confirm-mode'); ocistiConfirm = true; sendLogData({ Event: 'save_session_prompt' }); } else { ocistiTrenutnoSkeniranje(); resetOcistiMode(); playSound('clear-session-sound'); } }
     function ocistiTrenutnoSkeniranje() { if (povijest.length === 0 && !currentSessionName) { console.warn("Pokušaj spremanja prazne sesije."); return; } const vrijemeCiscenja = Date.now(); const sortiraniRacuniZaSpremanje = [...povijest].sort((a, b) => { const timeA = parseTime(a.time); const timeB = parseTime(b.time); if (timeA === -1 && timeB !== -1) return -1; if (timeA !== -1 && timeB === -1) return 1; if (timeA === -1 && timeB === -1) return (a.scanTimestamp || 0) - (b.scanTimestamp || 0); return timeA - timeB; }); let zadnjeValidnoVrijemeIzSortiraneListe = '??:??'; for (let i = sortiraniRacuniZaSpremanje.length - 1; i >= 0; i--) { if (sortiraniRacuniZaSpremanje[i].time && sortiraniRacuniZaSpremanje[i].time !== '??:??') { zadnjeValidnoVrijemeIzSortiraneListe = sortiraniRacuniZaSpremanje[i].time; break; } } const novaGrupa = { timestamp: vrijemeCiscenja, lastQrTime: zadnjeValidnoVrijemeIzSortiraneListe, name: currentSessionName || null, racuni: sortiraniRacuniZaSpremanje }; console.log("Spremam sesiju:", novaGrupa); let punaPovijest = loadFullHistoryFromLocalStorage(); punaPovijest.push(novaGrupa); saveFullHistoryToLocalStorage(punaPovijest); const sessionTotalAmount = novaGrupa.racuni.reduce((sum, item) => sum + item.amount, 0); const sessionDetails = { sessionName: novaGrupa.name, invoiceCount: novaGrupa.racuni.length, totalAmount: sessionTotalAmount.toFixed(2), lastQrTime: novaGrupa.lastQrTime }; const eventData = { Event: 'session_saved', Details: JSON.stringify(sessionDetails) }; sendLogData(eventData); try { localStorage.removeItem(UNSAVED_COUNT_KEY); localStorage.removeItem(UNSAVED_AMOUNT_KEY); console.log("Obrisano nesačuvano stanje nakon spremanja sesije."); } catch (lsError) { console.error("Greška brisanja nesačuvanog stanja u localStorage:", lsError); } povijest = []; ukupno = 0; currentSessionName = null; if (deleteWarningDiv) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.lastNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } resetRemoveMode(); updateDisplay(); console.log("Trenutna sesija spremljena i očišćena."); }
     function handleScan(decodedText) { if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (removeNameConfirm) resetRemoveMode(); if (removeConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (duplicateWarning) duplicateWarning.style.display = 'none'; try { const qrParts = decodedText.split('?'); if (qrParts.length < 2) throw new Error("Invalid QR format"); const params = new URLSearchParams(qrParts[1]); const iznosCentStr = params.get('izn'); const datv = params.get('datv'); if (!iznosCentStr || isNaN(parseFloat(iznosCentStr))) throw new Error("Invalid 'izn'"); const isDuplicateInCurrent = povijest.some(item => item.qrCode === decodedText); let isDuplicateInRecentSaved = false; const fullHistory = loadFullHistoryFromLocalStorage(); if (fullHistory.length > 0) { const thirtyDaysAgoTimestamp = Date.now() - (30 * 24 * 60 * 60 * 1000); const recentHistory = fullHistory.filter(grupa => grupa.timestamp >= thirtyDaysAgoTimestamp); isDuplicateInRecentSaved = recentHistory.some(grupa => grupa.racuni.some(item => item.qrCode === decodedText)); } if (isDuplicateInCurrent || isDuplicateInRecentSaved) { console.warn("Duplikat pronađen:", decodedText); if (Date.now() >= ignoreErrorSoundUntil) { playSound('error-sound'); showTemporaryMessage(duplicateWarning, "TAJ RAČUN JE URAČUNAT", 1500); if (Date.now() >= ignoreDuplicateLogUntil) { sendLogData({ Event: 'scan_duplicate' }); ignoreDuplicateLogUntil = Date.now() + DUPLICATE_LOG_COOLDOWN; console.log(`Duplicate log sent. Next duplicate log ignored until ${new Date(ignoreDuplicateLogUntil).toLocaleTimeString()}.`); } } return; } const iznosCenti = parseFloat(iznosCentStr); const iznosEura = iznosCenti / 100; let time = '??:??'; if (datv && typeof datv === 'string') { let hourStr = null, minuteStr = null; const underscoreIndex = datv.indexOf('_'); const tIndex = datv.toUpperCase().indexOf('T'); if (underscoreIndex === 8 && datv.length >= 13) { hourStr = datv.substring(9, 11); minuteStr = datv.substring(11, 13); } else if (tIndex === 8 && datv.length >= 13) { hourStr = datv.substring(9, 11); minuteStr = datv.substring(11, 13); } else if (datv.length === 12) { hourStr = datv.substring(8, 10); minuteStr = datv.substring(10, 12); } if (hourStr && minuteStr) { const hour = parseInt(hourStr, 10); const minute = parseInt(minuteStr, 10); if (!isNaN(hour) && !isNaN(minute) && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`; else time = '??:??'; } else time = '??:??'; } if (instructionDiv) instructionDiv.style.display = 'none'; const newItem = { amount: iznosEura, qrCode: decodedText, time: time, datv: datv || '', scanTimestamp: Date.now() }; povijest.push(newItem); ukupno += iznosEura; if (isCounterDecrementActive && brojac > 0) { brojac--; console.log("Brojač smanjen na:", brojac); saveBrojac(); checkSharePrompt(); } try { localStorage.setItem(UNSAVED_COUNT_KEY, povijest.length); localStorage.setItem(UNSAVED_AMOUNT_KEY, ukupno); } catch (lsError) { console.error("Greška spremanja nesačuvanog stanja u localStorage:", lsError); } playSound('scan-sound'); ignoreErrorSoundUntil = Date.now() + 2000; updateDisplay(); showTemporaryMessage(loadedMsg, "UČITANO", 1000); if (deleteWarningDiv) { deleteWarningDiv.dataset.lastScanText = `ZADNJI RAČUN: ${newItem.time} = ${newItem.amount.toFixed(2)} €`; handleInfoDeleteMessageVisibility(); } const scanDetails = { amount: newItem.amount, time: newItem.time, sessionInvoiceNumber: povijest.length }; sendLogData({ Event: 'scan_success', Details: JSON.stringify(scanDetails) }); } catch (error) { console.error("Greška obrade QR (parse error):", error, decodedText); if (Date.now() >= ignoreErrorSoundUntil) { playSound('error-sound'); showTemporaryMessage(loadedMsg, "GREŠKA SKENIRANJA!", 1500); } sendLogData({ Event: 'scan_parse_error', Details: { message: error.message, qrCodeStart: decodedText.substring(0, 50) + '...' } }); } }
@@ -498,226 +670,20 @@
     function hideManualEntryModal() { if (!manualEntryModalOverlay) return; manualEntryModalOverlay.style.display = 'none'; manualAmountInput.value = ''; manualTimeInput.value = ''; manualEntryErrorMsg.innerText = ''; manualEntryErrorMsg.style.display = 'none'; updateRunningTextVisibility(); checkSharePrompt(); updateDeactivatedIndicator(); }
     function addManualEntry() { if (!manualAmountInput || !manualTimeInput || !manualEntryErrorMsg) { console.error("Nedostaju elementi za dodavanje ručnog unosa."); return; } manualEntryErrorMsg.innerText = ''; manualEntryErrorMsg.style.display = 'none'; const amountStr = manualAmountInput.value.trim().replace(',', '.'); const timeStr = manualTimeInput.value.trim(); const parsedAmount = parseFloat(amountStr); if (isNaN(parsedAmount) || parsedAmount <= 0) { manualEntryErrorMsg.innerText = 'Molimo unesite ispravan iznos veći od 0.'; manualEntryErrorMsg.style.display = 'block'; manualAmountInput.focus(); sendLogData({ Event: 'manual_entry_add_failed', Details: 'invalid_amount' }); return; } let parsedTime = '??:??'; if (timeStr) { const timeMatch = timeStr.match(/^([0-1]?\d|2[0-3]):([0-5]?\d)$/); if (timeMatch) { const hour = parseInt(timeMatch[1], 10); const minute = parseInt(timeMatch[2], 10); parsedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`; } else { console.warn("Neispravan format vremena unesen:", timeStr); manualEntryErrorMsg.innerText = 'Upozorenje: Vrijeme nije u formatu HH:MM. Dodano kao "??:??".'; manualEntryErrorMsg.style.display = 'block'; parsedTime = '??:??'; } } const newItem = { amount: parsedAmount, qrCode: `MANUAL_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`, time: parsedTime, datv: null, scanTimestamp: Date.now() }; povijest.push(newItem); ukupno += parsedAmount; if (isCounterDecrementActive && brojac > 0) { brojac--; console.log("Brojač smanjen (ručni unos) na:", brojac); saveBrojac(); checkSharePrompt(); } try { localStorage.setItem(UNSAVED_COUNT_KEY, povijest.length); localStorage.setItem(UNSAVED_AMOUNT_KEY, ukupno); } catch (lsError) { console.error("Greška spremanja nesačuvanog stanja (ručni unos):", lsError); } updateDisplay(); showTemporaryMessage(loadedMsg, "RUČNO DODANO", 1000); playSound('scan-sound'); if (deleteWarningDiv) { deleteWarningDiv.dataset.lastScanText = `ZADNJI DODAN: ${newItem.time} = ${newItem.amount.toFixed(2)} €`; handleInfoDeleteMessageVisibility(); } hideManualEntryModal(); const manualEntryDetails = { amount: parsedAmount, time: parsedTime, sessionInvoiceNumber: povijest.length, isManual: true }; sendLogData({ Event: 'manual_entry_added', Details: JSON.stringify(manualEntryDetails) }); }
     function cancelManualEntry() { if (!manualEntryModalOverlay) return; playSound('click-sound'); hideManualEntryModal(); sendLogData({ Event: 'manual_entry_cancelled' }); }
-    
-    // === FUNKCIJE ZA PREBACIVANJE POGLEDA (VIEWS) ===
-
-    function switchToScannerView() {
-        console.log("switchToScannerView: Pokrenuto.");
-        document.body.style.backgroundColor = ''; 
-        if (document.body.classList.contains('scanner-view') && !isScannerActive) {
-            console.log("switchToScannerView: Skener nije aktivan, inicijaliziram...");
-            initializeScanner();
-        }
-        document.body.classList.remove('history-view', 'ads-view');
-        document.body.classList.add('scanner-view');
-        updateDisplay();
-        requestAnimationFrame(initializeScanner);
-        if (!visibilityListenerAttached) { attachVisibilityListener(); }
-    }
-
-    function switchToHistoryView() { 
-        console.log("switchToHistoryView: Pokrenuto."); 
-        if (document.body.classList.contains('history-view')) return; 
-        if (removeConfirm || removeNameConfirm) resetRemoveMode(); 
-        if (ocistiConfirm) resetOcistiMode(); 
-        if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } 
-        stopScanner().finally(() => { 
-            document.body.style.backgroundColor = ''; 
-            document.body.classList.remove('scanner-view', 'ads-view'); 
-            document.body.classList.add('history-view'); 
-            currentlyViewedDate = new Date(); 
-            currentlyViewedDate.setHours(0, 0, 0, 0); 
-            previousHistoryViewState = 'day-view'; 
-            renderHistoryView(currentlyViewedDate); 
-        }); 
-    }
-    
-    function switchToAdsView() {
-        console.log("switchToAdsView: Pokrenuto.");
-        playSound('click-sound');
-        sendLogData({ Event: 'ads_page_opened' });
-        stopScanner().finally(() => {
-            document.body.classList.remove('scanner-view', 'history-view');
-            document.body.classList.add('ads-view');
-            document.body.style.backgroundColor = adsConfiguration.defaultBgColor || '#f0f2f5';
-            renderAdsPage();
-        });
-    }
-
-    // === FUNKCIJE ZA OGLASE I GALERIJU ===
-
+    function globalClickListener(event) { if (cameraSelectionOverlay && cameraSelectionOverlay.style.display === 'block') { const isClickInsideOverlay = cameraSelectionOverlay.contains(event.target); const isClickOnSwitchButton = switchCameraButton && switchCameraButton.contains(event.target); if (!isClickInsideOverlay && !isClickOnSwitchButton) { cameraSelectionOverlay.style.display = 'none'; } } if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { const manualEntryModalContent = document.getElementById('manual-entry-modal-content'); const isClickInsideModalContent = manualEntryModalContent && manualEntryModalContent.contains(event.target); const isClickOnManualEntryBtn = manualEntryBtn && manualEntryBtn.contains(event.target); if (!isClickInsideModalContent && !isClickOnManualEntryBtn) { cancelManualEntry(); } } const isClickOnRemoveButton = removeButton && removeButton.contains(event.target); const isClickOnOcistiButton = ocistiButton && ocistiButton.contains(event.target); const isClickOnNameInput = sessionNameInput && sessionNameInput.contains(event.target); const isClickOnAddNameBtn = addNameBtn && addNameBtn.contains(event.target); const isClickOnEditIcon = event.target.classList.contains('edit-icon'); const isClickInsideNameArea = isClickOnNameInput || isClickOnAddNameBtn || isClickOnEditIcon; if ((removeConfirm || removeNameConfirm) && !isClickOnRemoveButton) { resetRemoveMode(); } if (ocistiConfirm && !isClickOnOcistiButton) { resetOcistiMode(); } if (sessionNameInput && sessionNameInput.style.display === 'block' && !isClickInsideNameArea) { saveName(); } }
+    function switchToScannerView() { console.log("switchToScannerView: Pokrenuto."); document.body.style.backgroundColor = ''; if (document.body.classList.contains('scanner-view') && !isScannerActive) { console.log("switchToScannerView: Skener nije aktivan, inicijaliziram..."); initializeScanner(); } document.body.classList.remove('history-view', 'ads-view'); document.body.classList.add('scanner-view'); updateDisplay(); requestAnimationFrame(initializeScanner); if (!visibilityListenerAttached) { attachVisibilityListener(); } }
+    function switchToHistoryView() { console.log("switchToHistoryView: Pokrenuto."); if (document.body.classList.contains('history-view')) return; if (removeConfirm || removeNameConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } stopScanner().finally(() => { document.body.style.backgroundColor = ''; document.body.classList.remove('scanner-view', 'ads-view'); document.body.classList.add('history-view'); currentlyViewedDate = new Date(); currentlyViewedDate.setHours(0, 0, 0, 0); previousHistoryViewState = 'day-view'; renderHistoryView(currentlyViewedDate); }); }
+    function switchToAdsView() { console.log("switchToAdsView: Pokrenuto."); playSound('click-sound'); sendLogData({ Event: 'ads_page_opened' }); stopScanner().finally(() => { document.body.classList.remove('scanner-view', 'history-view'); document.body.classList.add('ads-view'); document.body.style.backgroundColor = adsConfiguration.defaultBgColor || '#f0f2f5'; renderAdsPage(); }); }
     function generateSmartLink(contactInfo) { if (!contactInfo || typeof contactInfo !== 'string') return ''; contactInfo = contactInfo.trim(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) { return `<a href="mailto:${contactInfo}">${contactInfo}</a>`; } const phoneDigits = contactInfo.replace(/[\s-]/g, ''); if (/^(\+)?\d+$/.test(phoneDigits)) { return `<a href="tel:${phoneDigits}">${contactInfo}</a>`; } return `<span>${contactInfo}</span>`; }
-    
-    function renderAdsPage() {
-        if (!adsContentDiv) return;
-        let adsHtml = '';
-        if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) {
-            adsConfiguration.adsList.forEach((ad, adIndex) => {
-                const bgColor = ad.bgColor || '#f9f9f9';
-                const hasMedia = ad.media && ad.media.length > 0;
-                let mediaHtml = '';
-                if (hasMedia) {
-                    ad.media.forEach((item, mediaIndex) => {
-                        const activeClass = mediaIndex === 0 ? 'active' : '';
-                        if (item.type === 'image') {
-                            mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`;
-                        } else if (item.type === 'video') {
-                            if (item.src.includes('youtube.com/embed')) {
-                                mediaHtml += `<iframe src="${item.src}" class="ad-gallery-item is-iframe ${activeClass}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></iframe>`;
-                            } else {
-                                mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`;
-                            }
-                        }
-                    });
-                }
-                const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : '';
-                const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : '';
-                const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : '';
-                
-                const shareButtonHtml = `<div style="text-align: center;"><button class="ad-share-btn" data-ad-index="${adIndex}">PODIJELI</button></div>`;
-
-                adsHtml += `<div class="ad-card" id="ad-card-${adIndex}" style="background-color: ${bgColor};">
-                                ${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}
-                                ${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}
-                                ${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}
-                                ${contactHtml}
-                                ${webLinkHtml}
-                                ${shareButtonHtml}
-                            </div>`;
-            });
-        } else {
-            adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>';
-        }
-        if (adsFooterText && adsFooterText.trim() !== "") {
-            adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`;
-        }
-        adsContentDiv.innerHTML = adsHtml;
-    }
-
-    function handleAdsPageClick(event) {
-        const target = event.target;
-        if (target.matches('.ad-gallery-nav')) {
-            playSound('click-sound');
-            const adIndex = parseInt(target.dataset.adIndex, 10);
-            const direction = parseInt(target.dataset.direction, 10);
-            changeGalleryMedia(adIndex, direction);
-        }
-        if (target.matches('.ad-gallery-item') && !target.matches('iframe')) {
-            const adIndex = parseInt(target.dataset.adIndex, 10);
-            const mediaIndex = parseInt(target.dataset.mediaIndex, 10);
-            openFullscreen(adIndex, mediaIndex);
-        }
-        if (target.matches('.ad-share-btn')) {
-            playSound('click-sound');
-            const adIndex = parseInt(target.dataset.adIndex, 10);
-            handleAdShare(adIndex);
-        }
-    }
-
-    async function handleAdShare(adIndex) {
-        const ad = adsConfiguration.adsList[adIndex];
-        if (!ad) {
-            console.error("Oglas za dijeljenje nije pronađen, index:", adIndex);
-            return;
-        }
-
-        const baseUrl = window.location.href.split('#')[0];
-        const shareUrl = `${baseUrl}#ad=${adIndex}`;
-
-        // Kreiramo naslov i opis za poruku
-        const messageTitle = ad.nazivFirme || 'Zanimljiva ponuda';
-        const messageDescription = ad.tekst ? ad.tekst.substring(0, 150) : 'Pogledaj više na linku...';
-        const combinedText = `${messageTitle}\n\n${messageDescription}`;
-
-        const shareData = {
-            title: ad.nazivFirme || 'Pogledaj ponudu!',
-            text: combinedText,
-            url: shareUrl
-        };
-
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-                console.log('Oglas uspješno podijeljen');
-                sendLogData({ Event: 'ad_shared_success', Details: `Ad: ${ad.nazivFirme}` });
-            } catch (err) {
-                console.log('Dijeljenje otkazano ili neuspješno', err);
-                sendLogData({ Event: 'ad_shared_failed', Details: `Ad: ${ad.nazivFirme}, Error: ${err.name}` });
-            }
-        } else {
-            try {
-                const clipboardText = `${messageTitle}\n${shareUrl}`;
-                await navigator.clipboard.writeText(clipboardText);
-                alert('Naslov i link za oglas su kopirani!\n\n' + clipboardText);
-                sendLogData({ Event: 'ad_link_copied', Details: `Ad: ${ad.nazivFirme}` });
-            } catch (err) {
-                alert('Nije moguće kopirati link. Možete ga ručno kopirati:\n' + shareUrl);
-                console.error('Greška pri kopiranju linka: ', err);
-            }
-        }
-    }
-
-    function checkUrlForAd() {
-        const hash = window.location.hash;
-        if (hash && hash.startsWith('#ad=')) {
-            const adIndexStr = hash.substring(4);
-            const adIndex = parseInt(adIndexStr, 10);
-
-            if (!isNaN(adIndex)) {
-                console.log(`Pronađen link za oglas, index: ${adIndex}`);
-                
-                const checkDataInterval = setInterval(() => {
-                    if (adsConfiguration.adsList && adsConfiguration.adsList.length > adIndex) {
-                        clearInterval(checkDataInterval);
-                        
-                        switchToAdsView();
-
-                        setTimeout(() => {
-                            const adElement = document.getElementById(`ad-card-${adIndex}`);
-                            if (adElement) {
-                                adElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                adElement.style.transition = 'box-shadow 0.5s ease-in-out';
-                                adElement.style.boxShadow = '0 0 15px 5px rgba(40, 167, 69, 0.7)';
-                                setTimeout(() => {
-                                    adElement.style.boxShadow = '';
-                                }, 2500);
-                            }
-                        }, 300); 
-                    }
-                }, 100); 
-            }
-        }
-    }
-
+    function renderAdsPage() { if (!adsContentDiv) return; let adsHtml = ''; if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) { adsConfiguration.adsList.forEach((ad, adIndex) => { const bgColor = ad.bgColor || '#f9f9f9'; const hasMedia = ad.media && ad.media.length > 0; let mediaHtml = ''; if (hasMedia) { ad.media.forEach((item, mediaIndex) => { const activeClass = mediaIndex === 0 ? 'active' : ''; if (item.type === 'image') { mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`; } else if (item.type === 'video') { if (item.src.includes('youtube.com/embed')) { mediaHtml += `<iframe src="${item.src}" class="ad-gallery-item is-iframe ${activeClass}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></iframe>`; } else { mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`; } } }); } const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : ''; const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : ''; const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : ''; const shareButtonHtml = `<div style="text-align: center;"><button class="ad-share-btn" data-ad-index="${adIndex}">PODIJELI</button></div>`; adsHtml += `<div class="ad-card" id="ad-card-${adIndex}" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}${shareButtonHtml}</div>`; }); } else { adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>'; } if (adsFooterText && adsFooterText.trim() !== "") { adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`; } adsContentDiv.innerHTML = adsHtml; }
+    function handleAdsPageClick(event) { const target = event.target; if (target.matches('.ad-gallery-nav')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); const direction = parseInt(target.dataset.direction, 10); changeGalleryMedia(adIndex, direction); } if (target.matches('.ad-gallery-item') && !target.matches('iframe')) { const adIndex = parseInt(target.dataset.adIndex, 10); const mediaIndex = parseInt(target.dataset.mediaIndex, 10); openFullscreen(adIndex, mediaIndex); } if (target.matches('.ad-share-btn')) { playSound('click-sound'); const adIndex = parseInt(target.dataset.adIndex, 10); handleAdShare(adIndex); } }
+    async function handleAdShare(adIndex) { const ad = adsConfiguration.adsList[adIndex]; if (!ad) { console.error("Oglas za dijeljenje nije pronađen, index:", adIndex); return; } const baseUrl = window.location.href.split('#')[0].split('?')[0]; const shareUrl = `${baseUrl}#ad=${adIndex}&source=share`; const messageTitle = ad.nazivFirme || 'Zanimljiva ponuda'; const messageDescription = ad.tekst ? ad.tekst.substring(0, 150) : 'Pogledaj više na linku...'; const combinedText = `${messageTitle}\n\n${messageDescription}`; const shareData = { title: ad.nazivFirme || 'Pogledaj ponudu!', text: combinedText, url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); console.log('Oglas uspješno podijeljen'); sendLogData({ Event: 'ad_shared_success', Details: `Ad: ${ad.nazivFirme}` }); } catch (err) { console.log('Dijeljenje otkazano ili neuspješno', err); sendLogData({ Event: 'ad_shared_failed', Details: `Ad: ${ad.nazivFirme}, Error: ${err.name}` }); } } else { try { const clipboardText = `${messageTitle}\n${shareUrl}`; await navigator.clipboard.writeText(clipboardText); alert('Naslov i link za oglas su kopirani!\n\n' + clipboardText); sendLogData({ Event: 'ad_link_copied', Details: `Ad: ${ad.nazivFirme}` }); } catch (err) { alert('Nije moguće kopirati link. Možete ga ručno kopirati:\n' + shareUrl); console.error('Greška pri kopiranju linka: ', err); } } }
+    function checkUrlForAd() { const hash = window.location.hash; if (hash && hash.startsWith('#ad=')) { const adIndexStr = hash.substring(4).split('&')[0]; const adIndex = parseInt(adIndexStr, 10); if (!isNaN(adIndex)) { console.log(`Pronađen link za oglas, index: ${adIndex}`); const checkDataInterval = setInterval(() => { if (adsConfiguration.adsList && adsConfiguration.adsList.length > adIndex) { clearInterval(checkDataInterval); switchToAdsView(); setTimeout(() => { const adElement = document.getElementById(`ad-card-${adIndex}`); if (adElement) { adElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); adElement.style.transition = 'box-shadow 0.5s ease-in-out'; adElement.style.boxShadow = '0 0 15px 5px rgba(40, 167, 69, 0.7)'; setTimeout(() => { adElement.style.boxShadow = ''; }, 2500); } }, 300); } }, 100); } } }
     function changeGalleryMedia(adIndex, direction) { const gallery = document.getElementById(`gallery-ad-${adIndex}`); if (!gallery) return; const items = gallery.querySelectorAll('.ad-gallery-item'); if (items.length <= 1) return; let currentIndex = Array.from(items).findIndex(item => item.classList.contains('active')); if (currentIndex === -1) return; items[currentIndex].classList.remove('active'); if (items[currentIndex].tagName === 'VIDEO') items[currentIndex].pause(); if (items[currentIndex].tagName === 'IFRAME') { items[currentIndex].src = items[currentIndex].src; } let newIndex = (currentIndex + direction + items.length) % items.length; items[newIndex].classList.add('active'); const counter = gallery.querySelector('.ad-gallery-counter'); if (counter) counter.textContent = `${newIndex + 1} / ${items.length}`; }
     function openFullscreen(adIndex, mediaIndex) { const ad = adsConfiguration.adsList[adIndex]; if (!ad || !ad.media || ad.media.length === 0) return; fullscreenState = { isOpen: true, adIndex, mediaIndex }; updateFullscreenContent(); document.body.classList.add('fullscreen-modal-open'); fullscreenModal.style.display = 'flex'; sendLogData({ Event: 'fullscreen_ad_opened', Details: `Ad: ${ad.nazivFirme}` }); }
     function closeFullscreen() { const video = fullscreenContent.querySelector('video'); if (video) video.pause(); const iframe = fullscreenContent.querySelector('iframe'); if (iframe) iframe.src = iframe.src; fullscreenModal.style.display = 'none'; document.body.classList.remove('fullscreen-modal-open'); fullscreenState.isOpen = false; }
     function changeFullscreenMedia(direction) { if (!fullscreenState.isOpen) return; const ad = adsConfiguration.adsList[fullscreenState.adIndex]; if (!ad || ad.media.length <= 1) return; const mediaCount = ad.media.length; fullscreenState.mediaIndex = (fullscreenState.mediaIndex + direction + mediaCount) % mediaCount; updateFullscreenContent(); }
-    
-    function updateFullscreenContent() {
-        const { adIndex, mediaIndex } = fullscreenState;
-        const ad = adsConfiguration.adsList[adIndex];
-        const mediaItem = ad.media[mediaIndex];
-        let contentHtml = '';
-        if (mediaItem.type === 'image') {
-            contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`;
-        } else if (mediaItem.type === 'video') {
-            if (mediaItem.src.includes('youtube.com/embed')) {
-                contentHtml = `<iframe src="${mediaItem.src}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            } else {
-                contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`;
-            }
-        }
-        fullscreenContent.innerHTML = contentHtml;
-        const hasMultipleMedia = ad.media.length > 1;
-        fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none';
-        fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none';
-        fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none';
-        if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`;
-    }
-
-    // === OSTALE FUNKCIJE (POVIJEST, PRETRAGA, ITD.) ===
-
+    function updateFullscreenContent() { const { adIndex, mediaIndex } = fullscreenState; const ad = adsConfiguration.adsList[adIndex]; const mediaItem = ad.media[mediaIndex]; let contentHtml = ''; if (mediaItem.type === 'image') { contentHtml = `<img src="${mediaItem.src}" alt="${ad.nazivFirme}">`; } else if (mediaItem.type === 'video') { if (mediaItem.src.includes('youtube.com/embed')) { contentHtml = `<iframe src="${mediaItem.src}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`; } else { contentHtml = `<video src="${mediaItem.src}" controls autoplay></video>`; } } fullscreenContent.innerHTML = contentHtml; const hasMultipleMedia = ad.media.length > 1; fullscreenPrevBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenNextBtn.style.display = hasMultipleMedia ? 'block' : 'none'; fullscreenCounter.style.display = hasMultipleMedia ? 'block' : 'none'; if (hasMultipleMedia) fullscreenCounter.textContent = `${mediaIndex + 1} / ${ad.media.length}`; }
     function clearDynamicHeaderContent() { if (historyDynamicHeaderContentDiv) { historyDynamicHeaderContentDiv.innerHTML = ''; } }
     function renderHistoryView(dateToShow = currentlyViewedDate) { console.log("renderHistoryView: Pokrenuto za datum:", dateToShow); previousHistoryViewState = 'day-view'; currentlyViewedDate = new Date(dateToShow); currentlyViewedDate.setHours(0,0,0,0); const punaPovijest = loadFullHistoryFromLocalStorage(); if (!historyContentDiv || !historyPageDiv || !historyDynamicHeaderContentDiv) { console.error("renderHistoryView: Kritični DOM elementi nedostaju!"); return; } clearDynamicHeaderContent(); const opcijeDana = { weekday: 'long' }; const opcijeDatuma = { day: '2-digit', month: '2-digit', year: 'numeric' }; let imeDana = currentlyViewedDate.toLocaleDateString('hr-HR', opcijeDana); imeDana = imeDana.charAt(0).toUpperCase() + imeDana.slice(1); const formatiraniDatum = currentlyViewedDate.toLocaleDateString('hr-HR', opcijeDatuma); const startOfDay = new Date(currentlyViewedDate); const endOfDay = new Date(currentlyViewedDate); endOfDay.setHours(23, 59, 59, 999); const sesijeZaPrikazaniDan = punaPovijest.filter(grupa => { const grupaDate = new Date(grupa.timestamp); return grupaDate >= startOfDay && grupaDate <= endOfDay; }); sesijeZaPrikazaniDan.sort((a, b) => a.timestamp - b.timestamp); const brojRacunaOvajDan = sesijeZaPrikazaniDan.reduce((sum, grupa) => sum + grupa.racuni.length, 0); const ukupanIznosOvajDan = sesijeZaPrikazaniDan.reduce((sum, grupa) => sum + grupa.racuni.reduce((gSum, item) => gSum + item.amount, 0), 0); const dateInfoDiv = document.createElement('div'); dateInfoDiv.id = 'history-date-info'; const currentViewDateStr = getISODateString(currentlyViewedDate); const hasOtherDays = punaPovijest.some(grupa => { const grupaDateStr = getISODateString(new Date(grupa.timestamp)); return grupaDateStr && grupaDateStr !== currentViewDateStr; }); dateInfoDiv.innerHTML = `<span style="font-weight: bold;">${imeDana}, ${formatiraniDatum}</span> <button id="history-view-toggle-btn" style="background-color: yellow; color: black; padding: 0.4em 0.8em; font-size: 0.9em; font-weight: bold;" ${!hasOtherDays ? 'disabled' : ''}>OSTALI DANI ></button>`; historyDynamicHeaderContentDiv.appendChild(dateInfoDiv); const historyViewToggleButton = dateInfoDiv.querySelector('#history-view-toggle-btn'); if (historyViewToggleButton) { const newHistoryViewToggleButton = historyViewToggleButton.cloneNode(true); historyViewToggleButton.parentNode.replaceChild(newHistoryViewToggleButton, historyViewToggleButton); if (!newHistoryViewToggleButton.disabled) { newHistoryViewToggleButton.addEventListener('click', () => { playSound('click-sound'); renderAllDaysView(); }); newHistoryViewToggleButton.style.cursor = 'pointer'; newHistoryViewToggleButton.style.opacity = '1'; } else { newHistoryViewToggleButton.style.cssText += ';cursor: not-allowed; opacity: 0.7;'; } } const summaryInfoDiv = document.createElement('div'); summaryInfoDiv.id = 'history-summary-info'; summaryInfoDiv.innerHTML = `<span>RAČUNA: <span style="font-weight: bold;">${brojRacunaOvajDan}</span></span> <span style="font-weight: bold;">UKUPNO: ${ukupanIznosOvajDan.toFixed(2)} €</span>`; historyDynamicHeaderContentDiv.appendChild(summaryInfoDiv); const uputaHtml = `<p id="history-select-group-text" style="text-align: center; color: black; font-weight: bold; font-style: normal; margin-bottom: 1em; margin-top: 0.5em; font-size: 0.9em;">IZABERI SKEN ILI <button id="start-search-btn" style="background:none; border:none; padding:0; color:blue; text-decoration:underline; cursor:pointer; font-size:inherit; font-weight:bold;">(TRAŽI)</button></p>`; let sesijeHtml = '<ul id="scan-group-list" style="list-style: none; padding: 0; margin: 0;">'; if (sesijeZaPrikazaniDan.length === 0) { sesijeHtml += '<li style="text-align:center; color: grey; border: none; cursor: default; padding: 1em 0;"><i>Nema spremljenih skenova za ovaj dan.</i></li>'; } else { sesijeZaPrikazaniDan.forEach((sesija, index) => { sesijeHtml += generirajHtmlZaSpremljenuGrupu(sesija, index + 1); }); } sesijeHtml += '</ul>'; historyContentDiv.innerHTML = uputaHtml + sesijeHtml; if (sesijeZaPrikazaniDan.length > 0) { const clearDayButton = document.createElement('button'); clearDayButton.id = 'clear-day-btn'; clearDayButton.className = 'red-btn'; clearDayButton.style.margin = '2em auto 1em auto'; clearDayButton.style.display = 'block'; clearDayButton.innerText = 'IZBRIŠI OVAJ DAN'; historyContentDiv.appendChild(clearDayButton); clearDayButton.dataset.confirming = 'false'; const newClearDayBtn = clearDayButton.cloneNode(true); clearDayButton.parentNode.replaceChild(newClearDayBtn, clearDayButton); newClearDayBtn.addEventListener('click', () => { if (newClearDayBtn.disabled) return; if (newClearDayBtn.dataset.confirming !== 'true') { playSound('click-sound'); newClearDayBtn.innerText = "Potvrdi Brisanje Dana?"; newClearDayBtn.classList.add('confirm-mode'); newClearDayBtn.dataset.confirming = 'true'; sendLogData({ Event: 'delete_day_prompt', Details: getISODateString(currentlyViewedDate) }); } else { const dateToConfirmDelete = new Date(currentlyViewedDate); deleteScansForDay(dateToConfirmDelete); } }); } const groupList = document.getElementById('scan-group-list'); if (groupList) { const newGroupList = groupList.cloneNode(true); groupList.parentNode.replaceChild(newGroupList, groupList); newGroupList.addEventListener('click', (e) => { const clickedLi = e.target.closest('li[data-timestamp]'); if (clickedLi && clickedLi.dataset.timestamp) { const timestamp = clickedLi.dataset.timestamp; const punaPovijest = loadFullHistoryFromLocalStorage(); const selectedGroup = punaPovijest.find(g => String(g.timestamp) === timestamp); if (selectedGroup) { playSound('click-sound'); previousHistoryViewState = 'day-view'; renderGroupDetailView(selectedGroup); } else { console.error("Nije pronađena grupa:", timestamp); alert("Greška otvaranja detalja."); } } }); } const searchBtn = document.getElementById('start-search-btn'); if(searchBtn) { const newSearchBtn = searchBtn.cloneNode(true); searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn); newSearchBtn.addEventListener('click', startSearch); } }
     function generirajHtmlZaSpremljenuGrupu(grupa, redniBroj) { const vrijemeSpremanja = new Date(grupa.timestamp); const satiSpremanja = vrijemeSpremanja.getHours().toString().padStart(2, '0'); const minuteSpremanja = vrijemeSpremanja.getMinutes().toString().padStart(2, '0'); const vrijemeSpremanjaFormatirano = `${satiSpremanja}:${minuteSpremanja}`; const ukupnoGrupa = grupa.racuni.reduce((sum, item) => sum + item.amount, 0); const zadnjeVrijeme = grupa.lastQrTime || '??:??'; const prikazNaziva = grupa.name ? `<span class="session-name-history">${grupa.name} U ${vrijemeSpremanjaFormatirano}</span>` : `<span class="scan-time-history">SKEN U ${vrijemeSpremanjaFormatirano}</span>`; return `<li data-timestamp="${grupa.timestamp}" style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.2s ease;"><span style="flex-shrink: 0; display: inline-flex; align-items: center; min-width: 0; flex-grow: 1; overflow: hidden;"><span style="margin-right: 5px; flex-shrink: 0;">${redniBroj}.</span> ${prikazNaziva}</span><span class="scan-group-last-qr-time" style="flex-shrink: 0; margin-left: 15px;">${zadnjeVrijeme !== '??:??' ? 'zadnji iz ' + zadnjeVrijeme : ''}</span><span style="font-weight: bold; margin-left: auto; padding-left: 10px; flex-shrink: 0;">${ukupnoGrupa.toFixed(2)} €</span></span></li>`; }
@@ -734,8 +700,10 @@
     function importHistory() { playSound('click-sound'); const fileInput = document.getElementById('import-file-input'); if (!fileInput) { console.error("Input za datoteku za uvoz nije pronađen."); alert("Greška pri pokretanju uvoza."); return; } fileInput.click(); fileInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) { fileInput.value = ''; sendLogData({ Event: 'history_import_cancelled', Details: 'no_file_selected' }); return; } const reader = new FileReader(); reader.onload = (e) => { try { const rawData = e.target.result; const importedData = JSON.parse(rawData); let historyToImport = null; let unsavedToImport = null; if (Array.isArray(importedData)) { historyToImport = importedData; } else if (typeof importedData === 'object' && importedData !== null && Array.isArray(importedData.savedHistory)) { historyToImport = importedData.savedHistory; unsavedToImport = importedData.unsavedState; } else { throw new Error("Neispravan format datoteke."); } if (!historyToImport.every(group => typeof group === 'object' && group !== null && Array.isArray(group.racuni) && group.racuni.every(racun => typeof racun === 'object' && racun !== null && typeof racun.amount === 'number' && typeof racun.qrCode === 'string'))) { throw new Error("Neispravna struktura podataka."); } if (unsavedToImport) { if (typeof unsavedToImport !== 'object' || unsavedToImport === null || typeof unsavedToImport.count !== 'number' || typeof unsavedToImport.amount !== 'number' || !Array.isArray(unsavedToImport.currentSession) || (unsavedToImport.currentName !== null && typeof unsavedToImport.currentName !== 'string' && typeof unsavedToImport.currentName !== 'undefined') || !unsavedToImport.currentSession.every(racun => typeof racun === 'object' && racun !== null && typeof racun.amount === 'number' && typeof racun.qrCode === 'string')) { console.warn("Uvezeni podaci sadrže neispravno nesačuvano stanje. Ignoriram."); unsavedToImport = null; } } const confirmMessage = `Pronađeno ${historyToImport.length} spremljenih sesija ${unsavedToImport && unsavedToImport.count > 0 ? ` i nesačuvano stanje (${unsavedToImport.count} računa)` : ''}.\n\nŽelite li PREPISATI vašu trenutnu povijest?`; if (confirm(confirmMessage)) { localStorage.clear(); saveFullHistoryToLocalStorage(historyToImport); if (unsavedToImport && unsavedToImport.currentSession && unsavedToImport.currentSession.length > 0) { povijest = unsavedToImport.currentSession; ukupno = unsavedToImport.amount; currentSessionName = unsavedToImport.currentName || null; try { localStorage.setItem(UNSAVED_COUNT_KEY, povijest.length); localStorage.setItem(UNSAVED_AMOUNT_KEY, ukupno); } catch (lsError) { console.error("Greška spremanja uvezenog nesačuvanog stanja:", lsError); } } else { povijest = []; ukupno = 0; currentSessionName = null; } if (deleteWarningDiv) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.lastNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } resetRemoveMode(); resetOcistiMode(); loadCountersState(); initializeUserTracking(); updateDisplay(); alert("Povijest uspješno uvezena."); const importDetails = { savedItemCount: historyToImport.length, unsavedItemCount: unsavedToImport ? unsavedToImport.count : 0, mode: 'overwrite' }; sendLogData({ Event: 'history_imported', Details: JSON.stringify(importDetails) }); fetchSheetData().then(() => { renderAllDaysView(); }).catch(() => { renderAllDaysView(); }); } else { alert("Uvoz otkazan."); sendLogData({ Event: 'history_import_cancelled', Details: 'user_cancelled' }); } } catch (error) { console.error("Greška pri obradi datoteke za uvoz:", error); alert(`Greška pri uvozu: ${error.message}`); sendLogData({ Event: 'history_import_failed', Details: error.message }); } finally { fileInput.value = ''; } }; reader.readAsText(file); }, { once: true }); }
     function handleVisibilityChange() { if (document.visibilityState === 'visible' && document.body.classList.contains('scanner-view')) { console.log("Aplikacija postala vidljiva u Scanner View."); initializeScanner(); } else if (document.visibilityState === 'hidden') { console.log("Aplikacija postala nevidljiva, zaustavljam skener."); stopScanner(); } };
     function attachVisibilityListener() { if (visibilityListenerAttached) return; document.addEventListener("visibilitychange", handleVisibilityChange); visibilityListenerAttached = true; console.log("Visibility listener dodan."); }
-    function globalClickListener(event) { if (cameraSelectionOverlay && cameraSelectionOverlay.style.display === 'block') { const isClickInsideOverlay = cameraSelectionOverlay.contains(event.target); const isClickOnSwitchButton = switchCameraButton && switchCameraButton.contains(event.target); if (!isClickInsideOverlay && !isClickOnSwitchButton) { cameraSelectionOverlay.style.display = 'none'; } } if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { const manualEntryModalContent = document.getElementById('manual-entry-modal-content'); const isClickInsideModalContent = manualEntryModalContent && manualEntryModalContent.contains(event.target); const isClickOnManualEntryBtn = manualEntryBtn && manualEntryBtn.contains(event.target); if (!isClickInsideModalContent && !isClickOnManualEntryBtn) { cancelManualEntry(); } } const isClickOnRemoveButton = removeButton && removeButton.contains(event.target); const isClickOnOcistiButton = ocistiButton && ocistiButton.contains(event.target); const isClickOnNameInput = sessionNameInput && sessionNameInput.contains(event.target); const isClickOnAddNameBtn = addNameBtn && addNameBtn.contains(event.target); const isClickOnEditIcon = event.target.classList.contains('edit-icon'); const isClickInsideNameArea = isClickOnNameInput || isClickOnAddNameBtn || isClickOnEditIcon; if ((removeConfirm || removeNameConfirm) && !isClickOnRemoveButton) { resetRemoveMode(); } if (ocistiConfirm && !isClickOnOcistiButton) { resetOcistiMode(); } if (sessionNameInput && sessionNameInput.style.display === 'block' && !isClickInsideNameArea) { saveName(); } }
-    
+    function handleSharedLinkEntry() { const hash = window.location.hash; if (hash.includes('#ad=') && hash.includes('source=share')) { const existingUserID = localStorage.getItem(USER_ID_KEY); if (!existingUserID) { console.log("Detektiran PRVI POSJET preko podijeljenog linka."); setTimeout(() => { sendLogData({ Event: 'new_user_from_share', Details: hash }); }, 1000); setTimeout(() => { if (document.body.classList.contains('ads-view')) { const welcomeMsg = "Dobrodošli! Pogledajte ponudu, a zatim kliknite '< NA SKENER' da isprobate aplikaciju."; showTemporaryMessage(loadedMsg, welcomeMsg, 5000); } }, 1500); } } }
+    function detectInAppBrowser() { const ua = navigator.userAgent || navigator.vendor || window.opera; if ((ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("WhatsApp") > -1) || (ua.indexOf("Viber") > -1)) { console.log("Detektiran In-App preglednik."); setTimeout(() => { sendLogData({ Event: 'IN_APP_BROWSER_SESSION', Details: ua.substring(0, 100) }); }, 1000); } }
+    function initializePWA() { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; console.log('`beforeinstallprompt` događaj uhvaćen.'); updateMainActionButtonsVisibility(); }); installPwaBtn.addEventListener('click', () => { if (pwaInstallModalOverlay) pwaInstallModalOverlay.style.display = 'flex'; }); pwaInstallConfirmBtn.addEventListener('click', async () => { if (deferredInstallPrompt) { deferredInstallPrompt.prompt(); const { outcome } = await deferredInstallPrompt.userChoice; console.log(`User response to the install prompt: ${outcome}`); if (outcome === 'accepted') { sendLogData({ Event: 'APP_INSTALLED' }); } deferredInstallPrompt = null; } if (pwaInstallModalOverlay) pwaInstallModalOverlay.style.display = 'none'; updateMainActionButtonsVisibility(); }); pwaInstallLaterBtn.addEventListener('click', () => { if (pwaInstallModalOverlay) pwaInstallModalOverlay.style.display = 'none'; }); pwaInstallNeverBtn.addEventListener('click', () => { localStorage.setItem(PWA_PROMPT_REJECTED_KEY, 'true'); if (pwaInstallModalOverlay) pwaInstallModalOverlay.style.display = 'none'; updateMainActionButtonsVisibility(); sendLogData({ Event: 'INSTALL_PROMPT_REJECTED' }); }); }
+
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOM spreman...");
         totalDiv = document.getElementById('total');
@@ -781,33 +749,34 @@
         adsPageDiv = document.getElementById('ads-page');
         adsContentDiv = document.getElementById('ads-content');
         backToScannerFromAdsButton = document.getElementById('back-to-scanner-from-ads-btn');
-        
         fullscreenModal = document.getElementById('fullscreen-modal');
         fullscreenContent = document.getElementById('fullscreen-content');
         fullscreenCloseBtn = document.getElementById('fullscreen-close');
         fullscreenPrevBtn = document.getElementById('fullscreen-prev-btn');
         fullscreenNextBtn = document.getElementById('fullscreen-next-btn');
         fullscreenCounter = document.getElementById('fullscreen-counter');
+        installPwaBtn = document.getElementById('install-pwa-btn');
+        pwaInstallModalOverlay = document.getElementById('pwa-install-modal-overlay');
+        pwaInstallConfirmBtn = document.getElementById('pwa-install-confirm-btn');
+        pwaInstallLaterBtn = document.getElementById('pwa-install-later-btn');
+        pwaInstallNeverBtn = document.getElementById('pwa-install-never-btn');
 
         if (!readerDiv || !historyPageDiv || !adsPageDiv || !fullscreenModal) { console.error("GREŠKA: Nedostaju kritični DOM elementi!"); document.body.innerHTML = '<div style="padding: 20px; color: red; font-weight: bold;">Greška pri učitavanju aplikacije.</div>'; return; }
+
+        handleSharedLinkEntry();
+        detectInAppBrowser();
+        initializePWA();
 
         document.body.addEventListener('click', globalClickListener, true);
         historyToggleButton.addEventListener('click', () => { playSound('click-sound'); switchToHistoryView(); });
         backToScannerButton.addEventListener('click', () => { playSound('click-sound'); switchToScannerView(); });
         adsButton.addEventListener('click', switchToAdsView);
         backToScannerFromAdsButton.addEventListener('click', () => { playSound('click-sound'); switchToScannerView(); });
-        
         adsContentDiv.addEventListener('click', handleAdsPageClick);
         fullscreenCloseBtn.addEventListener('click', closeFullscreen);
         fullscreenPrevBtn.addEventListener('click', () => changeFullscreenMedia(-1));
         fullscreenNextBtn.addEventListener('click', () => changeFullscreenMedia(1));
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && fullscreenState.isOpen) {
-                closeFullscreen();
-            }
-        });
-
-
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fullscreenState.isOpen) { closeFullscreen(); } });
         if (navigator.share) { shareButton.style.display = 'block'; shareButton.addEventListener('click', async () => { if (removeConfirm || removeNameConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { hideManualEntryModal(); } const shareData = { title: 'QR SKENER-RAČUNATOR', text: 'Skenira i zbraja račune bez instaliranja. Isprobaj!', url: 'https://soboslikar.github.io/QR-RACUNATOR/' }; try { await navigator.share(shareData); sendLogData({ Event: 'share_success' }); } catch (err) { if (err.name === 'AbortError') { sendLogData({ Event: 'share_cancelled' }); } else { showTemporaryMessage(loadedMsg, "Dijeljenje neuspješno.", 1500); sendLogData({ Event: 'share_failed', Details: err.message }); } } finally { if (brojac === 0 && brojac2 > 0) { brojac = brojac2; saveBrojac(); sendLogData({ Event: 'share_counter_reset', Details: brojac }); } checkSharePrompt(); updateRunningTextVisibility(); updateDeactivatedIndicator(); } }); } else { shareButton.style.display = 'none'; }
         sessionNameInput.addEventListener('keydown', (e) => { if (sessionNameInput.style.display === 'none') return; if (e.key === 'Enter') { e.preventDefault(); saveName(); } else if (e.key === 'Escape') { e.preventDefault(); sessionNameInput.value = currentSessionName || ''; sessionNameInput.style.display = 'none'; updateNameDisplay(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'session_name_input_cancelled_escape' }); } });
         sessionNameInput.addEventListener('blur', saveName);
@@ -816,6 +785,16 @@
         manualAddBtn.addEventListener('click', addManualEntry);
         manualCancelBtn.addEventListener('click', cancelManualEntry);
         manualEntryModalOverlay.addEventListener('keydown', (e) => { if (manualEntryModalOverlay.style.display === 'none') return; if (e.key === 'Enter') { if (document.activeElement === manualAmountInput || document.activeElement === manualTimeInput) { e.preventDefault(); addManualEntry(); } } else if (e.key === 'Escape') { e.preventDefault(); cancelManualEntry(); } });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then((registration) => {
+                console.log('Service Worker registriran uspješno:', registration);
+            })
+            .catch((error) => {
+                console.error('Greška pri registraciji Service Workera:', error);
+            });
+        }
 
         loadCountersState();
         initializeUserTracking();
