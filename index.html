@@ -42,7 +42,10 @@
     body.ads-view #manual-entry-modal-overlay,
     body.sort-session-view #header, body.sort-session-view #scan-instruction, body.sort-session-view #reader, body.sort-session-view #loaded-message, body.sort-session-view #duplicate-warning, body.sort-session-view #total-container, body.sort-session-view #session-name-container, body.sort-session-view #invoice-count, body.sort-session-view #history, body.sort-session-view #remove-from-list-btn, body.sort-session-view #history-toggle-btn, body.sort-session-view #sort-session-btn, /* NOVO: Sakrij POSLOŽI gumb kad je sort-session-view aktivan */ body.sort-session-view #share-button, body.sort-session-view #delete-warning, body.sort-session-view #running-text-container, body.sort-session-view #share-prompt-overlay, body.sort-session-view #counter-deactivated-indicator,
     body.sort-session-view #switch-camera-btn, body.sort-session-view #camera-selection-overlay,
-    body.sort-session-view #manual-entry-modal-overlay
+    body.sort-session-view #manual-entry-modal-overlay,
+    body.scanner-view #sort-session-page, /* Dodano za skrivanje sort-session-page u scanner-view */
+    body.history-view #sort-session-page, /* Dodano za skrivanje sort-session-page u history-view */
+    body.ads-view #sort-session-page /* Dodano za skrivanje sort-session-page u ads-view */
     {
         display: none !important;
     }
@@ -174,48 +177,45 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.6em 0.2em;
+        padding: 0.8em 0.2em; /* Povećan padding za veći ispis */
         border-bottom: 1px solid #eee;
-        font-size: 1.05em;
+        font-size: 1.15em; /* Povećan font size */
+    }
+    #sort-session-list li span:first-child { /* Vrijeme */
+        font-weight: bold; /* Boldovano vrijeme */
     }
     #sort-session-list li:last-child { border-bottom: none; }
 
-    /* Novi stilovi za podnožje "POSLOŽI" ekrana */
-    #sort-session-footer {
-        position: sticky;
-        bottom: 0;
-        z-index: 10;
-        padding: 0.8em 1em;
+    /* Stilovi za UKUPNO i gumbe unutar skrolabilnog sadržaja */
+    #sort-session-summary-container-in-content {
+        margin-top: 1.5em;
+        padding-top: 1em;
         border-top: 1px solid #ccc;
-        background-color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-shrink: 0;
-        gap: 10px;
-    }
-    #sort-session-footer-left { /* Omotač za ukupno i naziv */
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        flex-grow: 1;
-        min-width: 0;
-    }
-    #sort-session-summary-info { /* Za prikaz UKUPNO i RAČUNA */
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        margin-bottom: 5px;
-        font-size: 1.1em;
-    }
-    #sort-session-invoice-count-display {
-        color: #333;
-    }
-    #sort-session-total-display {
+        text-align: right;
+        font-size: 1.2em;
         font-weight: bold;
     }
+    #sort-session-summary-container-in-content div {
+        margin-bottom: 0.5em;
+    }
+    #sort-session-actions-in-content {
+        display: flex;
+        flex-direction: column; /* Gumbi jedan ispod drugog */
+        gap: 10px;
+        margin-top: 1.5em;
+        padding-top: 1em;
+        border-top: 1px solid #eee;
+        align-items: flex-end; /* Poravnaj desno */
+    }
+    #sort-session-actions-in-content #sort-session-add-name-btn-in-content,
+    #sort-session-actions-in-content #sort-session-save-btn-in-content {
+        width: auto; /* Da se ne rastežu preko cijele širine */
+        min-width: 150px; /* Minimalna širina */
+        text-align: center;
+    }
 
-    #sort-session-footer-name-wrapper { /* Za DODAJ NAZIV / input */
+    /* Stilovi za input naziva sesije unutar skrolabilnog sadržaja */
+    #sort-session-name-wrapper-in-content {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -225,84 +225,46 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        width: 100%; /* Da zauzme punu širinu unutar flex-direction: column */
+        width: 100%;
+        justify-content: flex-end; /* Poravnaj desno */
     }
-    #sort-session-add-name-btn {
-        padding: 0.4em 0.8em;
-        font-size: 0.9em;
-        background-color: #e0e0e0;
-        color: black;
-        display: block;
-        flex-shrink: 0;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-    #sort-session-name-input {
+    #sort-session-name-input-in-content {
         font-size: 1.2em;
         padding: 0.3em 0.5em;
         border: 1px solid #ccc;
         border-radius: 4px;
         width: 100%;
-        display: none;
+        max-width: 200px; /* Ograniči širinu inputa */
         box-sizing: border-box;
-        flex-grow: 1;
+        flex-grow: 0; /* Ne rasteže se */
     }
-    #sort-session-name-display {
+    #sort-session-name-display-in-content {
         font-size: 1em;
         font-weight: bold;
         color: #333;
         background-color: #f0f0f0;
         padding: 0.3em 0.8em;
         border-radius: 5px;
-        display: none;
+        display: flex;
         align-items: center;
         gap: 8px;
-        flex-grow: 1;
+        flex-grow: 0;
         min-width: 50px;
         text-align: left;
         box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        justify-content: flex-end; /* Poravnaj desno */
+        max-width: 200px;
     }
-    #sort-session-name-display .edit-icon {
+    #sort-session-name-display-in-content .edit-icon {
         cursor: pointer;
         font-size: 0.8em;
         font-weight: normal;
         color: #666;
         text-decoration: underline;
         flex-shrink: 0;
-    }
-    #sort-session-save-btn {
-        background-color: green;
-        color: white;
-        padding: 0.6em 1.2em;
-        font-size: 1.1em;
-        font-weight: bold;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        flex-shrink: 0;
-    }
-    #sort-session-save-btn:active {
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
-    }
-    #sort-session-clear-all-btn {
-        background-color: #ff0000;
-        color: yellow;
-        padding: 0.4em 0.8em;
-        font-size: 0.9em;
-        font-weight: bold;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        flex-shrink: 0;
-    }
-    #sort-session-clear-all-btn.confirm-mode {
-        background-color: yellow;
-        color: black;
     }
 
 
@@ -469,24 +431,24 @@
           <ul id="sort-session-list">
               <!-- Ovdje će se dinamički dodavati računi -->
           </ul>
-      </div>
-      <div id="sort-session-footer">
-          <div id="sort-session-footer-left">
-              <div id="sort-session-summary-info">
-                  <span id="sort-session-invoice-count-display">RAČUNA: 0</span>
-                  <span id="sort-session-total-display">UKUPNO: 0.00 €</span>
-              </div>
-              <div id="sort-session-footer-name-wrapper">
-                  <button id="sort-session-add-name-btn">DODAJ NAZIV</button>
-                  <input type="text" id="sort-session-name-input" placeholder="Unesi naziv sesije..." maxlength="30">
-                  <span id="sort-session-name-display">
-                      <span id="sort-session-name-text"></span>
-                      <span class="edit-icon" onclick="startSortSessionAddName()">Uredi</span>
+          <!-- UKUPNO i gumbi unutar skrolabilnog sadržaja -->
+          <div id="sort-session-summary-container-in-content">
+              <div id="sort-session-invoice-count-display">RAČUNA: 0</div>
+              <div id="sort-session-total-display">UKUPNO: 0.00 €</div>
+          </div>
+          <div id="sort-session-actions-in-content">
+              <div id="sort-session-name-wrapper-in-content">
+                  <button id="sort-session-add-name-btn-in-content">DODAJ NAZIV</button>
+                  <input type="text" id="sort-session-name-input-in-content" placeholder="Unesi naziv sesije..." maxlength="30">
+                  <span id="sort-session-name-display-in-content">
+                      <span id="sort-session-name-text-in-content"></span>
+                      <span class="edit-icon" onclick="startSortSessionAddNameInContent()">Uredi</span>
                   </span>
               </div>
+              <button id="sort-session-save-btn-in-content">SPREMI</button>
           </div>
-          <button id="sort-session-save-btn">SPREMI</button>
       </div>
+      <!-- Fiksno podnožje je uklonjeno -->
   </div>
 
   <div id="manual-entry-modal-overlay" style="display: none;">
@@ -590,8 +552,10 @@
     let fullscreenModal, fullscreenContent, fullscreenCloseBtn, fullscreenPrevBtn, fullscreenNextBtn, fullscreenCounter;
     let installPwaBtn, pwaInstallModalOverlay, pwaInstallConfirmBtn, pwaInstallLaterBtn, pwaInstallNeverBtn;
 
-    // NOVI DOM ELEMENTI ZA SORT-SESSION EKRAN
-    let sortSessionPageDiv, sortSessionStickyHeaderDiv, sortSessionHeaderDiv, backToScannerFromSortBtn, sortSessionClearAllBtn, sortSessionContentDiv, sortSessionListUl, sortSessionFooterDiv, sortSessionFooterLeftDiv, sortSessionSummaryInfoDiv, sortSessionInvoiceCountDisplay, sortSessionTotalDisplay, sortSessionFooterNameWrapperDiv, sortSessionAddNameBtn, sortSessionNameInput, sortSessionNameDisplay, sortSessionNameText, sortSessionSaveBtn;
+    // NOVI DOM ELEMENTI ZA SORT-SESSION EKRAN (AŽURIRANI)
+    let sortSessionPageDiv, sortSessionStickyHeaderDiv, sortSessionHeaderDiv, backToScannerFromSortBtn, sortSessionClearAllBtn, sortSessionContentDiv, sortSessionListUl;
+    let sortSessionSummaryContainerInContent, sortSessionInvoiceCountDisplayInContent, sortSessionTotalDisplayInContent; // NOVO: In-content summary
+    let sortSessionActionsInContent, sortSessionAddNameBtnInContent, sortSessionNameInputInContent, sortSessionNameDisplayInContent, sortSessionNameTextInContent, sortSessionSaveBtnInContent; // NOVO: In-content actions
 
 
     let errorSoundCooldown = false;
@@ -688,8 +652,8 @@
             updateHistoryAndSortButtonsVisibility(); // NOVO: Ažuriranje vidljivosti gumba POVIJEST i POSLOŽI
         } else if (document.body.classList.contains('sort-session-view')) { // NOVO: Ažuriraj prikaz na sort-session ekranu
             renderSortSessionList();
-            updateSortSessionNameDisplay();
-            updateSortSessionSummary(); // NOVO: Ažuriraj ukupne iznose u podnožju sort-session ekrana
+            updateSortSessionNameDisplayInContent(); // Ažuriraj prikaz naziva
+            updateSortSessionSummaryInContent(); // Ažuriraj ukupne iznose
         }
     };
 
@@ -769,14 +733,23 @@
     function checkRemoveButtonVisibility() { if (!removeButton) return; removeButton.style.display = (povijest.length > 0 || currentSessionName) ? 'block' : 'none'; if (povijest.length === 0 && !currentSessionName && (removeConfirm || removeNameConfirm)) resetRemoveMode(); }
     function handleInfoDeleteMessageVisibility() { const isScannerView = document.body.classList.contains('scanner-view'); if (!deleteWarningDiv || !isScannerView) { if(deleteWarningDiv) deleteWarningDiv.style.display = 'none'; return; } let shouldDisplay = false, textToShow = '', modeClass = ''; if (removeConfirm && povijest.length > 0) { const lastItem = povijest[povijest.length - 1]; textToShow = `OBRIŠI ${lastItem.time} = ${lastItem.amount.toFixed(2)} €?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (removeNameConfirm && currentSessionName) { textToShow = `OBRIŠI NAZIV "${currentSessionName}"?`; modeClass = 'delete-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length > 0 && deleteWarningDiv.dataset.lastScanText) { textToShow = deleteWarningDiv.dataset.lastScanText; modeClass = 'info-mode'; shouldDisplay = true; } else if (!removeConfirm && !removeNameConfirm && povijest.length === 0 && currentSessionName && deleteWarningDiv.dataset.lastNameText) { textToShow = deleteWarningDiv.dataset.lastNameText; modeClass = 'info-mode'; shouldDisplay = true; } if (shouldDisplay) { deleteWarningDiv.innerText = textToShow; deleteWarningDiv.className = `delete-warning ${modeClass}`; deleteWarningDiv.style.display = 'block'; } else { deleteWarningDiv.style.display = 'none'; } }
     function updateRunningText() { if (runningTextSpan) { runningTextSpan.textContent = tekstPoruka; if (tekstPoruka && tekstPoruka.length > 0) { const textLength = tekstPoruka.length; let duration = textLength * SECONDS_PER_CHARACTER; duration = Math.max(MIN_MARQUEE_DURATION, Math.min(MAX_MARQUEE_DURATION, duration)); duration = Math.max(duration, 0.1); runningTextSpan.style.animation = 'none'; requestAnimationFrame(() => { runningTextSpan.offsetHeight; runningTextSpan.style.animation = `marquee ${duration}s linear infinite`; }); } else { runningTextSpan.style.animation = 'none'; } } updateRunningTextVisibility(); }
-    function updateRunningTextVisibility() { const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex'; const isSortSessionViewActive = document.body.classList.contains('sort-session-view'); // NOVO
-        const shouldShowText = tekstPoruka && (!sharePromptOverlay || sharePromptOverlay.style.display === 'none') && !isManualEntryModalOpen && document.body.classList.contains('scanner-view') && !isSortSessionViewActive; // NOVO
-        if (runningTextContainer) { runningTextContainer.style.display = shouldShowText ? 'block' : 'none'; } }
-    function checkSharePrompt() { const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex'; const isSortSessionViewActive = document.body.classList.contains('sort-session-view'); // NOVO
-        const shouldShowPrompt = brojac === 0 && brojac2 > 0 && !isManualEntryModalOpen && document.body.classList.contains('scanner-view') && !isSortSessionViewActive; // NOVO
-        if (sharePromptOverlay) { sharePromptOverlay.style.display = shouldShowPrompt ? 'flex' : 'none'; updateRunningTextVisibility(); } }
-    function updateDeactivatedIndicator() { const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex'; const isSortSessionViewActive = document.body.classList.contains('sort-session-view'); // NOVO
-        if (counterDeactivatedIndicator) { counterDeactivatedIndicator.style.display = (!isCounterDecrementActive && document.body.classList.contains('scanner-view') && !isManualEntryModalOpen && !isSortSessionViewActive) ? 'block' : 'none'; } } // NOVO
+    function updateRunningTextVisibility() {
+        const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex';
+        const isSortSessionViewActive = document.body.classList.contains('sort-session-view');
+        const shouldShowText = tekstPoruka && (!sharePromptOverlay || sharePromptOverlay.style.display === 'none') && !isManualEntryModalOpen && document.body.classList.contains('scanner-view') && !isSortSessionViewActive;
+        if (runningTextContainer) { runningTextContainer.style.display = shouldShowText ? 'block' : 'none'; }
+    }
+    function checkSharePrompt() {
+        const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex';
+        const isSortSessionViewActive = document.body.classList.contains('sort-session-view');
+        const shouldShowPrompt = brojac === 0 && brojac2 > 0 && !isManualEntryModalOpen && document.body.classList.contains('scanner-view') && !isSortSessionViewActive;
+        if (sharePromptOverlay) { sharePromptOverlay.style.display = shouldShowPrompt ? 'flex' : 'none'; updateRunningTextVisibility(); }
+    }
+    function updateDeactivatedIndicator() {
+        const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex';
+        const isSortSessionViewActive = document.body.classList.contains('sort-session-view');
+        if (counterDeactivatedIndicator) { counterDeactivatedIndicator.style.display = (!isCounterDecrementActive && document.body.classList.contains('scanner-view') && !isManualEntryModalOpen && !isSortSessionViewActive) ? 'block' : 'none'; }
+    }
     function resetRemoveMode() { if (!removeButton) return; removeButton.innerText = removeBtnInitialText; removeButton.classList.remove('yellow-btn'); removeButton.classList.add('red-btn'); removeConfirm = false; removeNameConfirm = false; if (deleteWarningDiv) { if (deleteWarningDiv.dataset.beforeConfirmText) { deleteWarningDiv.dataset.lastScanText = deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.beforeConfirmText; } else if (deleteWarningDiv.dataset.beforeConfirmNameText) { deleteWarningDiv.dataset.lastNameText = deleteWarningDiv.dataset.beforeConfirmNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } else if (povijest.length === 0 && !currentSessionName) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.lastNameText; } } handleInfoDeleteMessageVisibility(); checkRemoveButtonVisibility(); }
     function resetOcistiMode() { if (!ocistiButton) return; ocistiButton.innerHTML = ocistiBtnInitialText; ocistiButton.classList.remove('confirm-mode'); ocistiConfirm = false; checkOcistiButtonVisibility(); }
 
@@ -800,16 +773,16 @@
         sessionNameInput.select();
     }
 
-    // NOVO: Funkcija za dodavanje naziva na Sort Session ekranu
-    function startSortSessionAddName() {
-        if (!sortSessionAddNameBtn || !sortSessionNameInput || !sortSessionNameDisplay || !document.body.classList.contains('sort-session-view')) return;
+    // NOVO: Funkcija za dodavanje naziva na Sort Session ekranu (in-content)
+    function startSortSessionAddNameInContent() {
+        if (!sortSessionAddNameBtnInContent || !sortSessionNameInputInContent || !sortSessionNameDisplayInContent || !document.body.classList.contains('sort-session-view')) return;
         playSound('click-sound');
-        sortSessionAddNameBtn.style.display = 'none';
-        sortSessionNameDisplay.style.display = 'none';
-        sortSessionNameInput.style.display = 'block';
-        sortSessionNameInput.value = currentSessionName || '';
-        sortSessionNameInput.focus();
-        sortSessionNameInput.select();
+        sortSessionAddNameBtnInContent.style.display = 'none';
+        sortSessionNameDisplayInContent.style.display = 'none';
+        sortSessionNameInputInContent.style.display = 'block';
+        sortSessionNameInputInContent.value = currentSessionName || '';
+        sortSessionNameInputInContent.focus();
+        sortSessionNameInputInContent.select();
     }
 
     function saveName() {
@@ -867,19 +840,19 @@
         handleInfoDeleteMessageVisibility();
     }
 
-    // NOVO: Funkcija za spremanje naziva na Sort Session ekranu
-    function saveSortSessionName() {
-        if (!sortSessionNameInput || !sortSessionAddNameBtn || !sortSessionNameDisplay || !sortSessionNameText) return;
-        if (sortSessionNameInput.style.display === 'none') { return; } // Samo ako je input bio vidljiv
-        const inputText = sortSessionNameInput.value.trim();
+    // NOVO: Funkcija za spremanje naziva na Sort Session ekranu (in-content)
+    function saveSortSessionNameInContent() {
+        if (!sortSessionNameInputInContent || !sortSessionAddNameBtnInContent || !sortSessionNameDisplayInContent || !sortSessionNameTextInContent) return;
+        if (sortSessionNameInputInContent.style.display === 'none') { return; } // Samo ako je input bio vidljiv
+        const inputText = sortSessionNameInputInContent.value.trim();
         const newName = inputText;
         const oldName = currentSessionName;
         currentSessionName = newName || null;
         if (oldName !== currentSessionName) {
             sendLogData({ Event: 'session_name_changed_from_sort_screen', Details: currentSessionName || 'removed' });
         }
-        sortSessionNameInput.style.display = 'none';
-        updateSortSessionNameDisplay();
+        sortSessionNameInputInContent.style.display = 'none';
+        updateSortSessionNameDisplayInContent();
     }
 
     function updateNameDisplay() {
@@ -894,29 +867,29 @@
         }
     }
 
-    // NOVO: Funkcija za ažuriranje prikaza naziva na Sort Session ekranu
-    function updateSortSessionNameDisplay() {
-        if (!sortSessionAddNameBtn || !sortSessionNameDisplay || !sortSessionNameText) return;
+    // NOVO: Funkcija za ažuriranje prikaza naziva na Sort Session ekranu (in-content)
+    function updateSortSessionNameDisplayInContent() {
+        if (!sortSessionAddNameBtnInContent || !sortSessionNameDisplayInContent || !sortSessionNameTextInContent) return;
         if (currentSessionName) {
-            sortSessionNameText.textContent = currentSessionName;
-            sortSessionNameDisplay.style.display = 'flex';
-            sortSessionAddNameBtn.style.display = 'none';
+            sortSessionNameTextInContent.textContent = currentSessionName;
+            sortSessionNameDisplayInContent.style.display = 'flex';
+            sortSessionAddNameBtnInContent.style.display = 'none';
         } else {
-            sortSessionNameDisplay.style.display = 'none';
-            sortSessionAddNameBtn.style.display = 'block';
+            sortSessionNameDisplayInContent.style.display = 'none';
+            sortSessionAddNameBtnInContent.style.display = 'block';
         }
     }
     
-    // NOVO: Ažuriranje prikaza ukupnih iznosa i broja računa na Sort Session ekranu
-    function updateSortSessionSummary() {
-        if (!sortSessionInvoiceCountDisplay || !sortSessionTotalDisplay) return;
+    // NOVO: Ažuriranje prikaza ukupnih iznosa i broja računa na Sort Session ekranu (in-content)
+    function updateSortSessionSummaryInContent() {
+        if (!sortSessionInvoiceCountDisplayInContent || !sortSessionTotalDisplayInContent) return;
 
-        sortSessionInvoiceCountDisplay.textContent = `RAČUNA: ${povijest.length}`;
+        sortSessionInvoiceCountDisplayInContent.textContent = `RAČUNA: ${povijest.length}`;
         let formattedTotal = ukupno.toFixed(2);
         if (formattedTotal === '-0.00') {
             formattedTotal = '0.00';
         }
-        sortSessionTotalDisplay.textContent = `UKUPNO: ${formattedTotal} €`;
+        sortSessionTotalDisplayInContent.textContent = `UKUPNO: ${formattedTotal} €`;
     }
     
     function startRemoveFromList() {
@@ -1129,11 +1102,11 @@
         const isClickOnEditIcon = event.target.classList.contains('edit-icon');
         const isClickInsideNameArea = isClickOnNameInput || isClickOnAddNameBtn || isClickOnEditIcon;
 
-        // NOVO: za sort-session name input
-        const isClickOnSortSessionNameInput = sortSessionNameInput && sortSessionNameInput.contains(event.target);
-        const isClickOnSortSessionAddNameBtn = sortSessionAddNameBtn && sortSessionAddNameBtn.contains(event.target);
-        const isClickOnSortSessionEditIcon = event.target.closest('#sort-session-name-display .edit-icon');
-        const isClickInsideSortSessionNameArea = isClickOnSortSessionNameInput || isClickOnSortSessionAddNameBtn || isClickOnSortSessionEditIcon;
+        // NOVO: za sort-session name input (in-content)
+        const isClickOnSortSessionNameInputInContent = sortSessionNameInputInContent && sortSessionNameInputInContent.contains(event.target);
+        const isClickOnSortSessionAddNameBtnInContent = sortSessionAddNameBtnInContent && sortSessionAddNameBtnInContent.contains(event.target);
+        const isClickOnSortSessionEditIconInContent = event.target.closest('#sort-session-name-display-in-content .edit-icon');
+        const isClickInsideSortSessionNameAreaInContent = isClickOnSortSessionNameInputInContent || isClickOnSortSessionAddNameBtnInContent || isClickOnSortSessionEditIconInContent;
 
 
         if ((removeConfirm || removeNameConfirm) && !isClickOnRemoveButton) {
@@ -1145,9 +1118,9 @@
         if (sessionNameInput && sessionNameInput.style.display === 'block' && !isClickInsideNameArea) {
             saveName();
         }
-        // NOVO: za sort-session name input
-        if (sortSessionNameInput && sortSessionNameInput.style.display === 'block' && !isClickInsideSortSessionNameArea) {
-            saveSortSessionName();
+        // NOVO: za sort-session name input (in-content)
+        if (sortSessionNameInputInContent && sortSessionNameInputInContent.style.display === 'block' && !isClickInsideSortSessionNameAreaInContent) {
+            saveSortSessionNameInContent();
         }
         // NOVO: Resetiranje potvrde za brisanje na Sort Session ekranu
         const isClickOnSortSessionClearAllBtn = sortSessionClearAllBtn && sortSessionClearAllBtn.contains(event.target);
@@ -1218,9 +1191,9 @@
             document.body.classList.remove('scanner-view', 'history-view', 'ads-view');
             document.body.classList.add('sort-session-view');
             document.body.style.backgroundColor = 'white'; // Ili neka defaultna boja za ovaj ekran
-            renderSortSessionList();
-            updateSortSessionNameDisplay(); // Prikaz naziva sesije na novom ekranu
-            updateSortSessionSummary(); // Ažuriraj ukupne iznose u podnožju
+            renderSortSessionList(); // Renderuje listu, ukupno i gumbe
+            updateSortSessionNameDisplayInContent(); // Prikaz naziva sesije na novom ekranu
+            updateSortSessionSummaryInContent(); // Ažuriraj ukupne iznose u podnožju
             resetSortSessionClearAllMode(); // Osiguraj da gumb za brisanje nije u confirm modu
         });
     }
@@ -1332,7 +1305,7 @@
 
     // NOVO: Funkcija za renderiranje liste računa na Sort Session ekranu
     function renderSortSessionList() {
-        if (!sortSessionContentDiv || !sortSessionListUl) return;
+        if (!sortSessionContentDiv || !sortSessionListUl || !sortSessionSummaryContainerInContent || !sortSessionActionsInContent) return;
 
         // Sortiraj račune po vremenu (HH:MM), noviji idu ispod (tj. stariji na vrhu)
         const sortedPovijest = [...povijest].sort((a, b) => {
@@ -1351,6 +1324,13 @@
 
         if (sortedPovijest.length === 0) {
             sortSessionContentDiv.innerHTML = '<p style="text-align: center; color: grey; padding: 1em 0;"><i>Nema računa u trenutnoj sesiji.</i></p>';
+            // Ukloni summary i actions ako nema računa
+            if (sortSessionContentDiv.contains(sortSessionSummaryContainerInContent)) {
+                sortSessionSummaryContainerInContent.remove();
+            }
+            if (sortSessionContentDiv.contains(sortSessionActionsInContent)) {
+                sortSessionActionsInContent.remove();
+            }
         } else {
             // Ukloni placeholder ako ima računa
             const placeholder = sortSessionContentDiv.querySelector('p');
@@ -1358,14 +1338,24 @@
 
             sortedPovijest.forEach((item, index) => {
                 const listItem = document.createElement('li');
-                listItem.innerHTML = `<span>${index + 1}. ${item.time}</span><span style="font-weight: bold;">${item.amount.toFixed(2)} €</span>`;
+                listItem.innerHTML = `<span>${index + 1}. <b>${item.time}</b></span><span style="font-weight: bold;">${item.amount.toFixed(2)} €</span>`;
                 sortSessionListUl.appendChild(listItem);
             });
             // Dodaj listu ako već nije dodana
             if (!sortSessionContentDiv.contains(sortSessionListUl)) {
                 sortSessionContentDiv.appendChild(sortSessionListUl);
             }
+
+            // Dodaj summary i actions na kraj sadržaja
+            if (!sortSessionContentDiv.contains(sortSessionSummaryContainerInContent)) {
+                sortSessionContentDiv.appendChild(sortSessionSummaryContainerInContent);
+            }
+            if (!sortSessionContentDiv.contains(sortSessionActionsInContent)) {
+                sortSessionContentDiv.appendChild(sortSessionActionsInContent);
+            }
         }
+        updateSortSessionSummaryInContent(); // Ažuriraj ukupne iznose
+        updateSortSessionNameDisplayInContent(); // Ažuriraj prikaz naziva
     }
 
     // NOVO: Funkcija za brisanje svih računa iz trenutne sesije na Sort Session ekranu
@@ -1397,9 +1387,7 @@
             resetRemoveMode(); // Resetiraj i gumb na skeneru
             resetSortSessionClearAllMode();
             updateDisplay(); // Ažuriraj prikaz na skeneru (broj računa, ukupno)
-            renderSortSessionList(); // Ažuriraj prikaz na Sort Session ekranu
-            updateSortSessionNameDisplay(); // Ažuriraj prikaz naziva na Sort Session ekranu
-            updateSortSessionSummary(); // Ažuriraj ukupne iznose u podnožju
+            // renderSortSessionList() i updateSortSessionNameDisplayInContent() će se pozvati preko updateDisplay()
             sendLogData({ Event: 'current_session_cleared_confirmed_from_sort_screen', Details: JSON.stringify(sessionDetails) });
         }
     }
@@ -1463,7 +1451,7 @@
         pwaInstallLaterBtn = document.getElementById('pwa-install-later-btn');
         pwaInstallNeverBtn = document.getElementById('pwa-install-never-btn');
 
-        // NOVO: Dohvaćanje DOM elemenata za Sort Session ekran
+        // NOVO: Dohvaćanje DOM elemenata za Sort Session ekran (AŽURIRANO)
         sortSessionPageDiv = document.getElementById('sort-session-page');
         sortSessionStickyHeaderDiv = document.getElementById('sort-session-sticky-header');
         sortSessionHeaderDiv = document.getElementById('sort-session-header');
@@ -1471,17 +1459,19 @@
         sortSessionClearAllBtn = document.getElementById('sort-session-clear-all-btn');
         sortSessionContentDiv = document.getElementById('sort-session-content');
         sortSessionListUl = document.getElementById('sort-session-list');
-        sortSessionFooterDiv = document.getElementById('sort-session-footer');
-        sortSessionFooterLeftDiv = document.getElementById('sort-session-footer-left'); // NOVO
-        sortSessionSummaryInfoDiv = document.getElementById('sort-session-summary-info'); // NOVO
-        sortSessionInvoiceCountDisplay = document.getElementById('sort-session-invoice-count-display'); // NOVO
-        sortSessionTotalDisplay = document.getElementById('sort-session-total-display'); // NOVO
-        sortSessionFooterNameWrapperDiv = document.getElementById('sort-session-footer-name-wrapper');
-        sortSessionAddNameBtn = document.getElementById('sort-session-add-name-btn');
-        sortSessionNameInput = document.getElementById('sort-session-name-input');
-        sortSessionNameDisplay = document.getElementById('sort-session-name-display');
-        sortSessionNameText = document.getElementById('sort-session-name-text');
-        sortSessionSaveBtn = document.getElementById('sort-session-save-btn');
+        
+        // In-content summary elements
+        sortSessionSummaryContainerInContent = document.getElementById('sort-session-summary-container-in-content');
+        sortSessionInvoiceCountDisplayInContent = document.getElementById('sort-session-invoice-count-display');
+        sortSessionTotalDisplayInContent = document.getElementById('sort-session-total-display');
+
+        // In-content actions elements
+        sortSessionActionsInContent = document.getElementById('sort-session-actions-in-content');
+        sortSessionAddNameBtnInContent = document.getElementById('sort-session-add-name-btn-in-content');
+        sortSessionNameInputInContent = document.getElementById('sort-session-name-input-in-content');
+        sortSessionNameDisplayInContent = document.getElementById('sort-session-name-display-in-content');
+        sortSessionNameTextInContent = document.getElementById('sort-session-name-text-in-content');
+        sortSessionSaveBtnInContent = document.getElementById('sort-session-save-btn-in-content');
 
 
         if (!readerDiv || !historyPageDiv || !adsPageDiv || !sortSessionPageDiv || !fullscreenModal) { // NOVO: Dodan sortSessionPageDiv
@@ -1500,22 +1490,24 @@
         backToScannerButton.addEventListener('click', () => { playSound('click-sound'); switchToScannerView(); });
         backToScannerFromSortBtn.addEventListener('click', () => { playSound('click-sound'); switchToScannerView(); }); // NOVO: Event listener za povratak sa Sort Session ekrana
         sortSessionClearAllBtn.addEventListener('click', clearCurrentSessionFromSortScreen); // NOVO: Event listener za OBRIŠI SVE na Sort Session ekranu
-        sortSessionAddNameBtn.addEventListener('click', startSortSessionAddName); // NOVO: Event listener za DODAJ NAZIV na Sort Session ekranu
-        sortSessionNameInput.addEventListener('keydown', (e) => { // NOVO: Event listener za input na Sort Session ekranu
-            if (sortSessionNameInput.style.display === 'none') return;
+        
+        // NOVO: Event listeneri za in-content gumbe i inpute
+        sortSessionAddNameBtnInContent.addEventListener('click', startSortSessionAddNameInContent);
+        sortSessionNameInputInContent.addEventListener('keydown', (e) => {
+            if (sortSessionNameInputInContent.style.display === 'none') return;
             if (e.key === 'Enter') {
                 e.preventDefault();
-                saveSortSessionName();
+                saveSortSessionNameInContent();
             } else if (e.key === 'Escape') {
                 e.preventDefault();
-                sortSessionNameInput.value = currentSessionName || '';
-                sortSessionNameInput.style.display = 'none';
-                updateSortSessionNameDisplay();
+                sortSessionNameInputInContent.value = currentSessionName || '';
+                sortSessionNameInputInContent.style.display = 'none';
+                updateSortSessionNameDisplayInContent();
                 sendLogData({ Event: 'sort_session_name_input_cancelled_escape' });
             }
         });
-        sortSessionNameInput.addEventListener('blur', saveSortSessionName); // NOVO: Event listener za blur na Sort Session inputu
-        sortSessionSaveBtn.addEventListener('click', () => { // NOVO: Event listener za SPREMI na Sort Session ekranu
+        sortSessionNameInputInContent.addEventListener('blur', saveSortSessionNameInContent);
+        sortSessionSaveBtnInContent.addEventListener('click', () => {
             playSound('clear-session-sound');
             ocistiTrenutnoSkeniranje(); // Koristi postojeću funkciju za spremanje i čišćenje
             switchToScannerView(); // Vrati se na skener
@@ -1574,7 +1566,6 @@
         });
     });
 </script>
-
   <!-- Statcounter kod -->
   <script type="text/javascript"> var sc_project=12702047; var sc_invisible=1; var sc_security="e75d2592"; var scJsHost = "https://"; (function() { var sc = document.createElement('script'); sc.type = 'text/javascript'; sc.async = true; sc.src = scJsHost + "statcounter.com/counter/counter.js"; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s); })(); </script>
   <noscript><div class="statcounter"><a title="Web Analytics" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/12702047/0/e75d2592/1/" alt="Web Analytics" referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
