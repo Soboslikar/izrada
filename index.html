@@ -117,7 +117,8 @@
     #history-header h1, #ads-header h1, #sort-header h1 { margin: 0; text-align: center; flex-grow: 1; font-size: 1.3em; }
     #back-to-scanner-btn, #back-to-scanner-from-ads-btn, #back-to-scanner-from-sort-btn { background-color: green; color: white; border: none; font-weight: bold; margin: 0; padding: 0.4em 0.8em; font-size: 0.9em; cursor: pointer; }
     #back-to-scanner-btn:active, #back-to-scanner-from-ads-btn:active, #back-to-scanner-from-sort-btn:active { background-color: darkgreen; }
-    #history-content, #ads-content, #sort-content { flex-grow: 1; overflow-y: auto; padding: 1em; position: relative; }
+    #history-content, #ads-content { flex-grow: 1; overflow-y: auto; padding: 1em; position: relative; }
+    #sort-content { flex-grow: 1; overflow-y: auto; padding: 1em 1em 0 1em; /* Smanjen donji padding */ }
 
     /* NOVI STILOVI ZA SORT PAGE */
     #sort-clear-all-btn {
@@ -127,69 +128,28 @@
         padding: 0.4em 0.8em;
         font-size: 0.9em;
     }
-    #sort-clear-all-btn.confirm-mode {
-        background-color: yellow;
-        color: black;
-    }
-    #sort-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 1.2em;
-    }
-    #sort-list li {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.7em 0.2em;
-        border-bottom: 1px solid #eee;
-    }
-    #sort-list li:last-child {
-        border-bottom: none;
-    }
-    #sort-list .invoice-time {
-        color: #333;
-    }
-    #sort-list .invoice-amount {
-        font-weight: bold;
-    }
-    #sort-sticky-footer {
-        position: sticky;
-        bottom: 0;
-        background-color: white;
-        padding: 1em;
-        border-top: 1px solid #ccc;
-        flex-shrink: 0;
-    }
-    #sort-summary-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 1.1em;
-        font-weight: bold;
-        margin-bottom: 1em;
-    }
-    #sort-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 1em;
-    }
-    #sort-add-name-btn, #sort-save-btn {
-        flex-grow: 1;
-        padding: 0.8em;
-        font-size: 1.1em;
-        font-weight: bold;
-    }
-    #sort-add-name-btn {
-        background-color: #e0e0e0;
-        color: black;
-    }
-    #sort-save-btn {
-        background-color: green;
-        color: white;
-    }
-    #sort-save-btn.confirm-mode {
-        background-color: yellow;
-        color: black;
-    }
+    #sort-clear-all-btn.confirm-mode { background-color: yellow; color: black; }
+    #sort-list { list-style: none; padding: 0; margin: 0; font-size: 1.2em; }
+    #sort-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.7em 0.2em; border-bottom: 1px solid #eee; transition: opacity 0.3s ease; }
+    #sort-list li:last-child { border-bottom: none; }
+    #sort-list .invoice-details { flex-grow: 1; display: flex; justify-content: space-between; }
+    #sort-list .invoice-time { color: #333; }
+    #sort-list .invoice-amount { font-weight: bold; padding-right: 1em; /* Pomak ulijevo */ }
+    #sort-list .discard-toggle { cursor: pointer; font-size: 1.2em; line-height: 1; padding: 0.2em 0.5em; border-radius: 5px; user-select: none; width: 2em; text-align: center; }
+    #sort-list li:not(.discarded) .discard-toggle { color: green; }
+    #sort-list li.discarded .discard-toggle { color: #ccc; }
+    #sort-list li.discarded { opacity: 0.5; }
+    #sort-list li.discarded .invoice-details { text-decoration: line-through; }
+
+    #sort-sticky-footer { position: sticky; bottom: 0; background-color: white; padding: 0.8em 1em 1em 1em; /* Smanjen padding */ border-top: 1px solid #ccc; flex-shrink: 0; }
+    #sort-summary-info { display: flex; justify-content: space-between; font-size: 1.2em; /* Povećan font */ font-weight: bold; margin-bottom: 1em; }
+    #sort-actions { display: flex; justify-content: space-between; gap: 1em; }
+    #sort-name-wrapper { flex-grow: 1; } /* Omotač za gumbe/input */
+    #sort-add-name-btn, #sort-save-btn { width: 100%; padding: 0.8em; font-size: 1.1em; font-weight: bold; box-sizing: border-box; }
+    #sort-add-name-btn { background-color: #e0e0e0; color: black; }
+    #sort-save-btn { background-color: green; color: white; flex-shrink: 0; flex-basis: 50%; }
+    #sort-save-btn.confirm-mode { background-color: yellow; color: black; }
+    #sort-name-input { font-size: 1.1em; padding: 0.8em; border: 1px solid #ccc; border-radius: 5px; width: 100%; display: none; box-sizing: border-box; }
     /* KRAJ NOVIH STILOVA */
 
     .ad-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -360,7 +320,10 @@
               <span id="sort-summary-total">UKUPNO: 0.00 €</span>
           </div>
           <div id="sort-actions">
-              <button id="sort-add-name-btn">DODAJ NAZIV</button>
+              <div id="sort-name-wrapper">
+                  <button id="sort-add-name-btn">DODAJ NAZIV</button>
+                  <input type="text" id="sort-name-input" placeholder="Unesi naziv..." maxlength="30">
+              </div>
               <button id="sort-save-btn">SPREMI</button>
           </div>
       </div>
@@ -457,6 +420,8 @@
     let adsFooterText = ""; 
     let fullscreenState = { isOpen: false, adIndex: -1, mediaIndex: -1 };
     let deferredInstallPrompt = null;
+    let discardedInvoices = new Set(); // NOVO: Za praćenje odbačenih računa
+    let sortPageTotal = 0; // NOVO: Za ukupan iznos na stranici za sortiranje
 
     // DOM Elementi
     let totalDiv, totalContainer, ocistiButton, invoiceCountDiv, historyList, removeButton, duplicateWarning, loadedMsg, instructionDiv, deleteWarningDiv, shareButton, readerDiv, historyToggleButton, historyDiv, historyPageDiv, backToScannerButton, historyContentDiv, sessionNameContainer, addNameBtn, sessionNameInput, sessionNameDisplay, sessionNameText, historyStickyHeaderDiv, historyDynamicHeaderContentDiv, runningTextContainer, runningTextSpan, sharePromptOverlay, counterDeactivatedIndicator;
@@ -467,7 +432,7 @@
     let fullscreenModal, fullscreenContent, fullscreenCloseBtn, fullscreenPrevBtn, fullscreenNextBtn, fullscreenCounter;
     let installPwaBtn, pwaInstallModalOverlay, pwaInstallConfirmBtn, pwaInstallLaterBtn, pwaInstallNeverBtn;
     // NOVI DOM ELEMENTI ZA SORT PAGE
-    let sortPageDiv, backToScannerFromSortBtn, sortClearAllBtn, sortContentDiv, sortListUl, sortSummaryCountSpan, sortSummaryTotalSpan, sortAddNameBtn, sortSaveBtn;
+    let sortPageDiv, backToScannerFromSortBtn, sortClearAllBtn, sortContentDiv, sortListUl, sortSummaryCountSpan, sortSummaryTotalSpan, sortAddNameBtn, sortSaveBtn, sortNameInput, sortNameWrapper;
 
 
     let errorSoundCooldown = false;
@@ -557,11 +522,10 @@
             checkOcistiButtonVisibility();
             updateNameDisplay();
             updateMainActionButtonsVisibility();
-            updateHistoryToggleButton(); // NOVA FUNKCIJA
+            updateHistoryToggleButton(); 
         }
     };
 
-    // NOVA FUNKCIJA za ažuriranje gumba POVIJEST/POSLOŽI
     function updateHistoryToggleButton() {
         if (!historyToggleButton) return;
         if (povijest.length >= 2) {
@@ -617,9 +581,9 @@
     function updateDeactivatedIndicator() { const isManualEntryModalOpen = manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex'; if (counterDeactivatedIndicator) { counterDeactivatedIndicator.style.display = (!isCounterDecrementActive && document.body.classList.contains('scanner-view') && !isManualEntryModalOpen) ? 'block' : 'none'; } }
     function resetRemoveMode() { if (!removeButton) return; removeButton.innerText = removeBtnInitialText; removeButton.classList.remove('yellow-btn'); removeButton.classList.add('red-btn'); removeConfirm = false; removeNameConfirm = false; if (deleteWarningDiv) { if (deleteWarningDiv.dataset.beforeConfirmText) { deleteWarningDiv.dataset.lastScanText = deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.beforeConfirmText; } else if (deleteWarningDiv.dataset.beforeConfirmNameText) { deleteWarningDiv.dataset.lastNameText = deleteWarningDiv.dataset.beforeConfirmNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } else if (povijest.length === 0 && !currentSessionName) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.lastNameText; } } handleInfoDeleteMessageVisibility(); checkRemoveButtonVisibility(); }
     function resetOcistiMode() { if (!ocistiButton) return; ocistiButton.innerHTML = ocistiBtnInitialText; ocistiButton.classList.remove('confirm-mode'); ocistiConfirm = false; checkOcistiButtonVisibility(); }
-    function startAddName() { if (!addNameBtn || !sessionNameInput || !sessionNameDisplay) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } playSound('click-sound'); addNameBtn.style.display = 'none'; sessionNameDisplay.style.display = 'none'; sessionNameInput.style.display = 'block'; sessionNameInput.value = currentSessionName || ''; sessionNameInput.focus(); sessionNameInput.select(); }
-    function saveName() { if (!sessionNameInput || !addNameBtn || !sessionNameDisplay || !sessionNameText) return; if (sessionNameInput.style.display === 'none') { return; } const inputText = sessionNameInput.value.trim(); if (inputText === "##--##") { showTemporaryMessage(loadedMsg, "RJEŠENO"); isCounterDecrementActive = false; saveCounterActiveState(); updateDeactivatedIndicator(); sessionNameInput.value = ''; sessionNameInput.style.display = 'none'; updateNameDisplay(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_deactivate', Details: '##--##' }); return; } else if (inputText === "##00##") { showTemporaryMessage(loadedMsg, "RESETIRANO"); brojac = 0; brojac2 = 0; isCounterDecrementActive = true; saveBrojac(); saveBrojac2(); saveCounterActiveState(); localStorage.removeItem(CAMERA_ID_KEY); updateDeactivatedIndicator(); sessionNameInput.value = ''; sessionNameInput.style.display = 'none'; updateNameDisplay(); checkSharePrompt(); updateRunningTextVisibility(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_reset', Details: '##00##' }); return; } const newName = inputText; const oldName = currentSessionName; currentSessionName = newName || null; if (deleteWarningDiv) { if (currentSessionName) { deleteWarningDiv.dataset.lastNameText = `NAZIV: "${currentSessionName}"`; } else { delete deleteWarningDiv.dataset.lastNameText; } } if (oldName !== currentSessionName) { sendLogData({ Event: 'session_name_changed', Details: currentSessionName || 'removed' }); } sessionNameInput.style.display = 'none'; updateNameDisplay(); checkRemoveButtonVisibility(); handleInfoDeleteMessageVisibility(); }
-    function updateNameDisplay() { if (!addNameBtn || !sessionNameDisplay || !sessionNameText) return; if (currentSessionName) { sessionNameText.textContent = currentSessionName; sessionNameDisplay.style.display = 'flex'; addNameBtn.style.display = 'none'; } else { sessionNameDisplay.style.display = 'none'; addNameBtn.style.display = 'block'; } }
+    function startAddName() { if (document.body.classList.contains('scanner-view')) { if (!addNameBtn || !sessionNameInput || !sessionNameDisplay) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } playSound('click-sound'); addNameBtn.style.display = 'none'; sessionNameDisplay.style.display = 'none'; sessionNameInput.style.display = 'block'; sessionNameInput.value = currentSessionName || ''; sessionNameInput.focus(); sessionNameInput.select(); } else if (document.body.classList.contains('sort-view')) { if (!sortAddNameBtn || !sortNameInput) return; playSound('click-sound'); sortAddNameBtn.style.display = 'none'; sortNameInput.style.display = 'block'; sortNameInput.value = currentSessionName || ''; sortNameInput.focus(); sortNameInput.select(); } }
+    function saveName() { let nameInput, addBtn; if (document.body.classList.contains('scanner-view')) { if (sessionNameInput.style.display === 'none') return; nameInput = sessionNameInput; addBtn = addNameBtn; } else if (document.body.classList.contains('sort-view')) { if (sortNameInput.style.display === 'none') return; nameInput = sortNameInput; addBtn = sortAddNameBtn; } else { return; } const inputText = nameInput.value.trim(); if (inputText === "##--##") { showTemporaryMessage(loadedMsg, "RJEŠENO"); isCounterDecrementActive = false; saveCounterActiveState(); updateDeactivatedIndicator(); nameInput.value = ''; nameInput.style.display = 'none'; if(addBtn) addBtn.style.display = 'block'; updateNameDisplay(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_deactivate', Details: '##--##' }); return; } else if (inputText === "##00##") { showTemporaryMessage(loadedMsg, "RESETIRANO"); brojac = 0; brojac2 = 0; isCounterDecrementActive = true; saveBrojac(); saveBrojac2(); saveCounterActiveState(); localStorage.removeItem(CAMERA_ID_KEY); updateDeactivatedIndicator(); nameInput.value = ''; nameInput.style.display = 'none'; if(addBtn) addBtn.style.display = 'block'; updateNameDisplay(); checkSharePrompt(); updateRunningTextVisibility(); checkRemoveButtonVisibility(); if(removeNameConfirm) resetRemoveMode(); sendLogData({ Event: 'cheat_code_reset', Details: '##00##' }); return; } const newName = inputText; const oldName = currentSessionName; currentSessionName = newName || null; if (deleteWarningDiv) { if (currentSessionName) { deleteWarningDiv.dataset.lastNameText = `NAZIV: "${currentSessionName}"`; } else { delete deleteWarningDiv.dataset.lastNameText; } } if (oldName !== currentSessionName) { sendLogData({ Event: 'session_name_changed', Details: currentSessionName || 'removed' }); } nameInput.style.display = 'none'; updateNameDisplay(); checkRemoveButtonVisibility(); handleInfoDeleteMessageVisibility(); }
+    function updateNameDisplay() { if (document.body.classList.contains('scanner-view')) { if (!addNameBtn || !sessionNameDisplay || !sessionNameText) return; if (currentSessionName) { sessionNameText.textContent = currentSessionName; sessionNameDisplay.style.display = 'flex'; addNameBtn.style.display = 'none'; } else { sessionNameDisplay.style.display = 'none'; addNameBtn.style.display = 'block'; } } else if (document.body.classList.contains('sort-view')) { if (!sortAddNameBtn || !sortNameInput) return; if (currentSessionName) { sortAddNameBtn.textContent = `NAZIV: ${currentSessionName}`; } else { sortAddNameBtn.textContent = 'DODAJ NAZIV'; } sortNameInput.style.display = 'none'; sortAddNameBtn.style.display = 'block'; } }
     
     
 function startRemoveFromList() {
@@ -683,7 +647,7 @@ function startRemoveFromList() {
                 removeNameConfirm = true;
                 if (deleteWarningDiv) {
                     delete deleteWarningDiv.dataset.lastScanText;
-                    deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText;
+                    delete deleteWarningDiv.dataset.beforeConfirmNameText = deleteWarningDiv.innerText;
                 }
                 handleInfoDeleteMessageVisibility();
             }
@@ -725,7 +689,7 @@ function startRemoveFromList() {
 }
   
     function startOcistiConfirm() { if (!ocistiButton || !document.body.classList.contains('scanner-view')) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (!ocistiConfirm) { ocistiButton.innerHTML = ocistiConfirmText; ocistiButton.classList.add('confirm-mode'); ocistiConfirm = true; sendLogData({ Event: 'save_session_prompt' }); } else { ocistiTrenutnoSkeniranje(); resetOcistiMode(); playSound('clear-session-sound'); } }
-    function ocistiTrenutnoSkeniranje() { if (povijest.length === 0 && !currentSessionName) { console.warn("Pokušaj spremanja prazne sesije."); return; } const vrijemeCiscenja = Date.now(); const sortiraniRacuniZaSpremanje = [...povijest].sort((a, b) => { const timeA = parseTime(a.time); const timeB = parseTime(b.time); if (timeA === -1 && timeB !== -1) return -1; if (timeA !== -1 && timeB === -1) return 1; if (timeA === -1 && timeB === -1) return (a.scanTimestamp || 0) - (b.scanTimestamp || 0); return timeA - timeB; }); let zadnjeValidnoVrijemeIzSortiraneListe = '??:??'; for (let i = sortiraniRacuniZaSpremanje.length - 1; i >= 0; i--) { if (sortiraniRacuniZaSpremanje[i].time && sortiraniRacuniZaSpremanje[i].time !== '??:??') { zadnjeValidnoVrijemeIzSortiraneListe = sortiraniRacuniZaSpremanje[i].time; break; } } const novaGrupa = { timestamp: vrijemeCiscenja, lastQrTime: zadnjeValidnoVrijemeIzSortiraneListe, name: currentSessionName || null, racuni: sortiraniRacuniZaSpremanje }; console.log("Spremam sesiju:", novaGrupa); let punaPovijest = loadFullHistoryFromLocalStorage(); punaPovijest.push(novaGrupa); saveFullHistoryToLocalStorage(punaPovijest); const sessionTotalAmount = novaGrupa.racuni.reduce((sum, item) => sum + item.amount, 0); const sessionDetails = { sessionName: novaGrupa.name, invoiceCount: novaGrupa.racuni.length, totalAmount: sessionTotalAmount.toFixed(2), lastQrTime: novaGrupa.lastQrTime }; const eventData = { Event: 'session_saved', Details: JSON.stringify(sessionDetails) }; sendLogData(eventData); try { localStorage.removeItem(UNSAVED_COUNT_KEY); localStorage.removeItem(UNSAVED_AMOUNT_KEY); console.log("Obrisano nesačuvano stanje nakon spremanja sesije."); } catch (lsError) { console.error("Greška brisanja nesačuvanog stanja u localStorage:", lsError); } povijest = []; ukupno = 0; currentSessionName = null; if (deleteWarningDiv) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.lastNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } resetRemoveMode(); updateDisplay(); console.log("Trenutna sesija spremljena i očišćena."); }
+    function ocistiTrenutnoSkeniranje(invoicesToSave = povijest) { if (invoicesToSave.length === 0 && !currentSessionName) { console.warn("Pokušaj spremanja prazne sesije."); return; } const vrijemeCiscenja = Date.now(); const sortiraniRacuniZaSpremanje = [...invoicesToSave].sort((a, b) => { const timeA = parseTime(a.time); const timeB = parseTime(b.time); if (timeA === -1 && timeB !== -1) return -1; if (timeA !== -1 && timeB === -1) return 1; if (timeA === -1 && timeB === -1) return (a.scanTimestamp || 0) - (b.scanTimestamp || 0); return timeA - timeB; }); let zadnjeValidnoVrijemeIzSortiraneListe = '??:??'; for (let i = sortiraniRacuniZaSpremanje.length - 1; i >= 0; i--) { if (sortiraniRacuniZaSpremanje[i].time && sortiraniRacuniZaSpremanje[i].time !== '??:??') { zadnjeValidnoVrijemeIzSortiraneListe = sortiraniRacuniZaSpremanje[i].time; break; } } const novaGrupa = { timestamp: vrijemeCiscenja, lastQrTime: zadnjeValidnoVrijemeIzSortiraneListe, name: currentSessionName || null, racuni: sortiraniRacuniZaSpremanje }; console.log("Spremam sesiju:", novaGrupa); let punaPovijest = loadFullHistoryFromLocalStorage(); punaPovijest.push(novaGrupa); saveFullHistoryToLocalStorage(punaPovijest); const sessionTotalAmount = novaGrupa.racuni.reduce((sum, item) => sum + item.amount, 0); const sessionDetails = { sessionName: novaGrupa.name, invoiceCount: novaGrupa.racuni.length, totalAmount: sessionTotalAmount.toFixed(2), lastQrTime: novaGrupa.lastQrTime }; const eventData = { Event: 'session_saved', Details: JSON.stringify(sessionDetails) }; sendLogData(eventData); try { localStorage.removeItem(UNSAVED_COUNT_KEY); localStorage.removeItem(UNSAVED_AMOUNT_KEY); console.log("Obrisano nesačuvano stanje nakon spremanja sesije."); } catch (lsError) { console.error("Greška brisanja nesačuvanog stanja u localStorage:", lsError); } povijest = []; ukupno = 0; currentSessionName = null; if (deleteWarningDiv) { delete deleteWarningDiv.dataset.lastScanText; delete deleteWarningDiv.dataset.beforeConfirmText; delete deleteWarningDiv.dataset.lastNameText; delete deleteWarningDiv.dataset.beforeConfirmNameText; } resetRemoveMode(); updateDisplay(); console.log("Trenutna sesija spremljena i očišćena."); }
     function handleScan(decodedText) { if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (removeNameConfirm) resetRemoveMode(); if (removeConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (duplicateWarning) duplicateWarning.style.display = 'none'; try { const qrParts = decodedText.split('?'); if (qrParts.length < 2) throw new Error("Invalid QR format"); const params = new URLSearchParams(qrParts[1]); const iznosCentStr = params.get('izn'); const datv = params.get('datv'); if (!iznosCentStr || isNaN(parseFloat(iznosCentStr))) throw new Error("Invalid 'izn'"); const isDuplicateInCurrent = povijest.some(item => item.qrCode === decodedText); let isDuplicateInRecentSaved = false; const fullHistory = loadFullHistoryFromLocalStorage(); if (fullHistory.length > 0) { const thirtyDaysAgoTimestamp = Date.now() - (30 * 24 * 60 * 60 * 1000); const recentHistory = fullHistory.filter(grupa => grupa.timestamp >= thirtyDaysAgoTimestamp); isDuplicateInRecentSaved = recentHistory.some(grupa => grupa.racuni.some(item => item.qrCode === decodedText)); } if (isDuplicateInCurrent || isDuplicateInRecentSaved) { console.warn("Duplikat pronađen:", decodedText); if (Date.now() >= ignoreErrorSoundUntil) { playSound('error-sound'); showTemporaryMessage(duplicateWarning, "TAJ RAČUN JE URAČUNAT", 1500); if (Date.now() >= ignoreDuplicateLogUntil) { sendLogData({ Event: 'scan_duplicate' }); ignoreDuplicateLogUntil = Date.now() + DUPLICATE_LOG_COOLDOWN; console.log(`Duplicate log sent. Next duplicate log ignored until ${new Date(ignoreDuplicateLogUntil).toLocaleTimeString()}.`); } } return; } const iznosCenti = parseFloat(iznosCentStr); const iznosEura = iznosCenti / 100; let time = '??:??'; if (datv && typeof datv === 'string') { let hourStr = null, minuteStr = null; const underscoreIndex = datv.indexOf('_'); const tIndex = datv.toUpperCase().indexOf('T'); if (underscoreIndex === 8 && datv.length >= 13) { hourStr = datv.substring(9, 11); minuteStr = datv.substring(11, 13); } else if (tIndex === 8 && datv.length >= 13) { hourStr = datv.substring(9, 11); minuteStr = datv.substring(11, 13); } else if (datv.length === 12) { hourStr = datv.substring(8, 10); minuteStr = datv.substring(10, 12); } if (hourStr && minuteStr) { const hour = parseInt(hourStr, 10); const minute = parseInt(minuteStr, 10); if (!isNaN(hour) && !isNaN(minute) && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`; else time = '??:??'; } else time = '??:??'; } if (instructionDiv) instructionDiv.style.display = 'none'; const newItem = { amount: iznosEura, qrCode: decodedText, time: time, datv: datv || '', scanTimestamp: Date.now() }; povijest.push(newItem); ukupno += iznosEura; if (isCounterDecrementActive && brojac > 0) { brojac--; console.log("Brojač smanjen na:", brojac); saveBrojac(); checkSharePrompt(); } try { localStorage.setItem(UNSAVED_COUNT_KEY, povijest.length); localStorage.setItem(UNSAVED_AMOUNT_KEY, ukupno); } catch (lsError) { console.error("Greška spremanja nesačuvanog stanja u localStorage:", lsError); } playSound('scan-sound'); ignoreErrorSoundUntil = Date.now() + 2000; updateDisplay(); showTemporaryMessage(loadedMsg, "UČITANO", 1000); if (deleteWarningDiv) { deleteWarningDiv.dataset.lastScanText = `ZADNJI RAČUN: ${newItem.time} = ${newItem.amount.toFixed(2)} €`; handleInfoDeleteMessageVisibility(); } const scanDetails = { amount: newItem.amount, time: newItem.time, sessionInvoiceNumber: povijest.length }; sendLogData({ Event: 'scan_success', Details: JSON.stringify(scanDetails) }); } catch (error) { console.error("Greška obrade QR (parse error):", error, decodedText); if (Date.now() >= ignoreErrorSoundUntil) { playSound('error-sound'); showTemporaryMessage(loadedMsg, "GREŠKA SKENIRANJA!", 1500); } sendLogData({ Event: 'scan_parse_error', Details: { message: error.message, qrCodeStart: decodedText.substring(0, 50) + '...' } }); } }
     function isElementOrParentHidden(element) { if (!element) return true; while (element && element !== document.body) { if (window.getComputedStyle(element).display === 'none') return true; element = element.parentElement; } return false; }
     function startScannerWithCameraSelection(devices, qrConfig) { if (!devices || devices.length === 0) { if (readerDiv) readerDiv.innerHTML = '<div style="padding: 20px; color: red;">Nema dostupnih kamera na uređaju.</div>'; console.warn("Nema dostupnih kamera za startanje skenera."); if (instructionDiv) instructionDiv.style.display = 'none'; if (switchCameraButton) switchCameraButton.style.display = 'none'; isScannerActive = false; html5QrCodeInstance = null; return; } let selectedCameraId = null; const savedCameraId = localStorage.getItem(CAMERA_ID_KEY); if (savedCameraId) { const cameraExists = devices.some(d => d.id === savedCameraId); if (cameraExists) { console.log("Koristim spremljenu kameru:", savedCameraId); selectedCameraId = savedCameraId; } else { console.warn("Spremljena kamera nije pronađena, brišem iz localStorage."); localStorage.removeItem(CAMERA_ID_KEY); } } if (!selectedCameraId) { const rearCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('zadnja') || d.label.toLowerCase().includes('environment')); if (rearCamera) { console.log("Koristim pronađenu stražnju kameru:", rearCamera.id); selectedCameraId = rearCamera.id; } else { console.log("Nema stražnje kamere, koristim prvu dostupnu:", devices[0].id); selectedCameraId = devices[0].id; } } if (!selectedCameraId && devices.length > 0) { selectedCameraId = devices[0].id; console.warn("Fallback na prvu kameru ID:", selectedCameraId); } if (!selectedCameraId) { console.error("Kritična greška: Nije bilo moguće odabrati kameru za start."); if (readerDiv) readerDiv.innerHTML = '<div style="padding: 20px; color: red;">Greška: Nije moguće odabrati kameru.</div>'; if (instructionDiv) instructionDiv.style.display = 'none'; if (switchCameraButton) switchCameraButton.style.display = 'none'; isScannerActive = false; html5QrCodeInstance = null; return; } const finalCameraId = selectedCameraId; requestAnimationFrame(() => { if (!html5QrCodeInstance || isScannerActive || !document.body.classList.contains('scanner-view')) { return; } if (isElementOrParentHidden(readerDiv)) { if (readerDiv) readerDiv.innerHTML = '<div style="padding:20px; color: red;">Greška: Reader element je skriven.</div>'; console.error("[startScannerWithCameraSelection][rAF] Reader je skriven, ne mogu startati kameru."); isScannerActive = false; html5QrCodeInstance = null; return; } console.log(`[startScannerWithCameraSelection][rAF] Pokušavam startati kameru: ${finalCameraId}`); html5QrCodeInstance.start( finalCameraId, qrConfig, handleScan, (errorMessage) => { /* Ignoriraj */ } ).then(() => { console.log(`>>> [startScannerWithCameraSelection][rAF] start() OK za kameru: ${finalCameraId}`); isScannerActive = true; localStorage.setItem(CAMERA_ID_KEY, finalCameraId); console.log("Spremljen ID aktivne kamere u localStorage:", finalCameraId); if (switchCameraButton && availableCameras.length > 1) { switchCameraButton.style.display = 'block'; } setTimeout(() => { if (instructionDiv && document.body.classList.contains('scanner-view')) { instructionDiv.style.display = 'block'; } }, 50); }).catch(err => { console.error(`>>> [startScannerWithCameraSelection][rAF] start() FAILED za kameru ${finalCameraId}:`, err); isScannerActive = false; html5QrCodeInstance = null; if (readerDiv) readerDiv.innerHTML = `<div style="padding: 20px; color: red;">Greška startanja kamere (${err.name || err.message || err}). Provjerite dozvole ili pokušajte odabrati drugu kameru.</div>`; if (instructionDiv) instructionDiv.style.display = 'none'; if (switchCameraButton && availableCameras.length > 1) { switchCameraButton.style.display = 'block'; } sendLogData({ Event: 'camera_start_failed', Details: { cameraId: finalCameraId, errorName: err.name, errorMessage: err.message } }); }); }); }
@@ -737,12 +701,11 @@ function startRemoveFromList() {
     function hideManualEntryModal() { if (!manualEntryModalOverlay) return; manualEntryModalOverlay.style.display = 'none'; manualAmountInput.value = ''; manualTimeInput.value = ''; manualEntryErrorMsg.innerText = ''; manualEntryErrorMsg.style.display = 'none'; updateRunningTextVisibility(); checkSharePrompt(); updateDeactivatedIndicator(); }
     function addManualEntry() { if (!manualAmountInput || !manualTimeInput || !manualEntryErrorMsg) { console.error("Nedostaju elementi za dodavanje ručnog unosa."); return; } manualEntryErrorMsg.innerText = ''; manualEntryErrorMsg.style.display = 'none'; const amountStr = manualAmountInput.value.trim().replace(',', '.'); const timeStr = manualTimeInput.value.trim(); const parsedAmount = parseFloat(amountStr); if (isNaN(parsedAmount) || parsedAmount <= 0) { manualEntryErrorMsg.innerText = 'Molimo unesite ispravan iznos veći od 0.'; manualEntryErrorMsg.style.display = 'block'; manualAmountInput.focus(); sendLogData({ Event: 'manual_entry_add_failed', Details: 'invalid_amount' }); return; } let parsedTime = '??:??'; if (timeStr) { const timeMatch = timeStr.match(/^([0-1]?\d|2[0-3]):([0-5]?\d)$/); if (timeMatch) { const hour = parseInt(timeMatch[1], 10); const minute = parseInt(timeMatch[2], 10); parsedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`; } else { console.warn("Neispravan format vremena unesen:", timeStr); manualEntryErrorMsg.innerText = 'Upozorenje: Vrijeme nije u formatu HH:MM. Dodano kao "??:??".'; manualEntryErrorMsg.style.display = 'block'; parsedTime = '??:??'; } } const newItem = { amount: parsedAmount, qrCode: `MANUAL_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`, time: parsedTime, datv: null, scanTimestamp: Date.now() }; povijest.push(newItem); ukupno += parsedAmount; if (isCounterDecrementActive && brojac > 0) { brojac--; console.log("Brojač smanjen (ručni unos) na:", brojac); saveBrojac(); checkSharePrompt(); } try { localStorage.setItem(UNSAVED_COUNT_KEY, povijest.length); localStorage.setItem(UNSAVED_AMOUNT_KEY, ukupno); } catch (lsError) { console.error("Greška spremanja nesačuvanog stanja (ručni unos):", lsError); } updateDisplay(); showTemporaryMessage(loadedMsg, "RUČNO DODANO", 1000); playSound('scan-sound'); if (deleteWarningDiv) { deleteWarningDiv.dataset.lastScanText = `ZADNJI DODAN: ${newItem.time} = ${newItem.amount.toFixed(2)} €`; handleInfoDeleteMessageVisibility(); } hideManualEntryModal(); const manualEntryDetails = { amount: parsedAmount, time: parsedTime, sessionInvoiceNumber: povijest.length, isManual: true }; sendLogData({ Event: 'manual_entry_added', Details: JSON.stringify(manualEntryDetails) }); }
     function cancelManualEntry() { if (!manualEntryModalOverlay) return; playSound('click-sound'); hideManualEntryModal(); sendLogData({ Event: 'manual_entry_cancelled' }); }
-    function globalClickListener(event) { if (cameraSelectionOverlay && cameraSelectionOverlay.style.display === 'block') { const isClickInsideOverlay = cameraSelectionOverlay.contains(event.target); const isClickOnSwitchButton = switchCameraButton && switchCameraButton.contains(event.target); if (!isClickInsideOverlay && !isClickOnSwitchButton) { cameraSelectionOverlay.style.display = 'none'; } } if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { const manualEntryModalContent = document.getElementById('manual-entry-modal-content'); const isClickInsideModalContent = manualEntryModalContent && manualEntryModalContent.contains(event.target); const isClickOnManualEntryBtn = manualEntryBtn && manualEntryBtn.contains(event.target); if (!isClickInsideModalContent && !isClickOnManualEntryBtn) { cancelManualEntry(); } } const isClickOnRemoveButton = removeButton && removeButton.contains(event.target); const isClickOnOcistiButton = ocistiButton && ocistiButton.contains(event.target); const isClickOnNameInput = sessionNameInput && sessionNameInput.contains(event.target); const isClickOnAddNameBtn = addNameBtn && addNameBtn.contains(event.target); const isClickOnEditIcon = event.target.classList.contains('edit-icon'); const isClickInsideNameArea = isClickOnNameInput || isClickOnAddNameBtn || isClickOnEditIcon; if ((removeConfirm || removeNameConfirm) && !isClickOnRemoveButton) { resetRemoveMode(); } if (ocistiConfirm && !isClickOnOcistiButton) { resetOcistiMode(); } if (sessionNameInput && sessionNameInput.style.display === 'block' && !isClickInsideNameArea) { saveName(); } }
+    function globalClickListener(event) { if (cameraSelectionOverlay && cameraSelectionOverlay.style.display === 'block') { const isClickInsideOverlay = cameraSelectionOverlay.contains(event.target); const isClickOnSwitchButton = switchCameraButton && switchCameraButton.contains(event.target); if (!isClickInsideOverlay && !isClickOnSwitchButton) { cameraSelectionOverlay.style.display = 'none'; } } if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { const manualEntryModalContent = document.getElementById('manual-entry-modal-content'); const isClickInsideModalContent = manualEntryModalContent && manualEntryModalContent.contains(event.target); const isClickOnManualEntryBtn = manualEntryBtn && manualEntryBtn.contains(event.target); if (!isClickInsideModalContent && !isClickOnManualEntryBtn) { cancelManualEntry(); } } const isClickOnRemoveButton = removeButton && removeButton.contains(event.target); const isClickOnOcistiButton = ocistiButton && ocistiButton.contains(event.target); const isClickOnNameInput = (sessionNameInput && sessionNameInput.contains(event.target)) || (sortNameInput && sortNameInput.contains(event.target)); const isClickOnAddNameBtn = (addNameBtn && addNameBtn.contains(event.target)) || (sortAddNameBtn && sortAddNameBtn.contains(event.target)); const isClickOnEditIcon = event.target.classList.contains('edit-icon'); const isClickInsideNameArea = isClickOnNameInput || isClickOnAddNameBtn || isClickOnEditIcon; if ((removeConfirm || removeNameConfirm) && !isClickOnRemoveButton) { resetRemoveMode(); } if (ocistiConfirm && !isClickOnOcistiButton) { resetOcistiMode(); } if ((sessionNameInput && sessionNameInput.style.display === 'block' && !isClickInsideNameArea) || (sortNameInput && sortNameInput.style.display === 'block' && !isClickInsideNameArea)) { saveName(); } }
     function switchToScannerView() { console.log("switchToScannerView: Pokrenuto."); document.body.style.backgroundColor = ''; if (document.body.classList.contains('scanner-view') && !isScannerActive) { console.log("switchToScannerView: Skener nije aktivan, inicijaliziram..."); initializeScanner(); } document.body.classList.remove('history-view', 'ads-view', 'sort-view'); document.body.classList.add('scanner-view'); updateDisplay(); requestAnimationFrame(initializeScanner); if (!visibilityListenerAttached) { attachVisibilityListener(); } }
     function switchToHistoryView() { console.log("switchToHistoryView: Pokrenuto."); if (document.body.classList.contains('history-view')) return; if (removeConfirm || removeNameConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } stopScanner().finally(() => { document.body.style.backgroundColor = ''; document.body.classList.remove('scanner-view', 'ads-view', 'sort-view'); document.body.classList.add('history-view'); currentlyViewedDate = new Date(); currentlyViewedDate.setHours(0, 0, 0, 0); previousHistoryViewState = 'day-view'; renderHistoryView(currentlyViewedDate); }); }
     function switchToAdsView() { console.log("switchToAdsView: Pokrenuto."); playSound('click-sound'); sendLogData({ Event: 'ads_page_opened' }); stopScanner().finally(() => { document.body.classList.remove('scanner-view', 'history-view', 'sort-view'); document.body.classList.add('ads-view'); document.body.style.backgroundColor = adsConfiguration.defaultBgColor || '#f0f2f5'; renderAdsPage(); }); }
     
-    // NOVA FUNKCIJA ZA PRIJELAZ NA SORT VIEW
     function switchToSortView() {
         console.log("switchToSortView: Pokrenuto.");
         if (document.body.classList.contains('sort-view')) return;
@@ -755,40 +718,45 @@ function startRemoveFromList() {
             document.body.style.backgroundColor = '';
             document.body.classList.remove('scanner-view', 'ads-view', 'history-view');
             document.body.classList.add('sort-view');
+            discardedInvoices.clear(); // Resetiraj odbačene pri svakom ulasku
+            sortPageTotal = ukupno; // Postavi početni total
             renderSortView();
         });
     }
 
-    // NOVA FUNKCIJA ZA RENDERIRANJE SORT VIEW-A
     function renderSortView() {
         if (!sortListUl || !sortSummaryCountSpan || !sortSummaryTotalSpan) return;
 
-        // Sortiranje kopije polja
         const sortedInvoices = [...povijest].sort((a, b) => {
             const timeA = parseTime(a.time);
             const timeB = parseTime(b.time);
-            if (timeA === -1 && timeB !== -1) return 1; // ?? ide na kraj
+            if (timeA === -1 && timeB !== -1) return 1; 
             if (timeA !== -1 && timeB === -1) return -1;
             if (timeA === -1 && timeB === -1) return (a.scanTimestamp || 0) - (b.scanTimestamp || 0);
             return timeA - timeB;
         });
 
-        // Generiranje HTML-a za listu
         sortListUl.innerHTML = '';
         sortedInvoices.forEach((item, index) => {
             const listItem = document.createElement('li');
+            listItem.dataset.qrcode = item.qrCode;
+            const isDiscarded = discardedInvoices.has(item.qrCode);
+            if(isDiscarded) {
+                listItem.classList.add('discarded');
+            }
             listItem.innerHTML = `
-                <span class="invoice-time">${index + 1}. ${item.time}</span>
-                <span class="invoice-amount">${item.amount.toFixed(2)} €</span>
+                <div class="invoice-details">
+                    <span class="invoice-time">${index + 1}. ${item.time}</span>
+                    <span class="invoice-amount">${item.amount.toFixed(2)} €</span>
+                </div>
+                <span class="discard-toggle" role="button" title="Uključi/isključi iz zbroja">${isDiscarded ? '⨷' : '✔'}</span>
             `;
             sortListUl.appendChild(listItem);
         });
 
-        // Ažuriranje podnožja
-        sortSummaryCountSpan.textContent = `RAČUNA: ${povijest.length}`;
-        sortSummaryTotalSpan.textContent = `UKUPNO: ${ukupno.toFixed(2)} €`;
+        updateSortPageSummary();
+        updateNameDisplay();
 
-        // Resetiranje gumba za potvrdu
         sortClearAllBtn.dataset.confirming = 'false';
         sortClearAllBtn.textContent = 'OBRIŠI SVE';
         sortClearAllBtn.classList.remove('confirm-mode');
@@ -796,6 +764,39 @@ function startRemoveFromList() {
         sortSaveBtn.textContent = 'SPREMI';
         sortSaveBtn.classList.remove('confirm-mode');
     }
+
+    function updateSortPageSummary() {
+        const includedInvoices = povijest.filter(item => !discardedInvoices.has(item.qrCode));
+        const count = includedInvoices.length;
+        sortPageTotal = includedInvoices.reduce((sum, item) => sum + item.amount, 0);
+
+        sortSummaryCountSpan.textContent = `RAČUNA: ${count}`;
+        sortSummaryTotalSpan.textContent = `UKUPNO: ${sortPageTotal.toFixed(2)} €`;
+    }
+
+    function handleDiscardToggle(event) {
+        const toggle = event.target.closest('.discard-toggle');
+        if (!toggle) return;
+
+        const li = toggle.closest('li');
+        const qrCode = li.dataset.qrcode;
+        if (!qrCode) return;
+        
+        playSound('click-sound');
+
+        if (discardedInvoices.has(qrCode)) {
+            discardedInvoices.delete(qrCode);
+            li.classList.remove('discarded');
+            toggle.textContent = '✔';
+        } else {
+            discardedInvoices.add(qrCode);
+            li.classList.add('discarded');
+            toggle.textContent = '⨷';
+        }
+
+        updateSortPageSummary();
+    }
+
 
     function generateSmartLink(contactInfo) { if (!contactInfo || typeof contactInfo !== 'string') return ''; contactInfo = contactInfo.trim(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo)) { return `<a href="mailto:${contactInfo}">${contactInfo}</a>`; } const phoneDigits = contactInfo.replace(/[\s-]/g, ''); if (/^(\+)?\d+$/.test(phoneDigits)) { return `<a href="tel:${phoneDigits}">${contactInfo}</a>`; } return `<span>${contactInfo}</span>`; }
     function renderAdsPage() { if (!adsContentDiv) return; let adsHtml = ''; if (adsConfiguration.adsList && adsConfiguration.adsList.length > 0) { adsConfiguration.adsList.forEach((ad, adIndex) => { const bgColor = ad.bgColor || '#f9f9f9'; const hasMedia = ad.media && ad.media.length > 0; let mediaHtml = ''; if (hasMedia) { ad.media.forEach((item, mediaIndex) => { const activeClass = mediaIndex === 0 ? 'active' : ''; if (item.type === 'image') { mediaHtml += `<img src="${item.src}" alt="${ad.nazivFirme}" class="ad-gallery-item ${activeClass}" data-ad-index="${adIndex}" data-media-index="${mediaIndex}">`; } else if (item.type === 'video') { if (item.src.includes('youtube.com/embed')) { mediaHtml += `<iframe src="${item.src}" class="ad-gallery-item is-iframe ${activeClass}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></iframe>`; } else { mediaHtml += `<video src="${item.src}" class="ad-gallery-item ${activeClass}" controls data-ad-index="${adIndex}" data-media-index="${mediaIndex}"></video>`; } } }); } const galleryControls = ad.media.length > 1 ? `<button class="ad-gallery-nav prev" data-ad-index="${adIndex}" data-direction="-1">&lt;</button><button class="ad-gallery-nav next" data-ad-index="${adIndex}" data-direction="1">&gt;</button><div class="ad-gallery-counter" id="counter-ad-${adIndex}">1 / ${ad.media.length}</div>` : ''; const contactHtml = ad.kontakt ? `<div class="ad-contact-container"><strong>KONTAKT:</strong> ${generateSmartLink(ad.kontakt)}</div>` : ''; const webLinkHtml = ad.web ? `<div class="ad-web-link-container"><a href="${ad.web}" target="_blank" class="ad-web-link">Posjetite našu web stranicu</a></div>` : ''; const shareButtonHtml = `<div style="text-align: center;"><button class="ad-share-btn" data-ad-index="${adIndex}">PODIJELI</button></div>`; adsHtml += `<div class="ad-card" id="ad-card-${adIndex}" style="background-color: ${bgColor};">${ad.nazivFirme ? `<div class="ad-title">${ad.nazivFirme}</div>` : ''}${hasMedia ? `<div class="ad-gallery-container" id="gallery-ad-${adIndex}">${mediaHtml}${galleryControls}</div>` : ''}${ad.tekst ? `<div class="ad-text">${ad.tekst}</div>` : ''}${contactHtml}${webLinkHtml}${shareButtonHtml}</div>`; }); } else { adsHtml = '<p style="text-align:center; color: grey; padding: 2em 0;">Trenutno nema dostupnih ponuda.</p>'; } if (adsFooterText && adsFooterText.trim() !== "") { adsHtml += `<div id="ads-footer-promo">${adsFooterText}</div>`; } adsContentDiv.innerHTML = adsHtml; }
@@ -884,7 +885,6 @@ function startRemoveFromList() {
         pwaInstallLaterBtn = document.getElementById('pwa-install-later-btn');
         pwaInstallNeverBtn = document.getElementById('pwa-install-never-btn');
         
-        // NOVO: Dohvaćanje elemenata za sort page
         sortPageDiv = document.getElementById('sort-page');
         backToScannerFromSortBtn = document.getElementById('back-to-scanner-from-sort-btn');
         sortClearAllBtn = document.getElementById('sort-clear-all-btn');
@@ -894,6 +894,8 @@ function startRemoveFromList() {
         sortSummaryTotalSpan = document.getElementById('sort-summary-total');
         sortAddNameBtn = document.getElementById('sort-add-name-btn');
         sortSaveBtn = document.getElementById('sort-save-btn');
+        sortNameInput = document.getElementById('sort-name-input');
+        sortNameWrapper = document.getElementById('sort-name-wrapper');
 
 
         if (!readerDiv || !historyPageDiv || !adsPageDiv || !fullscreenModal || !sortPageDiv) { console.error("GREŠKA: Nedostaju kritični DOM elementi!"); document.body.innerHTML = '<div style="padding: 20px; color: red; font-weight: bold;">Greška pri učitavanju aplikacije.</div>'; return; }
@@ -904,7 +906,6 @@ function startRemoveFromList() {
 
         document.body.addEventListener('click', globalClickListener, true);
         
-        // AŽURIRANI EVENT LISTENER
         historyToggleButton.addEventListener('click', () => {
             playSound('click-sound');
             if (historyToggleButton.classList.contains('sort-mode')) {
@@ -923,13 +924,10 @@ function startRemoveFromList() {
         fullscreenNextBtn.addEventListener('click', () => changeFullscreenMedia(1));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fullscreenState.isOpen) { closeFullscreen(); } });
         
-        // NOVI EVENT LISTENERI ZA SORT PAGE
         backToScannerFromSortBtn.addEventListener('click', () => { playSound('click-sound'); switchToScannerView(); });
-        sortAddNameBtn.addEventListener('click', () => {
-            switchToScannerView();
-            // Mali timeout da se osigura prijelaz prije otvaranja inputa
-            setTimeout(startAddName, 50);
-        });
+        sortAddNameBtn.addEventListener('click', startAddName);
+        sortListUl.addEventListener('click', handleDiscardToggle);
+
         sortClearAllBtn.addEventListener('click', () => {
             playSound('click-sound');
             if (sortClearAllBtn.dataset.confirming !== 'true') {
@@ -939,7 +937,7 @@ function startRemoveFromList() {
             } else {
                 povijest = [];
                 ukupno = 0;
-                currentSessionName = null; // Opcionalno, ovisno o željenoj logici
+                // Naziv se ne briše automatski, korisnik to može preko gumba "Obriši iz liste"
                 playSound('remove-sound');
                 switchToScannerView();
             }
@@ -951,11 +949,18 @@ function startRemoveFromList() {
                 sortSaveBtn.textContent = 'POTVRDI SPREMANJE?';
                 sortSaveBtn.classList.add('confirm-mode');
             } else {
-                ocistiTrenutnoSkeniranje();
-                playSound('clear-session-sound');
+                const invoicesToSave = povijest.filter(item => !discardedInvoices.has(item.qrCode));
+                if (invoicesToSave.length > 0 || currentSessionName) {
+                    ocistiTrenutnoSkeniranje(invoicesToSave);
+                    playSound('clear-session-sound');
+                } else {
+                    alert("Nema računa za spremanje.");
+                }
                 switchToScannerView();
             }
         });
+        sortNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveName(); } else if (e.key === 'Escape') { e.preventDefault(); sortNameInput.value = currentSessionName || ''; saveName(); } });
+        sortNameInput.addEventListener('blur', saveName);
 
 
         if (navigator.share) { shareButton.style.display = 'block'; shareButton.addEventListener('click', async () => { if (removeConfirm || removeNameConfirm) resetRemoveMode(); if (ocistiConfirm) resetOcistiMode(); if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { hideManualEntryModal(); } const shareData = { title: 'QR SKENER-RAČUNATOR', text: 'Skenira i zbraja račune bez instaliranja. Isprobaj!', url: 'https://soboslikar.github.io/QR-RACUNATOR/' }; try { await navigator.share(shareData); sendLogData({ Event: 'share_success' }); } catch (err) { if (err.name === 'AbortError') { sendLogData({ Event: 'share_cancelled' }); } else { showTemporaryMessage(loadedMsg, "Dijeljenje neuspješno.", 1500); sendLogData({ Event: 'share_failed', Details: err.message }); } } finally { if (brojac === 0 && brojac2 > 0) { brojac = brojac2; saveBrojac(); sendLogData({ Event: 'share_counter_reset', Details: brojac }); } checkSharePrompt(); updateRunningTextVisibility(); updateDeactivatedIndicator(); } }); } else { shareButton.style.display = 'none'; }
