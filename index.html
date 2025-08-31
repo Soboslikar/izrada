@@ -689,7 +689,6 @@ function startRemoveFromList() {
   
     function startOcistiConfirm() { if (!ocistiButton || !document.body.classList.contains('scanner-view')) return; if (manualEntryModalOverlay && manualEntryModalOverlay.style.display === 'flex') { cancelManualEntry(); } if (!ocistiConfirm) { ocistiButton.innerHTML = ocistiConfirmText; ocistiButton.classList.add('confirm-mode'); ocistiConfirm = true; sendLogData({ Event: 'save_session_prompt' }); } else { ocistiTrenutnoSkeniranje(); resetOcistiMode(); playSound('clear-session-sound'); } }
     
-    // ISPRAVLJENA FUNKCIJA
     function ocistiTrenutnoSkeniranje(invoicesToSave) {
         if (invoicesToSave === undefined) {
             invoicesToSave = povijest;
